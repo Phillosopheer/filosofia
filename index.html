@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ფილოსოფია</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;700&family=Noto+Serif+Georgian:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;700&family=Noto+Serif+Georgian:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg: #0d0d0e; --card: #161618; --accent: #3b82f6;
@@ -15,27 +15,31 @@
             --text-main: #1d1d1f; --text-dim: #6e6e73; --border: rgba(0, 0, 0, 0.1);
         }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Noto Sans Georgian', sans-serif; }
-        body { background: var(--bg); color: var(--text-main); transition: 0.3s; }
+        body { background: var(--bg); color: var(--text-main); transition: background 0.3s; overflow-x: hidden; }
 
         /* Header */
         .nav-header {
-            position: fixed; top: 0; width: 100%; height: 65px;
+            position: fixed; top: 0; left: 0; width: 100%; height: 65px;
             background: var(--bg); border-bottom: 1px solid var(--border);
             display: flex; align-items: center; justify-content: space-between;
-            padding: 0 25px; z-index: 1000; backdrop-filter: blur(10px);
+            padding: 0 20px; z-index: 1000; backdrop-filter: blur(10px);
         }
-        .logo { font-size: 20px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; }
+        .logo { font-size: 20px; font-weight: 700; color: var(--accent); letter-spacing: 1px; }
         .search-bar {
             background: rgba(255,255,255,0.05); border: 1px solid var(--border);
-            padding: 8px 15px; border-radius: 12px; color: var(--text-main); width: 40%; outline: none;
+            padding: 8px 15px; border-radius: 12px; color: var(--text-main); width: 100%; max-width: 350px; outline: none; margin: 0 10px;
         }
 
-        /* Sidebar */
+        /* Sidebar & Menu Toggle */
+        .menu-toggle { display: none; background: none; border: none; color: var(--text-main); font-size: 24px; cursor: pointer; }
+        
         .sidebar {
-            position: fixed; top: 65px; left: 0; width: 260px; height: 100vh;
+            position: fixed; top: 65px; left: -280px; width: 260px; height: calc(100vh - 65px);
             background: var(--card); border-right: 1px solid var(--border);
-            padding: 30px 15px; z-index: 900;
+            padding: 30px 15px; z-index: 900; transition: left 0.3s ease; overflow-y: auto;
         }
+        .sidebar.active { left: 0; }
+        
         .cat-link {
             padding: 12px 15px; margin-bottom: 5px; border-radius: 10px;
             color: var(--text-dim); cursor: pointer; transition: 0.2s;
@@ -43,96 +47,109 @@
         .cat-link:hover, .cat-link.active { background: rgba(59, 130, 246, 0.1); color: var(--accent); font-weight: 600; }
 
         /* Main Content */
-        .content-wrapper { margin-left: 260px; margin-top: 65px; padding: 40px; max-width: 900px; }
-        .hero-title { font-size: 42px; margin-bottom: 20px; font-family: 'Noto Serif Georgian', serif; }
+        .content-wrapper { margin-top: 65px; padding: 30px 20px; max-width: 900px; margin-left: auto; margin-right: auto; transition: margin-left 0.3s ease; }
+        .hero-title { font-size: 38px; margin-bottom: 20px; font-family: 'Noto Serif Georgian', serif; }
 
-        /* Cards */
+        /* Article Cards */
         .article-card {
             background: var(--card); border: 1px solid var(--border);
             padding: 25px; border-radius: 18px; margin-bottom: 20px;
-            position: relative; transition: 0.3s; cursor: pointer;
+            position: relative; transition: 0.2s; cursor: pointer;
         }
-        .article-card:hover { border-color: var(--accent); transform: translateY(-3px); }
-        .article-card h3 { font-family: 'Noto Serif Georgian', serif; margin-bottom: 10px; color: var(--accent); }
+        .article-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+        .article-card h3 { font-family: 'Noto Serif Georgian', serif; margin-bottom: 10px; color: var(--accent); font-size: 22px; }
         
-        .card-actions { position: absolute; top: 20px; right: 20px; display: flex; gap: 12px; }
-        .action-btn { background: none; border: none; cursor: pointer; font-size: 16px; opacity: 0.4; transition: 0.2s; }
+        .card-actions { position: absolute; top: 20px; right: 20px; display: flex; gap: 15px; }
+        .action-btn { background: none; border: none; cursor: pointer; font-size: 18px; opacity: 0.5; transition: 0.2s; }
         .action-btn:hover { opacity: 1; transform: scale(1.1); }
 
-        /* Modal & Editor */
+        /* Modals & Editor */
         .modal {
             position: fixed; inset: 0; background: rgba(0,0,0,0.9);
-            display: none; z-index: 2000; padding: 30px; overflow-y: auto;
+            display: none; z-index: 2000; padding: 20px; overflow-y: auto;
         }
         .modal.active { display: flex; flex-direction: column; align-items: center; }
-        .editor-box { width: 100%; max-width: 800px; background: var(--card); padding: 30px; border-radius: 20px; border: 1px solid var(--border); }
+        .editor-box { width: 100%; max-width: 800px; background: var(--card); padding: 30px; border-radius: 20px; border: 1px solid var(--border); box-shadow: 0 10px 40px rgba(0,0,0,0.5); margin: auto; }
         
-        .toolbar { display: flex; flex-wrap: wrap; gap: 10px; padding: 10px; background: var(--bg); border-radius: 10px; margin-bottom: 15px; }
-        .toolbar button, .toolbar select, .toolbar input { background: var(--card); border: 1px solid var(--border); color: var(--text-main); padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+        .toolbar { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px; background: var(--bg); border-radius: 10px; margin-bottom: 15px; border: 1px solid var(--border); }
+        .toolbar button, .toolbar select, .toolbar input { background: var(--card); border: 1px solid var(--border); color: var(--text-main); padding: 6px 12px; border-radius: 5px; cursor: pointer; }
         
-        #editor { min-height: 350px; outline: none; font-size: 18px; line-height: 1.7; font-family: 'Noto Serif Georgian', serif; color: var(--text-main); }
+        #editor { min-height: 250px; outline: none; font-size: 18px; line-height: 1.7; font-family: 'Noto Serif Georgian', serif; color: var(--text-main); padding: 10px 0; }
 
         .fab {
-            position: fixed; bottom: 35px; right: 35px; width: 60px; height: 60px;
+            position: fixed; bottom: 35px; right: 35px; width: 65px; height: 65px;
             background: var(--accent); color: white; border-radius: 50%;
-            border: none; font-size: 30px; cursor: pointer; box-shadow: 0 8px 20px rgba(59,130,246,0.3); z-index: 1000;
+            border: none; font-size: 35px; cursor: pointer; box-shadow: 0 8px 20px rgba(59,130,246,0.4); z-index: 1000;
+            display: none; align-items: center; justify-content: center;
         }
 
-        @media (max-width: 1024px) { .sidebar { display: none; } .content-wrapper { margin-left: 0; } }
+        /* Responsive Design */
+        @media (min-width: 1024px) {
+            .sidebar { left: 0; }
+            .content-wrapper { margin-left: 260px; max-width: calc(100% - 260px); padding: 40px; }
+            .menu-toggle { display: none; }
+        }
+        @media (max-width: 1024px) {
+            .nav-header { padding: 0 15px; }
+            .menu-toggle { display: block; }
+        }
     </style>
 </head>
 <body id="body">
 
     <header class="nav-header">
-        <div class="logo">ფილოსოფია</div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('active')">☰</button>
+            <div class="logo">ფილოსოფია</div>
+        </div>
         <input type="text" class="search-bar" id="search" placeholder="ძიება..." onkeyup="renderNotes()">
-        <button onclick="toggleTheme()" style="background:none; border:none; font-size:20px; cursor:pointer;">🌓</button>
+        <button onclick="toggleTheme()" style="background:none; border:none; font-size:22px; cursor:pointer;">🌓</button>
     </header>
 
     <aside class="sidebar" id="sidebar">
         <div class="cat-link active" id="homeBtn" onclick="goHome()">🏠 მთავარი</div>
-        <div style="margin: 25px 0 10px 15px; font-size: 11px; color: #555; text-transform: uppercase;">კატეგორიები</div>
+        <div style="margin: 25px 0 10px 15px; font-size: 11px; color: var(--text-dim); text-transform: uppercase;">კატეგორიები</div>
         <div id="categoryList"></div>
     </aside>
 
     <main class="content-wrapper" id="contentArea"></main>
 
-    <button class="fab" id="fabBtn" onclick="openModal()" style="display: none;">+</button>
+    <button class="fab" id="fabBtn" onclick="openModal()">+</button>
 
     <div class="modal" id="modal">
         <div class="editor-box">
-            <input type="text" id="inputTitle" placeholder="სათაური..." style="width:100%; background:none; border:none; border-bottom:1px solid var(--border); color:var(--text-main); font-size:28px; padding-bottom:15px; margin-bottom:20px; outline:none;">
+            <input type="text" id="inputTitle" placeholder="სათაური..." style="width:100%; background:none; border:none; border-bottom:1px solid var(--border); color:var(--text-main); font-size:24px; padding-bottom:15px; margin-bottom:20px; outline:none; font-weight:bold;">
             
             <div class="toolbar">
-                <button onclick="execCmd('bold')"><b>B</b></button>
-                <button onclick="execCmd('italic')"><i>I</i></button>
+                <button onclick="execCmd('bold')" title="გასქელება"><b>B</b></button>
+                <button onclick="execCmd('italic')" title="დახრა"><i>I</i></button>
                 <select onchange="execCmd('fontSize', this.value)">
                     <option value="3">ზომა</option>
                     <option value="2">პატარა</option>
                     <option value="4">დიდი</option>
-                    <option value="6">XL</option>
+                    <option value="6">ძალიან დიდი</option>
                 </select>
-                <input type="color" onchange="execCmd('foreColor', this.value)">
+                <input type="color" onchange="execCmd('foreColor', this.value)" title="ფერი">
                 <select onchange="execCmd('fontName', this.value)">
-                    <option value="'Noto Serif Georgian'">Serif</option>
-                    <option value="'Noto Sans Georgian'">Sans</option>
+                    <option value="'Noto Serif Georgian'">Serif (აკადემიური)</option>
+                    <option value="'Noto Sans Georgian'">Sans (თანამედროვე)</option>
                 </select>
             </div>
 
-            <div id="editor" contenteditable="true"></div>
+            <div id="editor" contenteditable="true" placeholder="დაიწყეთ წერა..."></div>
 
             <div style="display: flex; gap: 15px; margin-top: 30px;">
-                <button onclick="saveNote()" id="saveBtn" style="flex:1; padding:15px; background:var(--accent); color:white; border:none; border-radius:12px; font-weight:700; cursor:pointer;">💾 შენახვა</button>
+                <button onclick="saveNote()" id="saveBtn" style="flex:1; padding:15px; background:var(--accent); color:white; border:none; border-radius:12px; font-weight:700; cursor:pointer; font-size:16px;">💾 შენახვა</button>
                 <button onclick="closeModal()" style="padding:15px 25px; background:rgba(255,255,255,0.05); color:var(--text-main); border:1px solid var(--border); border-radius:12px; cursor:pointer;">გაუქმება</button>
             </div>
         </div>
     </div>
 
     <div class="modal" id="viewModal" onclick="closeView()">
-        <div class="editor-box" onclick="event.stopPropagation()" style="background:none; border:none;">
-            <h1 id="viewTitle" style="font-size: 40px; margin-bottom: 30px; font-family: 'Noto Serif Georgian', serif;"></h1>
+        <div class="editor-box" onclick="event.stopPropagation()" style="background:var(--bg); border:none;">
+            <h1 id="viewTitle" style="font-size: 34px; margin-bottom: 30px; font-family: 'Noto Serif Georgian', serif; color: var(--accent);"></h1>
             <div id="viewContent" style="font-size: 19px; line-height: 1.8; font-family: 'Noto Serif Georgian', serif;"></div>
-            <button onclick="closeView()" style="margin-top:40px; padding:10px 20px; background:var(--accent); color:white; border:none; border-radius:8px; cursor:pointer;">უკან დაბრუნება</button>
+            <button onclick="closeView()" style="width: 100%; margin-top:40px; padding:15px; background:rgba(255,255,255,0.05); color:var(--text-main); border:1px solid var(--border); border-radius:12px; cursor:pointer; font-weight:bold;">დახურვა</button>
         </div>
     </div>
 
@@ -142,7 +159,10 @@
         let currentCategory = null;
         let editingId = null;
 
-        function execCmd(cmd, val) { document.execCommand(cmd, false, val); document.getElementById('editor').focus(); }
+        function execCmd(cmd, val) { 
+            document.execCommand(cmd, false, val); 
+            document.getElementById('editor').focus(); 
+        }
 
         async function syncData() {
             try {
@@ -150,16 +170,165 @@
                 const data = await res.json();
                 notes = data ? Object.entries(data).map(([key, value]) => ({...value, firebaseId: key})) : [];
                 if (!currentCategory) goHome(); else renderNotes();
-            } catch (e) { console.error(e); }
+            } catch (e) { 
+                console.error("Firebase Error:", e); 
+                alert("მონაცემები ვერ ჩაიტვირთა. შეამოწმეთ ინტერნეტი.");
+            }
         }
 
         function goHome() {
-            currentCategory = null; editingId = null;
+            currentCategory = null; 
+            editingId = null;
             document.querySelectorAll('.cat-link').forEach(l => l.classList.remove('active'));
             document.getElementById('homeBtn').classList.add('active');
             document.getElementById('fabBtn').style.display = 'none';
             document.getElementById('contentArea').innerHTML = `
-                <div style="padding-top: 40px;">
-                    <h1 class="hero-title">ფილოსოფიური <br> ხედვა</h1>
+                <div style="padding-top: 20px;">
+                    <h1 class="hero-title">ფილოსოფიური სივრცე</h1>
                     <p style="font-size: 1.2rem; color: var(--text-dim); max-width: 650px; line-height: 1.8;">
-                        ეს არის თქვენი პირადი და საჯარო სივრცე. ადგილი, სადაც ყოველი არგუმენტი ინახება და ყოველი მსჯელობა პოულობს თავის ადგილს
+                        ეს არის თქვენი პირადი და საჯარო სივრცე. ადგილი, სადაც ყოველი არგუმენტი ინახება და ყოველი მსჯელობა პოულობს თავის ადგილს. 
+                        დაათვალიერეთ კატეგორიები (მენიუდან) იდეების აღმოსაჩენად ან დასამატებლად.
+                    </p>
+                </div>`;
+            if(window.innerWidth < 1024) document.getElementById('sidebar').classList.remove('active');
+        }
+
+        function renderNotes() {
+            const area = document.getElementById('contentArea');
+            const search = document.getElementById('search').value.toLowerCase();
+            if(!currentCategory) return;
+            
+            // დაცული ძებნა ერორების თავიდან ასაცილებლად
+            let filtered = notes.filter(n => {
+                if(n.category !== currentCategory.id) return false;
+                const safeTitle = (n.title || "").toLowerCase();
+                const safeContent = (n.content || "").replace(/<[^>]*>/g, '').toLowerCase();
+                return safeTitle.includes(search) || safeContent.includes(search);
+            });
+            
+            let html = `<h2 style="margin-bottom:25px; font-family: 'Noto Serif Georgian', serif; font-size:28px;">${currentCategory.name}</h2>`;
+            
+            if(filtered.length === 0) {
+                html += `<p style="color: var(--text-dim);">ამ კატეგორიაში ჩანაწერები ჯერ არ არის. დააჭირეთ + ღილაკს დასამატებლად.</p>`;
+            } else {
+                html += filtered.sort((a,b) => b.id - a.id).map(n => `
+                    <div class="article-card" onclick="openFullView('${n.firebaseId}')">
+                        <div class="card-actions">
+                            <button class="action-btn" onclick="editNote('${n.firebaseId}', event)" title="ჩასწორება">✏️</button>
+                            <button class="action-btn" onclick="deleteNote('${n.firebaseId}', event)" title="წაშლა">🗑️</button>
+                        </div>
+                        <h3>${n.title || "უსათაურო"}</h3>
+                        <p style="color: var(--text-dim); font-size: 15px; line-height: 1.6;">
+                            ${(n.content || "").replace(/<[^>]*>/g, '').substring(0, 160)}...
+                        </p>
+                    </div>
+                `).join('');
+            }
+            area.innerHTML = html;
+        }
+
+        function openModal() { 
+            document.getElementById('inputTitle').value = "";
+            document.getElementById('editor').innerHTML = "";
+            editingId = null;
+            document.getElementById('modal').classList.add('active'); 
+        }
+
+        function closeModal() { 
+            document.getElementById('modal').classList.remove('active'); 
+            editingId = null; 
+        }
+
+        function editNote(id, e) {
+            e.stopPropagation();
+            const note = notes.find(n => n.firebaseId === id);
+            if(!note) return;
+            editingId = id;
+            document.getElementById('inputTitle').value = note.title || "";
+            document.getElementById('editor').innerHTML = note.content || "";
+            document.getElementById('modal').classList.add('active');
+        }
+
+        async function saveNote() {
+            const title = document.getElementById('inputTitle').value.trim();
+            const content = document.getElementById('editor').innerHTML.trim();
+            
+            if(!title || content === "" || content === "<br>") {
+                alert("გთხოვთ შეავსოთ სათაური და ტექსტი!");
+                return;
+            }
+
+            const btn = document.getElementById('saveBtn');
+            btn.disabled = true;
+            btn.innerText = "ინახება...";
+
+            const url = editingId ? `${DB_URL}/${editingId}.json` : `${DB_URL}.json`;
+            const method = editingId ? 'PUT' : 'POST';
+
+            try {
+                await fetch(url, { 
+                    method, 
+                    body: JSON.stringify({
+                        id: editingId ? notes.find(n => n.firebaseId === editingId).id : Date.now(),
+                        category: currentCategory.id,
+                        title, content, date: new Date().toLocaleString('ka-GE')
+                    }) 
+                });
+                editingId = null;
+                await syncData();
+                closeModal();
+            } catch(e) {
+                alert("ვერ მოხერხდა შენახვა!");
+            }
+            
+            btn.disabled = false;
+            btn.innerText = "💾 შენახვა";
+        }
+
+        async function deleteNote(id, e) {
+            e.stopPropagation();
+            if(confirm("ნამდვილად გსურთ ამ ჩანაწერის წაშლა?")) {
+                await fetch(`${DB_URL}/${id}.json`, { method: 'DELETE' });
+                syncData();
+            }
+        }
+
+        function openFullView(id) {
+            const note = notes.find(n => n.firebaseId === id);
+            if(!note) return;
+            document.getElementById('viewTitle').innerText = note.title || "უსათაურო";
+            document.getElementById('viewContent').innerHTML = note.content || "";
+            document.getElementById('viewModal').classList.add('active');
+        }
+
+        function closeView() { document.getElementById('viewModal').classList.remove('active'); }
+        function toggleTheme() { document.getElementById('body').classList.toggle('light-mode'); }
+
+        const CATEGORIES = [
+            { id: "epistemology", name: "ეპისტემოლოგია" },
+            { id: "metaphysics", name: "მეტაფიზიკა" },
+            { id: "ontology", name: "ონტოლოგია" },
+            { id: "logic", name: "ლოგიკა" },
+            { id: "ethics", name: "ეთიკა" }
+        ];
+
+        const list = document.getElementById('categoryList');
+        CATEGORIES.forEach(cat => {
+            const btn = document.createElement('div');
+            btn.className = 'cat-link';
+            btn.innerText = cat.name;
+            btn.onclick = () => {
+                currentCategory = cat;
+                document.querySelectorAll('.cat-link').forEach(l => l.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById('fabBtn').style.display = 'flex';
+                if(window.innerWidth < 1024) document.getElementById('sidebar').classList.remove('active');
+                renderNotes();
+            };
+            list.appendChild(btn);
+        });
+
+        syncData();
+    </script>
+</body>
+</html>
