@@ -18,19 +18,23 @@
         .sidebar.active { left: 0; }
         
         .main { margin-top: 80px; padding: 20px; max-width: 800px; margin-left: auto; margin-right: auto; }
-        .note-card { background: var(--card); border: 1px solid var(--border); border-radius: 15px; padding: 25px; margin-bottom: 20px; position: relative; }
-        .delete-btn { position: absolute; top: 15px; right: 15px; background: none; border: none; color: #ff4444; cursor: pointer; font-size: 18px; opacity: 0.3; }
-        .delete-btn:hover { opacity: 1; }
+        .note-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 15px; cursor: pointer; position: relative; }
+        .note-card:hover { border-color: var(--primary); transform: translateY(-2px); }
+        .note-card h3 { color: var(--primary); margin-bottom: 8px; }
+        .preview-text { font-size: 14px; color: #888; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         
+        .actions { position: absolute; top: 15px; right: 15px; display: flex; gap: 10px; }
+        .action-btn { background: none; border: none; cursor: pointer; font-size: 16px; opacity: 0.5; }
+        .action-btn:hover { opacity: 1; }
+
         .toolbar { display: flex; flex-wrap: wrap; gap: 8px; background: var(--bg); padding: 12px; border: 1px solid var(--border); border-radius: 12px 12px 0 0; }
         .toolbar button, .toolbar select, .toolbar input { background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 5px; cursor: pointer; border-radius: 5px; }
-        
-        #editor { min-height: 250px; background: var(--bg); border: 1px solid var(--border); padding: 15px; border-radius: 0 0 12px 12px; outline: none; color: var(--text); font-size: 16px; overflow-y: auto; }
+        #editor { min-height: 300px; background: var(--bg); border: 1px solid var(--border); padding: 15px; border-radius: 0 0 12px 12px; outline: none; overflow-y: auto; }
 
-        .fab { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background: var(--primary); border-radius: 50%; border: none; color: white; font-size: 30px; z-index: 100; display: none; align-items: center; justify-content: center; cursor: pointer; }
+        .fab { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background: var(--primary); border-radius: 50%; border: none; color: white; font-size: 30px; z-index: 100; display: none; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 300; display: none; align-items: center; justify-content: center; padding: 15px; }
         .modal.active { display: flex; }
-        .modal-box { background: var(--card); padding: 20px; border-radius: 20px; width: 100%; max-width: 700px; border: 1px solid var(--border); }
+        .modal-box { background: var(--card); padding: 20px; border-radius: 20px; width: 100%; max-width: 750px; border: 1px solid var(--border); max-height: 90vh; overflow-y: auto; }
         
         .cat-btn { width: 100%; padding: 14px; margin-bottom: 8px; background: none; border: 1px solid var(--border); color: var(--text); border-radius: 10px; text-align: left; cursor: pointer; }
         .cat-btn.active { border-color: var(--primary); color: var(--primary); background: rgba(59,130,246,0.1); }
@@ -59,29 +63,25 @@
 
     <div class="modal" id="modal">
         <div class="modal-box">
-            <input type="text" id="inputTitle" placeholder="სათაური" style="width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:12px; border-radius:10px; margin-bottom:10px; outline:none;">
-            
+            <input type="text" id="inputTitle" placeholder="არგუმენტის სათაური" style="width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:12px; border-radius:10px; margin-bottom:10px; outline:none; font-size:18px;">
             <div class="toolbar">
                 <button onclick="execCmd('bold')"><b>B</b></button>
                 <button onclick="execCmd('italic')"><i>I</i></button>
-                <select onchange="execCmd('fontSize', this.value)">
-                    <option value="3">ზომა</option>
-                    <option value="1">ძალიან პატარა</option>
-                    <option value="3">ნორმალური</option>
-                    <option value="5">დიდი</option>
-                    <option value="7">ძალიან დიდი</option>
-                </select>
+                <select onchange="execCmd('fontSize', this.value)"><option value="3">ზომა</option><option value="1">S</option><option value="3">M</option><option value="5">L</option><option value="7">XL</option></select>
                 <input type="color" onchange="execCmd('foreColor', this.value)">
-                <select onchange="execCmd('fontName', this.value)">
-                    <option value="'Noto Sans Georgian'">Sans</option>
-                    <option value="'Noto Serif Georgian'">Serif</option>
-                    <option value="'Fira Mono'">Mono</option>
-                </select>
+                <select onchange="execCmd('fontName', this.value)"><option value="'Noto Sans Georgian'">Sans</option><option value="'Noto Serif Georgian'">Serif</option><option value="'Fira Mono'">Mono</option></select>
             </div>
             <div id="editor" contenteditable="true"></div>
-
             <button onclick="saveNote()" id="saveBtn" style="width:100%; padding:15px; background:var(--primary); border:none; border-radius:10px; color:white; font-weight:700; margin-top:15px; cursor:pointer;">💾 შენახვა</button>
             <button onclick="closeModal()" style="width:100%; margin-top:10px; color:#666; background:none; border:none; cursor:pointer;">გაუქმება</button>
+        </div>
+    </div>
+
+    <div class="modal" id="viewModal">
+        <div class="modal-box">
+            <h1 id="viewTitle" style="color:var(--primary); margin-bottom:20px;"></h1>
+            <div id="viewContent" style="line-height:1.8; font-size:17px;"></div>
+            <button onclick="closeView()" style="width:100%; margin-top:30px; padding:12px; background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:10px; cursor:pointer;">დახურვა</button>
         </div>
     </div>
 
@@ -89,12 +89,9 @@
         const DB_URL = "https://gen-lang-client-0339684222-default-rtdb.firebaseio.com/notes";
         let notes = [];
         let currentCategory = null;
+        let editingId = null;
 
-        // ბრძანებების ფუნქცია - უფრო სტაბილური რედაქტირებისთვის
-        function execCmd(cmd, val) {
-            document.execCommand(cmd, false, val);
-            document.getElementById('editor').focus();
-        }
+        function execCmd(cmd, val) { document.execCommand(cmd, false, val); document.getElementById('editor').focus(); }
 
         async function syncData() {
             try {
@@ -107,55 +104,69 @@
 
         function goHome() {
             currentCategory = null;
+            editingId = null;
             document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('homeBtn').classList.add('active');
             document.getElementById('fabBtn').style.display = 'none';
-            
             document.getElementById('contentArea').innerHTML = `
                 <div style="padding-top: 30px;">
                     <h1 style="color:var(--primary); font-size: 2.5rem; margin-bottom: 20px;">მოგესალმებით</h1>
-                    <p style="font-size: 1.2rem; line-height: 1.8; color: #aaa;">
-                        ეს არის <strong>საჯარო ფილოსოფიური არქივი</strong>. <br><br>
-                        მნახველებისთვის: აქ თავმოყრილია სხვადასხვა მსჯელობები, არგუმენტები და იდეები ეთიკის, მეტაფიზიკის და სხვა სფეროების შესახებ. 
-                        შეგიძლიათ თავისუფლად დაათვალიეროთ კატეგორიები და გამოიყენოთ საძიებო ველი კონკრეტული თემების მოსაძებნად.
-                    </p>
-                    <div style="margin-top:40px; padding:20px; border-left:4px solid var(--primary); background:var(--card);">
-                        <small style="color:#666;">ავტორისთვის: ჩანაწერების დასამატებლად აირჩიეთ კატეგორია.</small>
-                    </div>
+                    <p style="font-size: 1.2rem; line-height: 1.8; color: #aaa;">ეს არის <strong>საჯარო ფილოსოფიური არქივი</strong>. დაათვალიერეთ კატეგორიები არგუმენტების წასაკითხად.</p>
                 </div>`;
         }
 
         async function saveNote() {
             const title = document.getElementById('inputTitle').value.trim();
             const content = document.getElementById('editor').innerHTML;
-            if(!currentCategory || !title || content === "") return alert("შეავსეთ ველები!");
-            
+            if(!title || content === "") return alert("შეავსეთ ველები!");
+
             const btn = document.getElementById('saveBtn');
             btn.disabled = true;
 
+            const noteData = {
+                id: editingId ? notes.find(n => n.firebaseId === editingId).id : Date.now(),
+                category: currentCategory.id,
+                title, content,
+                date: new Date().toLocaleString('ka-GE')
+            };
+
+            const url = editingId ? `${DB_URL}/${editingId}.json` : `${DB_URL}.json`;
+            const method = editingId ? 'PUT' : 'POST';
+
             try {
-                await fetch(`${DB_URL}.json`, { 
-                    method: 'POST', 
-                    body: JSON.stringify({
-                        id: Date.now(),
-                        category: currentCategory.id,
-                        title: title,
-                        content: content,
-                        date: new Date().toLocaleString('ka-GE')
-                    }) 
-                });
+                await fetch(url, { method, body: JSON.stringify(noteData) });
+                editingId = null;
                 await syncData();
                 closeModal();
             } catch (e) { alert("შეცდომა!"); }
             btn.disabled = false;
         }
 
-        async function deleteNote(id) {
+        function editNote(id, e) {
+            e.stopPropagation();
+            const note = notes.find(n => n.firebaseId === id);
+            editingId = id;
+            document.getElementById('inputTitle').value = note.title;
+            document.getElementById('editor').innerHTML = note.content;
+            openModal();
+        }
+
+        async function deleteNote(id, e) {
+            e.stopPropagation();
             if(confirm("წავშალოთ?")) {
                 await fetch(`${DB_URL}/${id}.json`, { method: 'DELETE' });
                 syncData();
             }
         }
+
+        function openFullView(id) {
+            const note = notes.find(n => n.firebaseId === id);
+            document.getElementById('viewTitle').innerText = note.title;
+            document.getElementById('viewContent').innerHTML = note.content;
+            document.getElementById('viewModal').classList.add('active');
+        }
+
+        function closeView() { document.getElementById('viewModal').classList.remove('active'); }
 
         function renderNotes() {
             const area = document.getElementById('contentArea');
@@ -166,15 +177,17 @@
                 (n.title.toLowerCase().includes(search) || n.content.replace(/<[^>]*>/g, '').toLowerCase().includes(search)));
             
             area.innerHTML = `<h2 style="color:var(--primary); margin-bottom:20px;">${currentCategory.name}</h2>` + 
-                (filtered.length === 0 ? '<p style="color:#666">არგუმენტები არ არის.</p>' : 
                 filtered.sort((a,b) => b.id - a.id).map(n => `
-                    <div class="note-card">
-                        <button class="delete-btn" onclick="deleteNote('${n.firebaseId}')">🗑️</button>
-                        <h3 style="margin-bottom:15px; color:var(--primary);">${n.title}</h3>
-                        <div style="line-height:1.6;">${n.content}</div>
-                        <small style="display:block; margin-top:20px; font-size:10px; color:#444; text-align:right;">${n.date}</small>
+                    <div class="note-card" onclick="openFullView('${n.firebaseId}')">
+                        <div class="actions">
+                            <button class="action-btn" onclick="editNote('${n.firebaseId}', event)">✏️</button>
+                            <button class="action-btn" onclick="deleteNote('${n.firebaseId}', event)">🗑️</button>
+                        </div>
+                        <h3>${n.title}</h3>
+                        <div class="preview-text">${n.content.replace(/<[^>]*>/g, '')}</div>
+                        <small style="display:block; margin-top:10px; font-size:10px; color:#555;">${n.date}</small>
                     </div>
-                `).join(''));
+                `).join('');
         }
 
         function openModal() { document.getElementById('modal').classList.add('active'); }
@@ -182,6 +195,7 @@
             document.getElementById('modal').classList.remove('active');
             document.getElementById('inputTitle').value = "";
             document.getElementById('editor').innerHTML = "";
+            editingId = null;
         }
 
         function toggleTheme() {
