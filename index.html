@@ -43,6 +43,7 @@
             overflow-x: hidden;
         }
 
+        /* Subtle noise texture overlay */
         body::before {
             content: '';
             position: fixed; inset: 0; z-index: 0;
@@ -50,6 +51,7 @@
             pointer-events: none;
         }
 
+        /* Ambient glow background */
         body::after {
             content: '';
             position: fixed;
@@ -59,6 +61,7 @@
             pointer-events: none; z-index: 0;
         }
 
+        /* --- Header --- */
         .header {
             position: fixed; top: 0; width: 100%; height: 70px;
             display: flex; align-items: center; justify-content: space-between;
@@ -85,6 +88,7 @@
         }
         .header-btn:hover { color: var(--accent); background: var(--glass); }
 
+        /* --- Hero --- */
         .hero {
             padding: 130px 6% 50px;
             text-align: center;
@@ -128,6 +132,7 @@
             font-weight: 300;
         }
 
+        /* --- Sidebar --- */
         .menu-btn {
             background: none; border: none; color: var(--text-dim);
             font-size: 1.3rem; cursor: pointer; padding: 8px;
@@ -166,6 +171,7 @@
             transform: translateX(6px);
         }
 
+        /* --- Overlay --- */
         .overlay {
             display: none; position: fixed; inset: 0;
             background: rgba(0,0,0,0.6); z-index: 1500;
@@ -173,6 +179,7 @@
         }
         .overlay.active { display: block; }
 
+        /* --- Grid --- */
         .grid {
             display: grid; padding: 35px 6%;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -217,6 +224,7 @@
         }
         .card:hover .card-read { opacity: 1; letter-spacing: 1.5px; }
 
+        /* --- Reader --- */
         .reader {
             position: fixed; inset: 0; background: var(--bg); z-index: 3000;
             display: none; overflow-y: auto; padding: 90px 10%;
@@ -235,6 +243,7 @@
         }
         .close-btn:hover { background: var(--accent); color: white; border-color: transparent; box-shadow: 0 8px 20px var(--glow); }
 
+        /* --- Modal Base --- */
         .modal {
             display: none; position: fixed; inset: 0; z-index: 4000;
             align-items: center; justify-content: center;
@@ -262,6 +271,7 @@
         }
         .modal-close:hover { color: var(--text); background: var(--surface2); }
 
+        /* --- Form Elements --- */
         .form-group { margin-bottom: 20px; }
         .form-group label {
             display: block; margin-bottom: 8px; color: var(--text-dim);
@@ -279,6 +289,7 @@
             box-shadow: 0 0 0 3px rgba(167,139,250,0.15);
         }
 
+        /* --- Rich Text Editor --- */
         .editor-toolbar {
             display: flex; gap: 4px; flex-wrap: wrap;
             padding: 8px; background: var(--surface2);
@@ -301,6 +312,7 @@
         .editor-area:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(167,139,250,0.12); }
         .editor-area:empty:before { content: attr(data-placeholder); color: var(--text-dim); }
 
+        /* --- Buttons --- */
         .btn {
             padding: 13px 26px; border-radius: 10px; border: none;
             cursor: pointer; font-size: 0.9rem; font-weight: 600;
@@ -321,11 +333,13 @@
         .btn-danger { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
         .btn-danger:hover { background: #ef4444; color: white; border-color: transparent; }
 
+        /* --- Error / Success Messages --- */
         .msg { padding: 11px 15px; border-radius: 9px; margin-bottom: 15px; font-size: 0.875rem; display: none; }
         .msg.error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #f87171; }
         .msg.success { background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.3); color: var(--accent); }
         .msg.active { display: block; }
 
+        /* --- FAB --- */
         .fab {
             position: fixed; bottom: 32px; right: 32px; width: 60px; height: 60px;
             background: linear-gradient(135deg, var(--accent), var(--accent2));
@@ -337,6 +351,7 @@
         }
         .fab:hover { transform: scale(1.1) rotate(90deg); box-shadow: 0 18px 40px rgba(167,139,250,0.55); }
 
+        /* --- Empty State --- */
         .empty-state {
             grid-column: 1 / -1; text-align: center;
             padding: 80px 20px; color: var(--text-dim);
@@ -344,6 +359,7 @@
         .empty-state .icon { font-size: 3.5rem; margin-bottom: 18px; opacity: 0.3; }
         .empty-state p { font-size: 1rem; font-weight: 300; }
 
+        /* --- Loading Spinner --- */
         .spinner {
             width: 36px; height: 36px;
             border: 2px solid var(--border);
@@ -353,6 +369,7 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
+        /* --- User Badge --- */
         .user-badge {
             font-size: 0.72rem; color: var(--accent);
             border: 1px solid rgba(167,139,250,0.3);
@@ -361,6 +378,7 @@
             background: rgba(167,139,250,0.08);
         }
 
+        /* --- Search bar focus glow --- */
         #searchInput:focus {
             border-color: var(--accent) !important;
             box-shadow: 0 0 0 3px rgba(167,139,250,0.15) !important;
@@ -376,6 +394,7 @@
 </head>
 <body>
 
+    <!-- Header -->
     <header class="header">
         <button class="menu-btn" onclick="toggleMenu()">☰</button>
         <div class="logo" onclick="goHome()" style="cursor:pointer;">ფილოსოფია</div>
@@ -395,8 +414,10 @@
         </div>
     </header>
 
+    <!-- Sidebar Overlay -->
     <div class="overlay" id="sidebarOverlay" onclick="toggleMenu()"></div>
 
+    <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:40px;">
             <h2>კატეგორიები</h2>
@@ -405,25 +426,34 @@
         <div id="catList"></div>
     </aside>
 
+    <!-- Hero -->
     <section class="hero">
         <h1 id="pageTitle">ციფრული ბიბლიოთეკა</h1>
         <p id="pageSubtitle">აღმოაჩინეთ მარადიული იდეები და ფილოსოფიური ჩანაწერები. აირჩიეთ კატეგორია მენიუდან.</p>
     </section>
 
+    <!-- Search Bar -->
     <div id="searchBar" style="display:none; padding: 0 5% 30px; max-width:1400px; margin:0 auto;">
         <div style="position:relative;">
             <span style="position:absolute; left:18px; top:50%; transform:translateY(-50%); font-size:1.1rem; color:var(--text-dim);">🔍</span>
-            <input type="text" id="searchInput" placeholder="სტატიის ძებნა..." oninput="filterNotes()"
+            <input
+                type="text"
+                id="searchInput"
+                placeholder="სტატიის ძებნა..."
+                oninput="filterNotes()"
                 style="width:100%; padding:14px 18px 14px 48px; border-radius:14px; border:1px solid var(--border);
-                       background:var(--surface); color:var(--text); font-size:1rem; font-family:'Montserrat',sans-serif;
+                       background:var(--surface); color:var(--text); font-size:1rem; font-family:'Inter',sans-serif;
                        outline:none; transition:0.3s;"
-                onfocus="this.style.borderColor='var(--accent)'; this.style.boxShadow='0 0 0 3px rgba(167,139,250,0.15)'"
-                onblur="this.style.borderColor='var(--border)'; this.style.boxShadow='none'" />
+                onfocus="this.style.borderColor='var(--accent)'; this.style.boxShadow='0 0 0 3px rgba(59,130,246,0.15)'"
+                onblur="this.style.borderColor='var(--border)'; this.style.boxShadow='none'"
+            />
         </div>
     </div>
 
+    <!-- Notes Grid -->
     <main class="grid" id="notesGrid"></main>
 
+    <!-- Home Welcome Section -->
     <section id="homeSection" style="display:none; max-width:900px; margin:0 auto; padding:20px 5% 80px;">
         <div style="background:var(--surface); border:1px solid var(--border); border-radius:24px; padding:55px 50px; text-align:center; position:relative; overflow:hidden;">
             <div style="position:absolute; top:-80px; right:-80px; width:250px; height:250px; background:radial-gradient(circle, rgba(167,139,250,0.1), transparent); border-radius:50%; pointer-events:none;"></div>
@@ -432,16 +462,20 @@
             <h2 style="font-family:'Cormorant Garamond', serif; font-size:clamp(1.5rem, 5.5vw, 2.4rem); font-weight:700; margin-bottom:18px; line-height:1.3; background:linear-gradient(135deg, var(--text), var(--accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">მოგესალმებით ფილოსოფიის გვერდზე</h2>
             <p style="color:var(--text-dim); font-size:1rem; line-height:1.85; max-width:520px; margin:0 auto 40px; font-weight:300;">
                 აქ თავმოყრილია ფილოსოფიური ჩანაწერები, ანალიზები და მსჯელობები.
-                საიტი დაყოფილია ოთხ ძირითად კატეგორიად — აირჩიეთ მენიუდან და ჩაუღრმავდით იდეებს.
+                საიტი დაყოფილია ოთხ ძირითად კატეგორიად — აირჩიეთ მენიუდან
+                და ჩაუღრმავდით იდეებს.
             </p>
+
+            <!-- Clock -->
             <div style="margin-top:45px; padding-top:35px; border-top:1px solid var(--border);">
                 <div id="clockTime" style="font-size:clamp(1.8rem, 8vw, 3.2rem); font-weight:300; letter-spacing:clamp(2px, 2vw, 6px); color:var(--text); font-variant-numeric:tabular-nums; font-family:'Montserrat', sans-serif;"></div>
-                <div id="clockDate" style="color:var(--text-dim); margin-top:12px; font-family:'Cormorant Garamond', serif; font-size:1.15rem; letter-spacing:1px;"></div>
-                <div id="clockDay" style="color:var(--accent); font-size:0.75rem; margin-top:6px; font-weight:600; letter-spacing:3px; text-transform:uppercase; opacity:0.8;"></div>
+                <div id="clockDate" style="color:var(--text-dim); font-size:0.95rem; margin-top:12px; font-family:'Cormorant Garamond', serif; font-size:1.15rem; letter-spacing:1px;"></div>
+                <div id="clockDay"  style="color:var(--accent); font-size:0.75rem; margin-top:6px; font-weight:600; letter-spacing:3px; text-transform:uppercase; opacity:0.8;"></div>
             </div>
         </div>
     </section>
 
+    <!-- Reader -->
     <div id="reader" class="reader">
         <button class="close-btn" onclick="closeReader()">✕</button>
         <div class="reader-inner">
@@ -459,8 +493,10 @@
         </div>
     </div>
 
+    <!-- FAB -->
     <button class="fab" id="fabBtn" onclick="openEditor()">+</button>
 
+    <!-- ===== LOGIN MODAL ===== -->
     <div class="modal" id="loginModal">
         <div class="modal-box">
             <button class="modal-close" onclick="closeModal('loginModal')">✕</button>
@@ -478,6 +514,7 @@
         </div>
     </div>
 
+    <!-- ===== EDITOR MODAL ===== -->
     <div class="modal" id="editorModal">
         <div class="modal-box wide">
             <button class="modal-close" onclick="closeModal('editorModal')">✕</button>
@@ -499,7 +536,7 @@
             </div>
             <div class="form-group">
                 <label>შინაარსი</label>
-                <div class="editor-toolbar">
+                <div class="editor-toolbar" id="toolbar">
                     <button class="tb-btn" onclick="fmt('bold')"><b>B</b></button>
                     <button class="tb-btn" onclick="fmt('italic')"><i>I</i></button>
                     <button class="tb-btn" onclick="fmt('underline')"><u>U</u></button>
@@ -510,15 +547,21 @@
                     <button class="tb-btn" onclick="formatHeading('h3')">H3</button>
                     <button class="tb-btn" onclick="fmt('formatBlock','blockquote')" title="ციტატა">❝</button>
                     <button class="tb-btn" onclick="insertLink()" title="ლინკი">🔗</button>
-                    <button class="tb-btn" onclick="fmt('removeFormat')">✗</button>
+                    <button class="tb-btn" onclick="fmt('removeFormat')" title="ფორმატის გასუფთავება">✗</button>
                 </div>
-                <div class="editor-area" id="editorArea" contenteditable="true" data-placeholder="დაიწყე წერა..."></div>
+                <div
+                    class="editor-area"
+                    id="editorArea"
+                    contenteditable="true"
+                    data-placeholder="დაიწყე წერა..."
+                ></div>
             </div>
             <button class="btn btn-primary" id="saveBtn" onclick="saveNote()">შენახვა</button>
             <button class="btn btn-secondary" onclick="closeModal('editorModal')">გაუქმება</button>
         </div>
     </div>
 
+    <!-- ===== EDIT MODAL ===== -->
     <div class="modal" id="editModal">
         <div class="modal-box wide">
             <button class="modal-close" onclick="closeModal('editModal')">✕</button>
@@ -560,12 +603,20 @@
         </div>
     </div>
 
+    <!-- ===== SCRIPTS ===== -->
     <script>
+        // ---- CONFIG ----
         const FIREBASE_DB   = "https://gen-lang-client-0339684222-default-rtdb.firebaseio.com";
         const FIREBASE_AUTH = "https://identitytoolkit.googleapis.com/v1/accounts";
+        // !! შეცვალე შენი Firebase API Key-ით !!
         const API_KEY       = "AIzaSyCLDlXXqAgJp5SdE_xefzS1sQ2fHI-l1Tg";
 
-        let idToken = null, currentUid = null, notes = [], currentCat = null, currentNote = null;
+        // ---- STATE ----
+        let idToken    = null;
+        let currentUid = null;
+        let notes      = [];
+        let currentCat = null;
+        let currentNote = null;
 
         const categories = [
             { id: 'epist',  name: 'ეპისტემოლოგია' },
@@ -574,201 +625,361 @@
             { id: 'meta',   name: 'მეტაფიზიკა' }
         ];
 
-        function init() { fetchNotes(); }
+        // ---- INIT ----
+        function init() {
+            fetchNotes();
+        }
 
         function goHome() {
             currentCat = null;
             document.querySelectorAll('.cat-item').forEach(el => el.classList.remove('active'));
-            const pt = document.getElementById('pageTitle');
-            pt.innerText = 'ციფრული ბიბლიოთეკა'; pt.classList.add('shimmer');
+            const pt = document.getElementById('pageTitle'); pt.innerText = 'ციფრული ბიბლიოთეკა'; pt.classList.add('shimmer');
             document.getElementById('pageSubtitle').innerText = '';
             document.getElementById('notesGrid').innerHTML = '';
             document.getElementById('searchBar').style.display = 'none';
             document.getElementById('homeSection').style.display = 'block';
-            updateFab(); startClock();
+            updateFab();
+            renderHomeCats();
+            startClock();
         }
 
-        function renderHomeCats() {}
+        function renderHomeCats() {
+            // no-op: category cards removed, using clock only
+        }
 
+        // ---- CATEGORY LIST ----
         function buildCatList() {
             const list = document.getElementById('catList');
             list.innerHTML = '';
             categories.forEach(c => {
                 const count = notes.filter(n => n.cat === c.id).length;
                 const d = document.createElement('div');
-                d.className = 'cat-item'; d.id = 'cat_' + c.id;
-                d.innerHTML = `<span>${c.name}</span><span style="font-size:0.75rem; background:rgba(167,139,250,0.15); color:var(--accent); padding:2px 9px; border-radius:20px; font-weight:600;">${count}</span>`;
+                d.className = 'cat-item';
+                d.id = 'cat_' + c.id;
+                d.style.display = 'flex';
+                d.style.justifyContent = 'space-between';
+                d.style.alignItems = 'center';
+                d.innerHTML = `<span>${c.name}</span><span style="font-size:0.75rem; background:rgba(59,130,246,0.15); color:var(--accent); padding:2px 9px; border-radius:20px; font-weight:600;">${count}</span>`;
                 d.onclick = () => {
                     document.querySelectorAll('.cat-item').forEach(el => el.classList.remove('active'));
-                    d.classList.add('active'); currentCat = c; toggleMenu(); renderNotes();
+                    d.classList.add('active');
+                    currentCat = c;
+                    toggleMenu();
+                    renderNotes();
                 };
                 list.appendChild(d);
             });
         }
 
+        // ---- FETCH NOTES ----
         async function fetchNotes() {
             const grid = document.getElementById('notesGrid');
             grid.innerHTML = '<div class="spinner"></div>';
             try {
-                const res = await fetch(`${FIREBASE_DB}/notes.json`);
+                const res  = await fetch(`${FIREBASE_DB}/notes.json`);
                 if (!res.ok) throw new Error('ჩატვირთვა ვერ მოხერხდა');
                 const data = await res.json();
-                notes = data ? Object.entries(data).map(([k, v]) => ({ ...v, fbId: k })) : [];
+                notes = data
+                    ? Object.entries(data).map(([k, v]) => ({ ...v, fbId: k }))
+                    : [];
                 buildCatList();
-                if (!currentCat) goHome(); else renderNotes();
+                if (!currentCat) goHome();
+                else renderNotes();
             } catch (err) {
                 grid.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>${err.message}</p></div>`;
             }
         }
 
+        // ---- RENDER NOTES ----
         function renderNotes(filtered_override) {
             const grid = document.getElementById('notesGrid');
             grid.innerHTML = '';
             document.getElementById('homeSection').style.display = 'none';
             document.getElementById('searchBar').style.display = 'block';
             stopClock();
+
             if (!currentCat) { goHome(); return; }
-            const tEl = document.getElementById('pageTitle');
-            tEl.innerText = currentCat.name; tEl.classList.remove('shimmer');
+
+            const tEl = document.getElementById('pageTitle'); tEl.innerText = currentCat.name; tEl.classList.remove('shimmer');
             document.getElementById('pageSubtitle').innerText = '';
+
             const filtered = filtered_override !== undefined ? filtered_override : notes.filter(n => n.cat === currentCat.id);
+
             if (filtered.length === 0) {
                 grid.innerHTML = '<div class="empty-state"><div class="icon">🖋</div><p>ამ კატეგორიაში ჩანაწერები არ არის</p></div>';
-                updateFab(); return;
+                updateFab();
+                return;
             }
-            filtered.sort((a, b) => (b.date || 0) - (a.date || 0)).forEach(n => {
-                const card = document.createElement('div');
-                card.className = 'card'; card.onclick = () => openReader(n);
-                const dateStr = n.date ? new Date(n.date).toLocaleDateString('ka-GE') : '—';
-                card.innerHTML = `<h3>${escapeHtml(n.title || 'უსახელო')}</h3><div class="card-meta"><span class="card-date">${dateStr}</span><span class="card-read">კითხვა →</span></div>`;
-                grid.appendChild(card);
-            });
+
+            filtered
+                .sort((a, b) => (b.date || 0) - (a.date || 0))
+                .forEach(n => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.onclick = () => openReader(n);
+                    const dateStr = n.date ? new Date(n.date).toLocaleDateString('ka-GE') : '—';
+                    card.innerHTML = `
+                        <h3>${escapeHtml(n.title || 'უსახელო')}</h3>
+                        <div class="card-meta">
+                            <span class="card-date">${dateStr}</span>
+                            <span class="card-read">კითხვა →</span>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+
             updateFab();
         }
 
+        // ---- OPEN READER ----
         function openReader(note) {
             currentNote = note;
             const cat = categories.find(c => c.id === note.cat);
+
             document.getElementById('readCat').innerText   = cat ? cat.name : '';
             document.getElementById('readTitle').innerText = note.title || 'უსახელო';
-            document.getElementById('readDate').innerText  = note.date ? new Date(note.date).toLocaleDateString('ka-GE', { year:'numeric', month:'long', day:'numeric' }) : '';
+            document.getElementById('readDate').innerText  = note.date
+                ? new Date(note.date).toLocaleDateString('ka-GE', { year:'numeric', month:'long', day:'numeric' })
+                : '';
+
+            // Safe HTML rendering — only admin can post, so content is trusted
+            // but we still sanitize basic script tags
             const sanitized = (note.content || '').replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '');
             document.getElementById('readBody').innerHTML = sanitized;
-            document.getElementById('adminControls').style.display = idToken ? 'block' : 'none';
+
+            const adminCtrl = document.getElementById('adminControls');
+            adminCtrl.style.display = idToken ? 'block' : 'none';
+
             document.getElementById('reader').style.display = 'block';
             document.body.style.overflow = 'hidden';
         }
 
         function closeReader() {
             document.getElementById('reader').style.display = 'none';
-            document.body.style.overflow = 'auto'; currentNote = null;
+            document.body.style.overflow = 'auto';
+            currentNote = null;
         }
 
+        // ---- DELETE NOTE ----
         async function deleteCurrentNote() {
             if (!currentNote || !idToken) return;
             if (!confirm(`წაიშალოს "${currentNote.title}"?`)) return;
+
             try {
-                const res = await fetch(`${FIREBASE_DB}/notes/${currentNote.fbId}.json?auth=${idToken}`, { method: 'DELETE' });
+                const res = await fetch(`${FIREBASE_DB}/notes/${currentNote.fbId}.json?auth=${idToken}`, {
+                    method: 'DELETE'
+                });
                 if (!res.ok) throw new Error('წაშლა ვერ მოხერხდა');
-                closeReader(); await fetchNotes();
-            } catch (err) { alert(err.message); }
+                closeReader();
+                await fetchNotes();
+            } catch (err) {
+                alert(err.message);
+            }
         }
 
+        // ---- AUTH ----
         function handleAuthBtn() {
-            if (idToken) doLogout();
-            else { openModal('loginModal'); document.getElementById('loginEmail').focus(); }
+            if (idToken) {
+                doLogout();
+            } else {
+                openModal('loginModal');
+                document.getElementById('loginEmail').focus();
+            }
         }
 
         async function doLogin() {
-            const email = document.getElementById('loginEmail').value.trim();
+            const email    = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
-            const errEl = document.getElementById('loginError');
-            const btn = document.getElementById('loginBtn');
+            const errEl    = document.getElementById('loginError');
+            const btn      = document.getElementById('loginBtn');
+
             showMsg(errEl, '', false);
-            if (!email || !password) { showMsg(errEl, 'შეიყვანეთ ელ. ფოსტა და პაროლი', true); return; }
-            btn.disabled = true; btn.innerText = 'იტვირთება...';
+
+            if (!email || !password) {
+                showMsg(errEl, 'შეიყვანეთ ელ. ფოსტა და პაროლი', true);
+                return;
+            }
+
+            btn.disabled    = true;
+            btn.innerText   = 'იტვირთება...';
+
             try {
-                const res = await fetch(`${FIREBASE_AUTH}:signInWithPassword?key=${API_KEY}`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                const res  = await fetch(`${FIREBASE_AUTH}:signInWithPassword?key=${API_KEY}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password, returnSecureToken: true })
                 });
                 const data = await res.json();
-                if (!res.ok) { showMsg(errEl, firebaseErrMsg(data?.error?.message), true); return; }
-                idToken = data.idToken; currentUid = data.localId;
+
+                if (!res.ok) {
+                    const msg = firebaseErrMsg(data?.error?.message);
+                    showMsg(errEl, msg, true);
+                    return;
+                }
+
+                idToken    = data.idToken;
+                currentUid = data.localId;
+
                 const badge = document.getElementById('userBadge');
-                badge.innerText = data.email.split('@')[0]; badge.style.display = 'inline-block';
+                badge.innerText = data.email.split('@')[0];
+                badge.style.display = 'inline-block';
+
                 document.getElementById('lockIcon').innerHTML = '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>';
-                closeModal('loginModal'); updateFab();
-            } catch (err) { showMsg(errEl, 'კავშირის შეცდომა. სცადეთ თავიდან.', true); }
-            finally { btn.disabled = false; btn.innerText = 'შესვლა'; }
+                closeModal('loginModal');
+                updateFab();
+
+            } catch (err) {
+                showMsg(errEl, 'კავშირის შეცდომა. სცადეთ თავიდან.', true);
+            } finally {
+                btn.disabled  = false;
+                btn.innerText = 'შესვლა';
+            }
         }
 
         function doLogout() {
-            idToken = null; currentUid = null;
+            idToken    = null;
+            currentUid = null;
             document.getElementById('lockIcon').innerHTML = '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>';
-            document.getElementById('userBadge').style.display = 'none'; updateFab();
+            document.getElementById('userBadge').style.display = 'none';
+            updateFab();
         }
 
         function firebaseErrMsg(code) {
-            const map = { 'EMAIL_NOT_FOUND': 'ელ. ფოსტა ვერ მოიძებნა', 'INVALID_PASSWORD': 'პაროლი არასწორია', 'USER_DISABLED': 'ანგარიში დაბლოკილია', 'INVALID_LOGIN_CREDENTIALS': 'ელ. ფოსტა ან პაროლი არასწორია', 'TOO_MANY_ATTEMPTS_TRY_LATER': 'ძალიან ბევრი მცდელობა. სცადეთ მოგვიანებით.' };
+            const map = {
+                'EMAIL_NOT_FOUND':    'ელ. ფოსტა ვერ მოიძებნა',
+                'INVALID_PASSWORD':   'პაროლი არასწორია',
+                'USER_DISABLED':      'ანგარიში დაბლოკილია',
+                'INVALID_LOGIN_CREDENTIALS': 'ელ. ფოსტა ან პაროლი არასწორია',
+                'TOO_MANY_ATTEMPTS_TRY_LATER': 'ძალიან ბევრი მცდელობა. სცადეთ მოგვიანებით.'
+            };
             return map[code] || 'შეცდომა: ' + (code || 'უცნობი');
         }
 
+        // ---- EDITOR ----
         function openEditor() {
             if (!idToken) { openModal('loginModal'); return; }
             document.getElementById('editorTitle').value = '';
-            document.getElementById('editorArea').innerHTML = '';
+            document.getElementById('editorArea').innerHTML  = '';
             if (currentCat) document.getElementById('editorCat').value = currentCat.id;
             showMsg(document.getElementById('editorError'), '', false);
             showMsg(document.getElementById('editorSuccess'), '', false);
             openModal('editorModal');
         }
 
-        function fmt(cmd, value = null) { document.getElementById('editorArea').focus(); document.execCommand(cmd, false, value); }
-        function formatHeading(tag) { document.getElementById('editorArea').focus(); document.execCommand('formatBlock', false, tag); }
-        function insertLink() { const url = prompt('ლინკი:'); if (url) { document.getElementById('editorArea').focus(); document.execCommand('createLink', false, url); } }
-
-        async function saveNote() {
-            const title = document.getElementById('editorTitle').value.trim();
-            const cat = document.getElementById('editorCat').value;
-            const content = document.getElementById('editorArea').innerHTML.trim();
-            const errEl = document.getElementById('editorError'), sucEl = document.getElementById('editorSuccess'), btn = document.getElementById('saveBtn');
-            showMsg(errEl, '', false); showMsg(sucEl, '', false);
-            if (!title) { showMsg(errEl, 'სათაური სავალდებულოა', true); return; }
-            if (!content || content === '<br>') { showMsg(errEl, 'შინაარსი სავალდებულოა', true); return; }
-            btn.disabled = true; btn.innerText = 'ინახება...';
-            try {
-                const res = await fetch(`${FIREBASE_DB}/notes.json?auth=${idToken}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title, cat, content, date: Date.now() }) });
-                if (!res.ok) throw new Error('Firebase-ის შეცდომა');
-                showMsg(sucEl, '✓ ჩანაწერი შენახულია!', true);
-                await fetchNotes();
-                setTimeout(() => { closeModal('editorModal'); const saved = categories.find(c => c.id === cat); if (saved) { document.querySelectorAll('.cat-item').forEach(el => el.classList.remove('active')); document.getElementById('cat_' + cat)?.classList.add('active'); currentCat = saved; renderNotes(); } }, 1200);
-            } catch (err) { showMsg(errEl, 'შენახვა ვერ მოხერხდა: ' + err.message, true); }
-            finally { btn.disabled = false; btn.innerText = 'შენახვა'; }
+        // Rich text formatting commands
+        function fmt(cmd, value = null) {
+            document.getElementById('editorArea').focus();
+            document.execCommand(cmd, false, value);
         }
 
+        function formatHeading(tag) {
+            document.getElementById('editorArea').focus();
+            document.execCommand('formatBlock', false, tag);
+        }
+
+        function insertLink() {
+            const url = prompt('ლინკი:');
+            if (url) {
+                document.getElementById('editorArea').focus();
+                document.execCommand('createLink', false, url);
+            }
+        }
+
+        async function saveNote() {
+            const title   = document.getElementById('editorTitle').value.trim();
+            const cat     = document.getElementById('editorCat').value;
+            const content = document.getElementById('editorArea').innerHTML.trim();
+            const errEl   = document.getElementById('editorError');
+            const sucEl   = document.getElementById('editorSuccess');
+            const btn     = document.getElementById('saveBtn');
+
+            showMsg(errEl, '', false);
+            showMsg(sucEl, '', false);
+
+            if (!title)   { showMsg(errEl, 'სათაური სავალდებულოა', true); return; }
+            if (!content || content === '<br>') { showMsg(errEl, 'შინაარსი სავალდებულოა', true); return; }
+
+            btn.disabled  = true;
+            btn.innerText = 'ინახება...';
+
+            const note = { title, cat, content, date: Date.now() };
+
+            try {
+                const res = await fetch(`${FIREBASE_DB}/notes.json?auth=${idToken}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(note)
+                });
+                if (!res.ok) throw new Error('Firebase-ის შეცდომა');
+
+                showMsg(sucEl, '✓ ჩანაწერი შენახულია!', true);
+                await fetchNotes();
+
+                setTimeout(() => {
+                    closeModal('editorModal');
+                    // Auto-switch to saved category
+                    const saved = categories.find(c => c.id === cat);
+                    if (saved) {
+                        document.querySelectorAll('.cat-item').forEach(el => el.classList.remove('active'));
+                        document.getElementById('cat_' + cat)?.classList.add('active');
+                        currentCat = saved;
+                        renderNotes();
+                    }
+                }, 1200);
+
+            } catch (err) {
+                showMsg(errEl, 'შენახვა ვერ მოხერხდა: ' + err.message, true);
+            } finally {
+                btn.disabled  = false;
+                btn.innerText = 'შენახვა';
+            }
+        }
+
+        // ---- UTILS ----
+        // ---- CLOCK ----
         let clockInterval = null;
         const GEO_DAYS   = ['კვირა','ორშაბათი','სამშაბათი','ოთხშაბათი','ხუთშაბათი','პარასკევი','შაბათი'];
         const GEO_MONTHS = ['იანვარი','თებერვალი','მარტი','აპრილი','მაისი','ივნისი','ივლისი','აგვისტო','სექტემბერი','ოქტომბერი','ნოემბერი','დეკემბერი'];
 
-        function startClock() { updateClock(); if (!clockInterval) clockInterval = setInterval(updateClock, 1000); }
-        function stopClock()  { clearInterval(clockInterval); clockInterval = null; }
+        function startClock() {
+            updateClock();
+            if (!clockInterval) clockInterval = setInterval(updateClock, 1000);
+        }
+        function stopClock() {
+            clearInterval(clockInterval);
+            clockInterval = null;
+        }
         function updateClock() {
-            const now = new Date();
-            const h = String(now.getHours()).padStart(2,'0'), m = String(now.getMinutes()).padStart(2,'0'), s = String(now.getSeconds()).padStart(2,'0');
-            const tEl = document.getElementById('clockTime'), dEl = document.getElementById('clockDate'), dyEl = document.getElementById('clockDay');
+            const now  = new Date();
+            const h    = String(now.getHours()).padStart(2,'0');
+            const m    = String(now.getMinutes()).padStart(2,'0');
+            const s    = String(now.getSeconds()).padStart(2,'0');
+            const day  = GEO_DAYS[now.getDay()];
+            const date = now.getDate() + ' ' + GEO_MONTHS[now.getMonth()] + ', ' + now.getFullYear();
+            const tEl  = document.getElementById('clockTime');
+            const dEl  = document.getElementById('clockDate');
+            const dyEl = document.getElementById('clockDay');
             if (tEl)  tEl.innerText  = `${h}:${m}:${s}`;
-            if (dEl)  dEl.innerText  = now.getDate() + ' ' + GEO_MONTHS[now.getMonth()] + ', ' + now.getFullYear();
-            if (dyEl) dyEl.innerText = GEO_DAYS[now.getDay()];
+            if (dEl)  dEl.innerText  = date;
+            if (dyEl) dyEl.innerText = day;
         }
 
+        // ---- SEARCH ----
         function filterNotes() {
             const q = document.getElementById('searchInput').value.toLowerCase().trim();
             if (!currentCat) return;
-            renderNotes(notes.filter(n => n.cat === currentCat.id && (n.title || '').toLowerCase().includes(q)));
+            const filtered = notes.filter(n =>
+                n.cat === currentCat.id &&
+                (n.title || '').toLowerCase().includes(q)
+            );
+            renderNotes(filtered);
         }
 
-        function toggleMenu() { document.getElementById('sidebar').classList.toggle('active'); document.getElementById('sidebarOverlay').classList.toggle('active'); }
+        function toggleMenu() {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('sidebarOverlay').classList.toggle('active');
+        }
+
         function toggleTheme() {
             document.body.classList.toggle('light-mode');
             const isLight = document.body.classList.contains('light-mode');
@@ -776,60 +987,134 @@
                 ? '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>'
                 : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
         }
+
         function openModal(id)  { document.getElementById(id).classList.add('active'); }
         function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-        function updateFab() { document.getElementById('fabBtn').style.display = (idToken && currentCat) ? 'flex' : 'none'; }
-        function showMsg(el, text, show) { el.innerText = text; el.classList[show ? 'add' : 'remove']('active'); }
-        function escapeHtml(str) { return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+        function updateFab() {
+            const fab = document.getElementById('fabBtn');
+            fab.style.display = (idToken && currentCat) ? 'flex' : 'none';
+        }
+
+        function showMsg(el, text, show) {
+            el.innerText = text;
+            if (show) el.classList.add('active');
+            else el.classList.remove('active');
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        }
+
+        // ---- COPY NOTE ----
         function copyNote(btn) {
             if (!currentNote) return;
-            const text = (currentNote.title || '') + '\n\n' + (document.getElementById('readBody').innerText || '');
-            const done = () => { btn.innerText = '✓ დაკოპირდა!'; setTimeout(() => { btn.innerText = '📋 კოპირება'; }, 2000); };
-            if (navigator.clipboard?.writeText) navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
-            else fallbackCopy(text, done);
+            const title = currentNote.title || '';
+            const body  = document.getElementById('readBody').innerText || '';
+            const text  = title + '\n\n' + body;
+            const done  = () => {
+                btn.innerText = '\u2713 დაკოპირდა!';
+                setTimeout(() => { btn.innerText = '\ud83d\udccb კოპირება'; }, 2000);
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+            } else {
+                fallbackCopy(text, done);
+            }
         }
-        function fallbackCopy(text, done) { const ta = document.createElement('textarea'); ta.value = text; ta.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(ta); ta.focus(); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); done(); }
+        function fallbackCopy(text, done) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity  = '0';
+            document.body.appendChild(ta);
+            ta.focus(); ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            done();
+        }
 
+        // ---- OPEN EDIT MODAL ----
         function openEditModal() {
             if (!currentNote || !idToken) return;
-            document.getElementById('editTitle').value     = currentNote.title || '';
-            document.getElementById('editCat').value       = currentNote.cat   || 'epist';
-            document.getElementById('editArea').innerHTML  = currentNote.content || '';
-            showMsg(document.getElementById('editError'), '', false);
+            document.getElementById('editTitle').value       = currentNote.title || '';
+            document.getElementById('editCat').value        = currentNote.cat   || 'epist';
+            document.getElementById('editArea').innerHTML   = currentNote.content || '';
+            showMsg(document.getElementById('editError'),   '', false);
             showMsg(document.getElementById('editSuccess'), '', false);
             openModal('editModal');
         }
 
-        function fmtE(cmd, value = null) { document.getElementById('editArea').focus(); document.execCommand(cmd, false, value); }
-        function fmtEH(tag) { document.getElementById('editArea').focus(); document.execCommand('formatBlock', false, tag); }
-        function insertLinkE() { const url = prompt('ლინკი:'); if (url) { document.getElementById('editArea').focus(); document.execCommand('createLink', false, url); } }
-
-        async function updateNote() {
-            if (!currentNote || !idToken) return;
-            const title = document.getElementById('editTitle').value.trim();
-            const cat = document.getElementById('editCat').value;
-            const content = document.getElementById('editArea').innerHTML.trim();
-            const errEl = document.getElementById('editError'), sucEl = document.getElementById('editSuccess'), btn = document.getElementById('updateBtn');
-            showMsg(errEl, '', false); showMsg(sucEl, '', false);
-            if (!title) { showMsg(errEl, 'სათაური სავალდებულოა', true); return; }
-            if (!content || content === '<br>') { showMsg(errEl, 'შინაარსი სავალდებულოა', true); return; }
-            btn.disabled = true; btn.innerText = 'ინახება...';
-            const updated = { ...currentNote, title, cat, content }; delete updated.fbId;
-            try {
-                const res = await fetch(`${FIREBASE_DB}/notes/${currentNote.fbId}.json?auth=${idToken}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated) });
-                if (!res.ok) throw new Error('Firebase-ის შეცდომა');
-                currentNote = { ...updated, fbId: currentNote.fbId };
-                showMsg(sucEl, '✓ განახლდა!', true);
-                document.getElementById('readTitle').innerText = title;
-                document.getElementById('readBody').innerHTML = content.replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '');
-                await fetchNotes();
-                setTimeout(() => closeModal('editModal'), 1000);
-            } catch (err) { showMsg(errEl, 'განახლება ვერ მოხერხდა: ' + err.message, true); }
-            finally { btn.disabled = false; btn.innerText = 'განახლება'; }
+        // Edit toolbar helpers
+        function fmtE(cmd, value = null) {
+            document.getElementById('editArea').focus();
+            document.execCommand(cmd, false, value);
+        }
+        function fmtEH(tag) {
+            document.getElementById('editArea').focus();
+            document.execCommand('formatBlock', false, tag);
+        }
+        function insertLinkE() {
+            const url = prompt('ლინკი:');
+            if (url) { document.getElementById('editArea').focus(); document.execCommand('createLink', false, url); }
         }
 
-        document.querySelectorAll('.modal').forEach(m => { m.addEventListener('click', e => { if (e.target === m) m.classList.remove('active'); }); });
+        // ---- UPDATE NOTE ----
+        async function updateNote() {
+            if (!currentNote || !idToken) return;
+            const title   = document.getElementById('editTitle').value.trim();
+            const cat     = document.getElementById('editCat').value;
+            const content = document.getElementById('editArea').innerHTML.trim();
+            const errEl   = document.getElementById('editError');
+            const sucEl   = document.getElementById('editSuccess');
+            const btn     = document.getElementById('updateBtn');
+
+            showMsg(errEl, '', false);
+            showMsg(sucEl, '', false);
+
+            if (!title)   { showMsg(errEl, 'სათაური სავალდებულოა', true); return; }
+            if (!content || content === '<br>') { showMsg(errEl, 'შინაარსი სავალდებულოა', true); return; }
+
+            btn.disabled  = true;
+            btn.innerText = 'ინახება...';
+
+            const updated = { ...currentNote, title, cat, content };
+            delete updated.fbId;
+
+            try {
+                const res = await fetch(`${FIREBASE_DB}/notes/${currentNote.fbId}.json?auth=${idToken}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updated)
+                });
+                if (!res.ok) throw new Error('Firebase-ის შეცდომა');
+
+                currentNote = { ...updated, fbId: currentNote.fbId };
+                showMsg(sucEl, '✓ განახლდა!', true);
+
+                // Reader-შიც განვაახლოთ
+                document.getElementById('readTitle').innerText = title;
+                document.getElementById('readBody').innerHTML  = content.replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '');
+
+                await fetchNotes();
+                setTimeout(() => closeModal('editModal'), 1000);
+
+            } catch (err) {
+                showMsg(errEl, 'განახლება ვერ მოხერხდა: ' + err.message, true);
+            } finally {
+                btn.disabled  = false;
+                btn.innerText = 'განახლება';
+            }
+        }
+
+        // Close modals on backdrop click
+        document.querySelectorAll('.modal').forEach(m => {
+            m.addEventListener('click', e => {
+                if (e.target === m) m.classList.remove('active');
+            });
+        });
+
+        // Keyboard shortcuts
         document.addEventListener('keydown', e => {
             if (e.key === 'Escape') {
                 document.querySelectorAll('.modal.active').forEach(m => m.classList.remove('active'));
@@ -840,10 +1125,13 @@
 
         init();
     </script>
-
+    <!-- Footer -->
     <footer style="text-align:center; padding:40px 20px; border-top:1px solid var(--border); margin-top:60px; position:relative; z-index:1;">
         <a href="https://www.facebook.com/profile.php?id=61583986255288" target="_blank" rel="noopener"
-           style="display:inline-flex; align-items:center; gap:10px; text-decoration:none; color:var(--text-dim); font-size:0.85rem; letter-spacing:1px; padding:12px 24px; border-radius:50px; border:1px solid var(--border); transition:0.3s; background:var(--surface);"
+           style="display:inline-flex; align-items:center; gap:10px; text-decoration:none;
+                  color:var(--text-dim); font-size:0.85rem; letter-spacing:1px;
+                  padding:12px 24px; border-radius:50px; border:1px solid var(--border);
+                  transition:0.3s; background:var(--surface);"
            onmouseover="this.style.borderColor='#1877f2'; this.style.color='#1877f2'; this.style.boxShadow='0 8px 25px rgba(24,119,242,0.2)'"
            onmouseout="this.style.borderColor='var(--border)'; this.style.color='var(--text-dim)'; this.style.boxShadow='none'">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#1877f2">
@@ -851,7 +1139,7 @@
             </svg>
             შემქმნელის გვერდი
         </a>
-        <p style="margin-top:16px; color:var(--text-dim); font-size:0.72rem; letter-spacing:2px; opacity:0.5;">SOPHIA © 2026</p>
+        <p style="margin-top:16px; color:var(--text-dim); font-size:0.72rem; letter-spacing:2px; opacity:0.5;">ფილოსოფია © 2026</p>
     </footer>
 
 </body>
