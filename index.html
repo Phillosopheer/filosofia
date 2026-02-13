@@ -4,61 +4,56 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ფილოსოფია</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;700&family=Noto+Serif+Georgian&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;700&family=Noto+Serif+Georgian&family=Fira+Mono&display=swap" rel="stylesheet">
     <style>
         :root { --bg: #0d0d0d; --card: #1a1a1a; --text: #e0e0e0; --primary: #3b82f6; --border: #333; }
         .light-mode { --bg: #f5f5f7; --card: #ffffff; --text: #1d1d1f; --primary: #0071e3; --border: #d2d2d7; }
-        
-        * { margin: 0; padding: 0; box-sizing: border-box; transition: 0.3s; }
+        * { margin: 0; padding: 0; box-sizing: border-box; transition: 0.2s; }
         body { font-family: 'Noto Sans Georgian', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
         
-        .header { background: var(--card); border-bottom: 1px solid var(--border); padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; position: fixed; top: 0; width: 100%; z-index: 100; height: 65px; }
-        .search-bar { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 8px 15px; border-radius: 20px; width: 40%; outline: none; }
+        .header { background: var(--card); border-bottom: 1px solid var(--border); padding: 0 20px; display: flex; justify-content: space-between; align-items: center; position: fixed; top: 0; width: 100%; z-index: 100; height: 60px; }
+        .search-bar { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 8px 15px; border-radius: 10px; width: 50%; outline: none; font-family: inherit; }
         
-        .sidebar { position: fixed; top: 65px; left: -280px; width: 280px; height: calc(100vh - 65px); background: var(--card); z-index: 200; padding: 20px; border-right: 1px solid var(--border); overflow-y: auto; }
+        .sidebar { position: fixed; top: 60px; left: -280px; width: 280px; height: calc(100vh - 60px); background: var(--card); z-index: 200; padding: 20px; border-right: 1px solid var(--border); overflow-y: auto; }
         .sidebar.active { left: 0; }
         
-        .main { margin-top: 80px; padding: 20px; max-width: 900px; margin-left: auto; margin-right: auto; }
-        .note-card { background: var(--card); border: 1px solid var(--border); border-radius: 15px; padding: 20px; margin-bottom: 20px; position: relative; }
-        .delete-btn { position: absolute; top: 15px; right: 15px; background: none; border: none; color: #ff4444; cursor: pointer; font-size: 18px; opacity: 0.6; }
+        .main { margin-top: 80px; padding: 20px; max-width: 800px; margin-left: auto; margin-right: auto; }
+        .note-card { background: var(--card); border: 1px solid var(--border); border-radius: 15px; padding: 25px; margin-bottom: 20px; position: relative; line-height: 1.7; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .delete-btn { position: absolute; top: 15px; right: 15px; background: none; border: none; color: #ff4444; cursor: pointer; font-size: 18px; opacity: 0.4; }
         .delete-btn:hover { opacity: 1; }
-
-        .controls { display: flex; gap: 10px; align-items: center; }
-        select { background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 5px; padding: 5px; cursor: pointer; }
         
-        .fab { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background: var(--primary); border-radius: 50%; border: none; color: white; font-size: 30px; z-index: 100; display: none; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 300; display: none; align-items: center; justify-content: center; padding: 20px; }
-        .modal.active { display: flex; }
-        .modal-box { background: var(--card); padding: 25px; border-radius: 20px; width: 100%; max-width: 500px; border: 1px solid var(--border); }
-        .form-input { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 12px; border-radius: 10px; margin-bottom: 15px; font-family: inherit; }
+        .toolbar { display: flex; flex-wrap: wrap; gap: 8px; background: var(--bg); padding: 12px; border: 1px solid var(--border); border-radius: 12px 12px 0 0; border-bottom: none; }
+        .toolbar button, .toolbar select, .toolbar input { background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 6px 12px; cursor: pointer; border-radius: 6px; font-size: 14px; }
+        #editor { min-height: 250px; background: var(--bg); border: 1px solid var(--border); padding: 15px; border-radius: 0 0 12px 12px; outline: none; overflow-y: auto; color: var(--text); font-size: 16px; }
 
-        @media (min-width: 1024px) { .sidebar { left: 0; } .main { margin-left: 300px; } .header .menu-toggle { display: none; } }
+        .fab { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background: var(--primary); border-radius: 50%; border: none; color: white; font-size: 30px; z-index: 100; display: none; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 10px 20px rgba(59,130,246,0.4); }
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 300; display: none; align-items: center; justify-content: center; padding: 15px; }
+        .modal.active { display: flex; }
+        .modal-box { background: var(--card); padding: 20px; border-radius: 20px; width: 100%; max-width: 700px; border: 1px solid var(--border); }
+        
+        .cat-btn { width: 100%; padding: 14px; margin-bottom: 8px; background: none; border: 1px solid var(--border); color: var(--text); border-radius: 10px; text-align: left; cursor: pointer; font-size: 15px; }
+        .cat-btn.active { border-color: var(--primary); background: rgba(59,130,246,0.1); color: var(--primary); font-weight: bold; }
+
+        @media (min-width: 1024px) { .sidebar { left: 0; } .main { margin-left: 310px; } .header .menu-toggle { display: none; } }
     </style>
 </head>
 <body id="body">
 
     <header class="header">
         <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('active')" style="background:none; border:none; color:var(--primary); font-size:24px;">☰</button>
-        <input type="text" class="search-bar" id="search" placeholder="ძებნა..." oninput="renderNotes()">
-        <div class="controls">
-            <button onclick="toggleTheme()" id="themeBtn" style="background:none; border:none; font-size:20px; cursor:pointer;">🌙</button>
-            <select id="fontSelector" onchange="changeFont()">
-                <option value="'Noto Sans Georgian'">Sans</option>
-                <option value="'Noto Serif Georgian'">Serif</option>
-                <option value="monospace">Mono</option>
-            </select>
-        </div>
+        <input type="text" class="search-bar" id="search" placeholder="მოძებნე არგუმენტი..." onkeyup="renderNotes()">
+        <button onclick="toggleTheme()" id="themeBtn" style="background:none; border:none; font-size:22px; cursor:pointer;">🌙</button>
     </header>
 
     <aside class="sidebar" id="sidebar">
-        <h2 style="margin-bottom:20px; color:var(--primary);">📖 ფილოსოფია</h2>
+        <h2 style="margin-bottom:25px; color:var(--primary); font-size: 1.8rem;">ფილოსოფია</h2>
         <div id="categoryList"></div>
     </aside>
 
     <main class="main" id="contentArea">
-        <div id="homeView">
-            <h1 style="color:var(--primary); font-size: 2.5rem; margin-bottom: 20px;">გამარჯობა</h1>
-            <p style="font-size: 1.2rem; line-height: 1.8; color: #888;">ეს არის თქვენი პირადი ფილოსოფიური სივრცე. აქ შეგიძლიათ დააგროვოთ არგუმენტები, მსჯელობები და იდეები სხვადასხვა კატეგორიების მიხედვით. <br><br> დასაწყებად აირჩიეთ კატეგორია მენიუდან.</p>
+        <div id="homeView" style="text-align: center; padding-top: 50px;">
+            <h1 style="color:var(--primary); font-size: 2.5rem; margin-bottom: 20px;">ჩემი სივრცე</h1>
+            <p style="color: #666; font-size: 1.2rem; max-width: 500px; margin: 0 auto;">აირჩიეთ კატეგორია მარცხენა მენიუდან, რომ დაიწყოთ არგუმენტების წერა და შენახვა.</p>
         </div>
     </main>
 
@@ -66,27 +61,39 @@
 
     <div class="modal" id="modal">
         <div class="modal-box">
-            <h3 style="margin-bottom: 15px;">ახალი ჩანაწერი</h3>
-            <input type="text" class="form-input" id="inputTitle" placeholder="სათაური">
-            <textarea class="form-input" id="inputContent" rows="6" placeholder="თქვენი მსჯელობა..."></textarea>
-            <button onclick="saveNote()" id="saveBtn" style="width:100%; padding:15px; background:var(--primary); border:none; border-radius:10px; color:white; font-weight:700; cursor:pointer;">💾 შენახვა</button>
-            <button onclick="document.getElementById('modal').classList.remove('active')" style="width:100%; margin-top:10px; color:#666; background:none; border:none; cursor:pointer;">გაუქმება</button>
+            <input type="text" id="inputTitle" placeholder="არგუმენტის სათაური" style="width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:15px; border-radius:12px; margin-bottom:12px; font-size:18px; outline:none; font-family: inherit;">
+            
+            <div class="toolbar">
+                <button onclick="format('bold')" title="გასქელება"><b>B</b></button>
+                <button onclick="format('italic')" title="დახრა"><i>I</i></button>
+                <button onclick="format('underline')" title="ხაზგასმა"><u>U</u></button>
+                <select onchange="format('fontSize', this.value)">
+                    <option value="3">ზომა</option>
+                    <option value="2">პატარა</option>
+                    <option value="4">დიდი</option>
+                    <option value="6">გიგანტი</option>
+                </select>
+                <select onchange="format('fontName', this.value)">
+                    <option value="'Noto Sans Georgian'">Sans</option>
+                    <option value="'Noto Serif Georgian'">Serif</option>
+                    <option value="'Fira Mono'">Mono</option>
+                </select>
+                <input type="color" onchange="format('foreColor', this.value)" title="ფერი">
+            </div>
+            <div id="editor" contenteditable="true"></div>
+
+            <button onclick="saveNote()" id="saveBtn" style="width:100%; padding:15px; background:var(--primary); border:none; border-radius:12px; color:white; font-weight:700; margin-top:20px; cursor:pointer; font-size:16px;">💾 შენახვა</button>
+            <button onclick="closeModal()" style="width:100%; margin-top:10px; color:#666; background:none; border:none; cursor:pointer;">გაუქმება</button>
         </div>
     </div>
 
     <script>
-        const DB_URL = "https://gen-lang-client-0339684222-default-rtdb.firebaseio.com/notes"; // შევცვალე სტრუქტურა წაშლისთვის
-
-        const CATEGORIES = [
-            { id: "epistemology", name: "ეპისტემოლოგია" },
-            { id: "metaphysics", name: "მეტაფიზიკა" },
-            { id: "ontology", name: "ონტოლოგია" },
-            { id: "logic", name: "ლოგიკა" },
-            { id: "ethics", name: "ეთიკა" }
-        ];
+        const DB_URL = "https://gen-lang-client-0339684222-default-rtdb.firebaseio.com/notes";
 
         let notes = [];
         let currentCategory = null;
+
+        function format(cmd, val) { document.execCommand(cmd, false, val); }
 
         async function syncData() {
             try {
@@ -94,16 +101,17 @@
                 const data = await res.json();
                 notes = data ? Object.entries(data).map(([key, value]) => ({...value, firebaseId: key})) : [];
                 renderNotes();
-            } catch (e) { console.error(e); }
+            } catch (e) { console.error("Sync Error:", e); }
         }
 
         async function saveNote() {
             const title = document.getElementById('inputTitle').value.trim();
-            const content = document.getElementById('inputContent').value.trim();
-            if(!currentCategory || !title || !content) return;
+            const content = document.getElementById('editor').innerHTML;
+            if(!currentCategory || !title || content === "" || content === "<br>") return alert("შეავსეთ ყველა ველი!");
             
             const btn = document.getElementById('saveBtn');
             btn.disabled = true;
+            btn.innerText = "ინახება...";
 
             const newNote = {
                 id: Date.now(),
@@ -114,66 +122,80 @@
             };
 
             try {
-                const response = await fetch(`${DB_URL}.json`, {
-                    method: 'POST',
-                    body: JSON.stringify(newNote)
-                });
-                if(response.ok) {
-                    await syncData();
-                    document.getElementById('inputTitle').value = '';
-                    document.getElementById('inputContent').value = '';
-                    document.getElementById('modal').classList.remove('active');
-                }
-            } catch (e) { alert("შეცდომა!"); }
+                await fetch(`${DB_URL}.json`, { method: 'POST', body: JSON.stringify(newNote) });
+                await syncData();
+                closeModal();
+            } catch (e) { alert("ვერ მოხერხდა შენახვა"); }
             btn.disabled = false;
+            btn.innerText = "💾 შენახვა";
         }
 
-        async function deleteNote(firebaseId) {
-            if(!confirm("ნამდვილად გსურთ წაშლა?")) return;
-            try {
-                const response = await fetch(`${DB_URL}/${firebaseId}.json`, { method: 'DELETE' });
-                if(response.ok) syncData();
-            } catch (e) { alert("ვერ წაიშალა"); }
-        }
-
-        function toggleTheme() {
-            const body = document.getElementById('body');
-            body.classList.toggle('light-mode');
-            document.getElementById('themeBtn').innerText = body.classList.contains('light-mode') ? "☀️" : "🌙";
-        }
-
-        function changeFont() {
-            document.body.style.setProperty('font-family', document.getElementById('fontSelector').value, 'important');
+        async function deleteNote(id) {
+            if(confirm("ნამდვილად გსურთ ამ არგუმენტის წაშლა?")) {
+                await fetch(`${DB_URL}/${id}.json`, { method: 'DELETE' });
+                syncData();
+            }
         }
 
         function renderNotes() {
             const area = document.getElementById('contentArea');
-            const searchTerm = document.getElementById('search').value.toLowerCase();
-            
+            const search = document.getElementById('search').value.toLowerCase();
             if(!currentCategory) return;
             
-            let filtered = notes.filter(n => n.category === currentCategory.id && 
-                (n.title.toLowerCase().includes(searchTerm) || n.content.toLowerCase().includes(searchTerm)));
+            // ძებნის გაუმჯობესებული ლოგიკა (ეძებს HTML ტეგების შიგნითაც)
+            let filtered = notes.filter(n => {
+                const inCat = n.category === currentCategory.id;
+                const plainText = n.content.replace(/<[^>]*>/g, '').toLowerCase(); // წმენდს HTML-ს ძებნისთვის
+                const inTitle = n.title.toLowerCase().includes(search);
+                const inBody = plainText.includes(search);
+                return inCat && (inTitle || inBody);
+            });
             
-            area.innerHTML = `<h2 style="color:var(--primary); margin-bottom:20px;">${currentCategory.name}</h2>` + 
-                (filtered.length === 0 ? '<p style="color:#666">ჩანაწერები ვერ მოიძებნა.</p>' : 
+            area.innerHTML = `<h2 style="color:var(--primary); margin-bottom:25px; display:flex; justify-content:space-between; align-items:center;">
+                ${currentCategory.name} 
+                <span style="font-size:12px; color:#555;">${filtered.length} ჩანაწერი</span>
+            </h2>` + 
+                (filtered.length === 0 ? '<div style="text-align:center; padding:40px; color:#444;">არგუმენტები ვერ მოიძებნა.</div>' : 
                 filtered.sort((a,b) => b.id - a.id).map(n => `
                     <div class="note-card">
                         <button class="delete-btn" onclick="deleteNote('${n.firebaseId}')">🗑️</button>
-                        <h3 style="margin-right:30px;">${n.title}</h3>
-                        <p style="margin-top:10px; white-space:pre-wrap; color:var(--text); opacity:0.8;">${n.content}</p>
-                        <small style="display:block; margin-top:15px; font-size:10px; color:#555;">${n.date}</small>
+                        <h3 style="margin-bottom:15px; color:var(--primary);">${n.title}</h3>
+                        <div class="note-content">${n.content}</div>
+                        <div style="margin-top:20px; padding-top:10px; border-top:1px solid #222; font-size:11px; color:#444; text-align:right;">
+                            ${n.date}
+                        </div>
                     </div>
                 `).join(''));
         }
 
+        function toggleTheme() {
+            document.getElementById('body').classList.toggle('light-mode');
+            document.getElementById('themeBtn').innerText = document.getElementById('body').classList.contains('light-mode') ? "☀️" : "🌙";
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+            document.getElementById('inputTitle').value = "";
+            document.getElementById('editor').innerHTML = "";
+        }
+
+        const CATEGORIES = [
+            { id: "epistemology", name: "ეპისტემოლოგია" },
+            { id: "metaphysics", name: "მეტაფიზიკა" },
+            { id: "ontology", name: "ონტოლოგია" },
+            { id: "logic", name: "ლოგიკა" },
+            { id: "ethics", name: "ეთიკა" }
+        ];
+
         const list = document.getElementById('categoryList');
         CATEGORIES.forEach(cat => {
             const btn = document.createElement('button');
-            btn.style = "width:100%; padding:15px; margin-bottom:10px; background:none; border:1px solid var(--border); color:var(--text); border-radius:10px; text-align:left; cursor:pointer;";
+            btn.className = 'cat-btn';
             btn.innerText = cat.name;
             btn.onclick = () => {
                 currentCategory = cat;
+                document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
                 document.getElementById('fabBtn').style.display = 'flex';
                 if(window.innerWidth < 1024) document.getElementById('sidebar').classList.remove('active');
                 renderNotes();
