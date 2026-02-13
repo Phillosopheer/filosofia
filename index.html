@@ -1,1 +1,158 @@
 
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ფილოსოფიური არქივი</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans Georgian', sans-serif; background: #0d0d0d; color: #e0e0e0; min-height: 100vh; padding-bottom: 80px; }
+        .header { background: #15151a; border-bottom: 1px solid #333; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; position: fixed; top: 0; width: 100%; z-index: 100; height: 60px; }
+        .sidebar { position: fixed; top: 60px; left: -280px; width: 280px; height: calc(100vh - 60px); background: #111; z-index: 200; transition: 0.3s; padding: 20px; border-right: 1px solid #333; overflow-y: auto; }
+        .sidebar.active { left: 0; }
+        .category-item { width: 100%; padding: 15px; margin-bottom: 10px; background: #1a1a1a; border: 1px solid #333; color: #ccc; border-radius: 10px; text-align: left; cursor: pointer; border: none; }
+        .category-item.active { border: 1px solid #3b82f6; color: #3b82f6; background: rgba(59,130,246,0.1); }
+        .main { margin-top: 70px; padding: 15px; }
+        .note-card { background: #1a1a1a; border: 1px solid #333; border-radius: 15px; padding: 15px; margin-bottom: 15px; }
+        .fab { position: fixed; bottom: 30px; right: 20px; width: 60px; height: 60px; background: #3b82f6; border-radius: 50%; border: none; color: white; font-size: 30px; z-index: 100; display: none; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 300; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .modal.active { display: flex; }
+        .modal-box { background: #1a1a1a; padding: 20px; border-radius: 20px; width: 100%; max-width: 500px; border: 1px solid #333; }
+        .form-input { width: 100%; background: #000; border: 1px solid #333; color: white; padding: 12px; border-radius: 10px; margin-bottom: 15px; font-family: inherit; font-size: 16px; }
+        @media (min-width: 768px) { .sidebar { left: 0; } .main { margin-left: 280px; } .header button[onclick*="sidebar"] { display: none; } }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <button onclick="document.getElementById('sidebar').classList.toggle('active')" style="background:none; border:none; color:#3b82f6; font-size:24px;">☰</button>
+        <div style="font-weight: bold;">📚 ჩემი არქივი</div>
+        <div style="font-size: 12px; color: #444;">Firebase Active ✅</div>
+    </header>
+
+    <aside class="sidebar" id="sidebar">
+        <div id="categoryList"></div>
+    </aside>
+
+    <main class="main" id="contentArea">
+        <div style="text-align:center; padding:50px; color: #666;">
+            <h3>მოგესალმებით</h3>
+            <p>აირჩიეთ კატეგორია ჩანაწერების სანახავად.</p>
+        </div>
+    </main>
+
+    <button class="fab" id="fabBtn" onclick="document.getElementById('modal').classList.add('active')">+</button>
+
+    <div class="modal" id="modal">
+        <div class="modal-box">
+            <h3 style="margin-bottom: 10px;">ახალი ჩანაწერი</h3>
+            <input type="text" class="form-input" id="inputTitle" placeholder="სათაური">
+            <textarea class="form-input" id="inputContent" rows="6" placeholder="თქვენი მსჯელობა..."></textarea>
+            <button onclick="saveNote()" id="saveBtn" style="width:100%; padding:15px; background:#3b82f6; border:none; border-radius:10px; color:white; font-weight:700; cursor:pointer;">💾 შენახვა</button>
+            <button onclick="document.getElementById('modal').classList.remove('active')" style="width:100%; margin-top:10px; color:#666; background:none; border:none; cursor:pointer;">გაუქმება</button>
+        </div>
+    </div>
+
+    <script>
+        // შენი პირადი ბაზის ლინკი
+        const DB_URL = "https://gen-lang-client-0339684222-default-rtdb.firebaseio.com/notes.json";
+
+        const CATEGORIES = [
+            { id: "epistemology", name: "ეპისტემოლოგია" },
+            { id: "metaphysics", name: "მეტაფიზიკა" },
+            { id: "ontology", name: "ონტოლოგია" },
+            { id: "logic", name: "ლოგიკა" },
+            { id: "ethics", name: "ეთიკა" }
+        ];
+
+        let notes = [];
+        let currentCategory = null;
+
+        async function syncData() {
+            try {
+                const res = await fetch(DB_URL);
+                const data = await res.json();
+                notes = data ? Object.values(data) : [];
+                renderNotes();
+            } catch (e) {
+                console.error("Error loading data:", e);
+            }
+        }
+
+        async function saveNote() {
+            const title = document.getElementById('inputTitle').value.trim();
+            const content = document.getElementById('inputContent').value.trim();
+            
+            if(!currentCategory || !title || !content) return alert("შეავსეთ ყველა ველი!");
+
+            const btn = document.getElementById('saveBtn');
+            btn.disabled = true;
+            btn.innerText = "⏳...";
+
+            const newNote = {
+                id: Date.now(),
+                category: currentCategory.id,
+                title: title,
+                content: content,
+                date: new Date().toLocaleString('ka-GE')
+            };
+
+            try {
+                // პირდაპირი შენახვა Firebase-ში ტოკენის გარეშე
+                const response = await fetch(DB_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(newNote)
+                });
+
+                if(response.ok) {
+                    notes.push(newNote);
+                    document.getElementById('inputTitle').value = '';
+                    document.getElementById('inputContent').value = '';
+                    document.getElementById('modal').classList.remove('active');
+                    renderNotes();
+                }
+            } catch (e) {
+                alert("შენახვისას მოხდა შეცდომა.");
+            }
+            btn.disabled = false;
+            btn.innerText = "💾 შენახვა";
+        }
+
+        function renderNotes() {
+            const area = document.getElementById('contentArea');
+            if(!currentCategory) return;
+            const filtered = notes.filter(n => n.category === currentCategory.id);
+            
+            area.innerHTML = `<h2 style="color:#3b82f6; border-bottom:1px solid #333; padding-bottom:10px;">${currentCategory.name}</h2><br>` + 
+                (filtered.length === 0 ? '<p style="color:#666">ამ კატეგორიაში ჩანაწერები არ არის.</p>' : 
+                filtered.sort((a,b) => b.id - a.id).map(n => `
+                    <div class="note-card">
+                        <h3 style="color:#fff">${n.title}</h3>
+                        <p style="color:#aaa; margin-top:10px; white-space:pre-wrap; line-height:1.6;">${n.content}</p>
+                        <div style="margin-top:10px; font-size:10px; color:#444; text-align:right;">${n.date || ''}</div>
+                    </div>
+                `).join(''));
+        }
+
+        const list = document.getElementById('categoryList');
+        CATEGORIES.forEach(cat => {
+            const btn = document.createElement('button');
+            btn.className = 'category-item';
+            btn.innerText = cat.name;
+            btn.onclick = () => {
+                currentCategory = cat;
+                document.querySelectorAll('.category-item').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById('fabBtn').style.display = 'flex';
+                if(window.innerWidth < 768) document.getElementById('sidebar').classList.remove('active');
+                renderNotes();
+            };
+            list.appendChild(btn);
+        });
+
+        syncData();
+    </script>
+</body>
+</html>
