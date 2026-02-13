@@ -103,7 +103,10 @@
             <div class="logo">ფილოსოფია</div>
         </div>
         <input type="text" class="search-bar" id="search" placeholder="ძიება..." onkeyup="renderNotes()">
-        <button onclick="toggleTheme()" style="background:none; border:none; font-size:22px; cursor:pointer;">🌓</button>
+        <div style="display: flex; gap: 10px;">
+            <button onclick="toggleAdmin()" id="adminBtn" style="background:none; border:none; font-size:22px; cursor:pointer;" title="ადმინისტრატორი">🔒</button>
+            <button onclick="toggleTheme()" style="background:none; border:none; font-size:22px; cursor:pointer;" title="თემის შეცვლა">🌓</button>
+        </div>
     </header>
 
     <aside class="sidebar" id="sidebar">
@@ -155,9 +158,41 @@
 
     <script>
         const DB_URL = "https://gen-lang-client-0339684222-default-rtdb.firebaseio.com/notes";
+        
+        // --- პაროლის სისტემა ---
+        const ADMIN_PASSWORD = "admin123"; // შეცვალე ეს პაროლი შენი სურვილით!
+        let isAdmin = localStorage.getItem('isAdmin') === 'true'; 
+        // -----------------------
+
         let notes = [];
         let currentCategory = null;
         let editingId = null;
+
+        document.getElementById('adminBtn').innerText = isAdmin ? "🔓" : "🔒";
+
+        function toggleAdmin() {
+            if (isAdmin) {
+                isAdmin = false;
+                localStorage.removeItem('isAdmin');
+                document.getElementById('adminBtn').innerText = "🔒";
+                alert("თქვენ გამოხვედით ადმინისტრატორის რეჟიმიდან. ახლა საიტი მხოლოდ წასაკითხადაა.");
+            } else {
+                let pass = prompt("შეიყვანეთ ადმინისტრატორის პაროლი საიტის რედაქტირებისთვის:");
+                if (pass === ADMIN_PASSWORD) {
+                    isAdmin = true;
+                    localStorage.setItem('isAdmin', 'true');
+                    document.getElementById('adminBtn').innerText = "🔓";
+                    alert("პაროლი სწორია! ახლა შეგიძლიათ სტატიების დამატება და ჩასწორება.");
+                } else if (pass !== null) {
+                    alert("არასწორი პაროლი!");
+                }
+            }
+            
+            if (currentCategory) {
+                document.getElementById('fabBtn').style.display = isAdmin ? 'flex' : 'none';
+                renderNotes();
+            }
+        }
 
         function execCmd(cmd, val) { 
             document.execCommand(cmd, false, val); 
@@ -172,7 +207,6 @@
                 if (!currentCategory) goHome(); else renderNotes();
             } catch (e) { 
                 console.error("Firebase Error:", e); 
-                alert("მონაცემები ვერ ჩაიტვირთა. შეამოწმეთ ინტერნეტი.");
             }
         }
 
@@ -187,7 +221,7 @@
                     <h1 class="hero-title">ფილოსოფიური სივრცე</h1>
                     <p style="font-size: 1.2rem; color: var(--text-dim); max-width: 650px; line-height: 1.8;">
                         ეს არის თქვენი პირადი და საჯარო სივრცე. ადგილი, სადაც ყოველი არგუმენტი ინახება და ყოველი მსჯელობა პოულობს თავის ადგილს. 
-                        დაათვალიერეთ კატეგორიები (მენიუდან) იდეების აღმოსაჩენად ან დასამატებლად.
+                        დაათვალიერეთ კატეგორიები (მენიუდან) იდეების აღმოსაჩენად.
                     </p>
                 </div>`;
             if(window.innerWidth < 1024) document.getElementById('sidebar').classList.remove('active');
@@ -198,7 +232,6 @@
             const search = document.getElementById('search').value.toLowerCase();
             if(!currentCategory) return;
             
-            // დაცული ძებნა ერორების თავიდან ასაცილებლად
             let filtered = notes.filter(n => {
                 if(n.category !== currentCategory.id) return false;
                 const safeTitle = (n.title || "").toLowerCase();
@@ -209,25 +242,32 @@
             let html = `<h2 style="margin-bottom:25px; font-family: 'Noto Serif Georgian', serif; font-size:28px;">${currentCategory.name}</h2>`;
             
             if(filtered.length === 0) {
-                html += `<p style="color: var(--text-dim);">ამ კატეგორიაში ჩანაწერები ჯერ არ არის. დააჭირეთ + ღილაკს დასამატებლად.</p>`;
+                html += `<p style="color: var(--text-dim);">ამ კატეგორიაში ჩანაწერები ჯერ არ არის.</p>`;
             } else {
-                html += filtered.sort((a,b) => b.id - a.id).map(n => `
-                    <div class="article-card" onclick="openFullView('${n.firebaseId}')">
+                html += filtered.sort((a,b) => b.id - a.id).map(n => {
+                    // ღილაკები გამოჩნდება მხოლოდ მაშინ, როცა ავტორიზებული ხარ
+                    let actionButtons = isAdmin ? `
                         <div class="card-actions">
                             <button class="action-btn" onclick="editNote('${n.firebaseId}', event)" title="ჩასწორება">✏️</button>
                             <button class="action-btn" onclick="deleteNote('${n.firebaseId}', event)" title="წაშლა">🗑️</button>
                         </div>
+                    ` : '';
+
+                    return `
+                    <div class="article-card" onclick="openFullView('${n.firebaseId}')">
+                        ${actionButtons}
                         <h3>${n.title || "უსათაურო"}</h3>
                         <p style="color: var(--text-dim); font-size: 15px; line-height: 1.6;">
                             ${(n.content || "").replace(/<[^>]*>/g, '').substring(0, 160)}...
                         </p>
                     </div>
-                `).join('');
+                `}).join('');
             }
             area.innerHTML = html;
         }
 
         function openModal() { 
+            if(!isAdmin) return; // დაცვა
             document.getElementById('inputTitle').value = "";
             document.getElementById('editor').innerHTML = "";
             editingId = null;
@@ -241,6 +281,7 @@
 
         function editNote(id, e) {
             e.stopPropagation();
+            if(!isAdmin) return; // დაცვა
             const note = notes.find(n => n.firebaseId === id);
             if(!note) return;
             editingId = id;
@@ -250,6 +291,7 @@
         }
 
         async function saveNote() {
+            if(!isAdmin) return; // დაცვა
             const title = document.getElementById('inputTitle').value.trim();
             const content = document.getElementById('editor').innerHTML.trim();
             
@@ -287,6 +329,7 @@
 
         async function deleteNote(id, e) {
             e.stopPropagation();
+            if(!isAdmin) return; // დაცვა
             if(confirm("ნამდვილად გსურთ ამ ჩანაწერის წაშლა?")) {
                 await fetch(`${DB_URL}/${id}.json`, { method: 'DELETE' });
                 syncData();
@@ -321,7 +364,10 @@
                 currentCategory = cat;
                 document.querySelectorAll('.cat-link').forEach(l => l.classList.remove('active'));
                 btn.classList.add('active');
-                document.getElementById('fabBtn').style.display = 'flex';
+                
+                // დამატების (+) ღილაკი ჩნდება მხოლოდ მაშინ, როცა ადმინი ხარ
+                document.getElementById('fabBtn').style.display = isAdmin ? 'flex' : 'none';
+                
                 if(window.innerWidth < 1024) document.getElementById('sidebar').classList.remove('active');
                 renderNotes();
             };
