@@ -3,133 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Archium | ფილოსოფიური არქივი</title>
+    <title>ფილოსოფია</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;700&family=Noto+Serif+Georgian:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #0a0a0b;
-            --card: #141417;
-            --accent: #3b82f6;
-            --text-main: #ffffff;
-            --text-dim: #a1a1aa;
-            --border: rgba(255, 255, 255, 0.08);
-            --glass: rgba(20, 20, 23, 0.8);
+            --bg: #0d0d0e; --card: #161618; --accent: #3b82f6;
+            --text-main: #ffffff; --text-dim: #a1a1aa; --border: rgba(255, 255, 255, 0.1);
         }
-
         .light-mode {
-            --bg: #f8f9fa;
-            --card: #ffffff;
-            --accent: #0071e3;
-            --text-main: #1d1d1f;
-            --text-dim: #6e6e73;
-            --border: rgba(0, 0, 0, 0.08);
-            --glass: rgba(255, 255, 255, 0.8);
+            --bg: #f5f5f7; --card: #ffffff; --accent: #0071e3;
+            --text-main: #1d1d1f; --text-dim: #6e6e73; --border: rgba(0, 0, 0, 0.1);
         }
-
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Noto Sans Georgian', sans-serif; }
-        body { background: var(--bg); color: var(--text-main); line-height: 1.6; overflow-x: hidden; transition: background 0.4s ease; }
+        body { background: var(--bg); color: var(--text-main); transition: 0.3s; }
 
-        /* Modern Header */
+        /* Header */
         .nav-header {
-            position: fixed; top: 0; width: 100%; height: 70px;
-            background: var(--glass); backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border);
+            position: fixed; top: 0; width: 100%; height: 65px;
+            background: var(--bg); border-bottom: 1px solid var(--border);
             display: flex; align-items: center; justify-content: space-between;
-            padding: 0 30px; z-index: 1000;
+            padding: 0 25px; z-index: 1000; backdrop-filter: blur(10px);
         }
-
-        .logo { font-size: 22px; font-weight: 700; letter-spacing: 1px; color: var(--accent); }
-
-        .search-container { position: relative; width: 40%; }
+        .logo { font-size: 20px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; }
         .search-bar {
-            width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border);
-            padding: 10px 15px; border-radius: 20px; color: var(--text-main); outline: none;
-            transition: 0.3s;
+            background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+            padding: 8px 15px; border-radius: 12px; color: var(--text-main); width: 40%; outline: none;
         }
-        .search-bar:focus { border-color: var(--accent); background: rgba(255,255,255,0.08); }
 
-        /* Sidebar UI */
+        /* Sidebar */
         .sidebar {
-            position: fixed; top: 70px; left: 0; width: 280px; height: 100vh;
+            position: fixed; top: 65px; left: 0; width: 260px; height: 100vh;
             background: var(--card); border-right: 1px solid var(--border);
-            padding: 40px 20px; z-index: 900; overflow-y: auto;
-            transition: transform 0.3s ease;
+            padding: 30px 15px; z-index: 900;
         }
-
         .cat-link {
-            display: block; padding: 12px 18px; margin-bottom: 10px;
-            border-radius: 12px; color: var(--text-dim); text-decoration: none;
-            font-weight: 400; transition: 0.2s; cursor: pointer;
+            padding: 12px 15px; margin-bottom: 5px; border-radius: 10px;
+            color: var(--text-dim); cursor: pointer; transition: 0.2s;
         }
-        .cat-link:hover, .cat-link.active {
-            background: rgba(59, 130, 246, 0.1); color: var(--accent);
-        }
+        .cat-link:hover, .cat-link.active { background: rgba(59, 130, 246, 0.1); color: var(--accent); font-weight: 600; }
 
-        /* Main Content & Cards */
-        .content-wrapper { margin-left: 280px; margin-top: 70px; padding: 40px; max-width: 1000px; }
-        
-        .hero-section { padding: 60px 0; animation: fadeIn 0.8s ease; }
-        .hero-title { font-size: 48px; font-weight: 700; margin-bottom: 20px; background: linear-gradient(to right, var(--accent), #9333ea); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        /* Main Content */
+        .content-wrapper { margin-left: 260px; margin-top: 65px; padding: 40px; max-width: 900px; }
+        .hero-title { font-size: 42px; margin-bottom: 20px; font-family: 'Noto Serif Georgian', serif; }
 
-        .article-grid { display: grid; grid-template-columns: 1fr; gap: 25px; margin-top: 30px; }
-        
+        /* Cards */
         .article-card {
             background: var(--card); border: 1px solid var(--border);
-            padding: 30px; border-radius: 20px; cursor: pointer;
-            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative;
+            padding: 25px; border-radius: 18px; margin-bottom: 20px;
+            position: relative; transition: 0.3s; cursor: pointer;
         }
-        .article-card:hover { transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
-        .article-card h3 { font-family: 'Noto Serif Georgian', serif; font-size: 24px; margin-bottom: 12px; }
-        .article-card p { color: var(--text-dim); font-size: 15px; }
+        .article-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+        .article-card h3 { font-family: 'Noto Serif Georgian', serif; margin-bottom: 10px; color: var(--accent); }
+        
+        .card-actions { position: absolute; top: 20px; right: 20px; display: flex; gap: 12px; }
+        .action-btn { background: none; border: none; cursor: pointer; font-size: 16px; opacity: 0.4; transition: 0.2s; }
+        .action-btn:hover { opacity: 1; transform: scale(1.1); }
 
-        /* Floating Action Button */
-        .fab {
-            position: fixed; bottom: 40px; right: 40px; width: 65px; height: 65px;
-            background: var(--accent); color: white; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 30px; border: none; cursor: pointer;
-            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4); z-index: 1000;
-        }
-
-        /* Modal & Editor Styling */
+        /* Modal & Editor */
         .modal {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.95);
-            backdrop-filter: blur(10px); display: none; z-index: 2000;
-            padding: 40px; overflow-y: auto;
+            position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+            display: none; z-index: 2000; padding: 30px; overflow-y: auto;
         }
         .modal.active { display: flex; flex-direction: column; align-items: center; }
-        .editor-container { width: 100%; max-width: 800px; }
+        .editor-box { width: 100%; max-width: 800px; background: var(--card); padding: 30px; border-radius: 20px; border: 1px solid var(--border); }
         
-        #editor {
-            min-height: 400px; font-size: 18px; color: var(--text-main);
-            outline: none; padding: 20px 0; font-family: 'Noto Serif Georgian', serif;
+        .toolbar { display: flex; flex-wrap: wrap; gap: 10px; padding: 10px; background: var(--bg); border-radius: 10px; margin-bottom: 15px; }
+        .toolbar button, .toolbar select, .toolbar input { background: var(--card); border: 1px solid var(--border); color: var(--text-main); padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+        
+        #editor { min-height: 350px; outline: none; font-size: 18px; line-height: 1.7; font-family: 'Noto Serif Georgian', serif; color: var(--text-main); }
+
+        .fab {
+            position: fixed; bottom: 35px; right: 35px; width: 60px; height: 60px;
+            background: var(--accent); color: white; border-radius: 50%;
+            border: none; font-size: 30px; cursor: pointer; box-shadow: 0 8px 20px rgba(59,130,246,0.3); z-index: 1000;
         }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        @media (max-width: 1024px) {
-            .sidebar { transform: translateX(-100%); }
-            .content-wrapper { margin-left: 0; }
-            .sidebar.mobile-active { transform: translateX(0); }
-        }
+        @media (max-width: 1024px) { .sidebar { display: none; } .content-wrapper { margin-left: 0; } }
     </style>
 </head>
 <body id="body">
 
     <header class="nav-header">
-        <div style="display: flex; align-items: center; gap: 15px;">
-            <button onclick="toggleSidebar()" style="background:none; border:none; color:var(--text-main); font-size:24px; cursor:pointer;" class="mobile-only">☰</button>
-            <div class="logo">ARCHIUM</div>
-        </div>
-        <div class="search-container">
-            <input type="text" class="search-bar" id="search" placeholder="ძიება არქივში..." onkeyup="renderNotes()">
-        </div>
+        <div class="logo">ფილოსოფია</div>
+        <input type="text" class="search-bar" id="search" placeholder="ძიება..." onkeyup="renderNotes()">
         <button onclick="toggleTheme()" style="background:none; border:none; font-size:20px; cursor:pointer;">🌓</button>
     </header>
 
     <aside class="sidebar" id="sidebar">
-        <div class="cat-link active" id="homeBtn" onclick="goHome()">მთავარი გვერდი</div>
-        <p style="font-size: 12px; color: var(--text-dim); margin: 30px 0 15px 18px; text-transform: uppercase; letter-spacing: 1px;">კატეგორიები</p>
+        <div class="cat-link active" id="homeBtn" onclick="goHome()">🏠 მთავარი</div>
+        <div style="margin: 25px 0 10px 15px; font-size: 11px; color: #555; text-transform: uppercase;">კატეგორიები</div>
         <div id="categoryList"></div>
     </aside>
 
@@ -137,22 +99,40 @@
 
     <button class="fab" id="fabBtn" onclick="openModal()" style="display: none;">+</button>
 
-    <div class="modal" id="viewModal" onclick="closeView()">
-        <div class="editor-container" onclick="event.stopPropagation()">
-            <button onclick="closeView()" style="float: right; color: var(--text-dim); background:none; border:none; cursor:pointer;">დახურვა [esc]</button>
-            <h1 id="viewTitle" style="font-size: 42px; margin: 60px 0 30px; font-family: 'Noto Serif Georgian', serif;"></h1>
-            <div id="viewContent" style="font-family: 'Noto Serif Georgian', serif; font-size: 20px; line-height: 1.8; color: var(--text-main);"></div>
+    <div class="modal" id="modal">
+        <div class="editor-box">
+            <input type="text" id="inputTitle" placeholder="სათაური..." style="width:100%; background:none; border:none; border-bottom:1px solid var(--border); color:var(--text-main); font-size:28px; padding-bottom:15px; margin-bottom:20px; outline:none;">
+            
+            <div class="toolbar">
+                <button onclick="execCmd('bold')"><b>B</b></button>
+                <button onclick="execCmd('italic')"><i>I</i></button>
+                <select onchange="execCmd('fontSize', this.value)">
+                    <option value="3">ზომა</option>
+                    <option value="2">პატარა</option>
+                    <option value="4">დიდი</option>
+                    <option value="6">XL</option>
+                </select>
+                <input type="color" onchange="execCmd('foreColor', this.value)">
+                <select onchange="execCmd('fontName', this.value)">
+                    <option value="'Noto Serif Georgian'">Serif</option>
+                    <option value="'Noto Sans Georgian'">Sans</option>
+                </select>
+            </div>
+
+            <div id="editor" contenteditable="true"></div>
+
+            <div style="display: flex; gap: 15px; margin-top: 30px;">
+                <button onclick="saveNote()" id="saveBtn" style="flex:1; padding:15px; background:var(--accent); color:white; border:none; border-radius:12px; font-weight:700; cursor:pointer;">💾 შენახვა</button>
+                <button onclick="closeModal()" style="padding:15px 25px; background:rgba(255,255,255,0.05); color:var(--text-main); border:1px solid var(--border); border-radius:12px; cursor:pointer;">გაუქმება</button>
+            </div>
         </div>
     </div>
 
-    <div class="modal" id="modal">
-        <div class="editor-container">
-            <input type="text" id="inputTitle" placeholder="სათაური..." style="width:100%; background:none; border:none; border-bottom:1px solid var(--border); color:var(--text-main); font-size:32px; padding:20px 0; outline:none; margin-bottom:20px;">
-            <div id="editor" contenteditable="true" placeholder="დაიწყეთ წერა..."></div>
-            <div style="display: flex; gap: 20px; margin-top: 40px;">
-                <button onclick="saveNote()" style="flex: 1; padding: 15px; background: var(--accent); border:none; border-radius: 12px; color:white; font-weight:700; cursor:pointer;">არგუმენტის გამოქვეყნება</button>
-                <button onclick="closeModal()" style="padding: 15px 30px; background: rgba(255,255,255,0.05); border:1px solid var(--border); color:var(--text-main); border-radius: 12px; cursor:pointer;">გაუქმება</button>
-            </div>
+    <div class="modal" id="viewModal" onclick="closeView()">
+        <div class="editor-box" onclick="event.stopPropagation()" style="background:none; border:none;">
+            <h1 id="viewTitle" style="font-size: 40px; margin-bottom: 30px; font-family: 'Noto Serif Georgian', serif;"></h1>
+            <div id="viewContent" style="font-size: 19px; line-height: 1.8; font-family: 'Noto Serif Georgian', serif;"></div>
+            <button onclick="closeView()" style="margin-top:40px; padding:10px 20px; background:var(--accent); color:white; border:none; border-radius:8px; cursor:pointer;">უკან დაბრუნება</button>
         </div>
     </div>
 
@@ -160,6 +140,9 @@
         const DB_URL = "https://gen-lang-client-0339684222-default-rtdb.firebaseio.com/notes";
         let notes = [];
         let currentCategory = null;
+        let editingId = null;
+
+        function execCmd(cmd, val) { document.execCommand(cmd, false, val); document.getElementById('editor').focus(); }
 
         async function syncData() {
             try {
@@ -171,107 +154,12 @@
         }
 
         function goHome() {
-            currentCategory = null;
+            currentCategory = null; editingId = null;
             document.querySelectorAll('.cat-link').forEach(l => l.classList.remove('active'));
             document.getElementById('homeBtn').classList.add('active');
             document.getElementById('fabBtn').style.display = 'none';
             document.getElementById('contentArea').innerHTML = `
-                <section class="hero-section">
-                    <h1 class="hero-title">ფილოსოფიური <br> არქივი</h1>
-                    <p style="font-size: 20px; color: var(--text-dim); max-width: 600px;">
-                        კეთილი იყოს თქვენი მობრძანება ციფრულ სივრცეში, სადაც იდეები ფორმას იღებენ. ეს არის ღია პლატფორმა ონტოლოგიური, ეთიკური და ლოგიკური მსჯელობებისთვის.
-                    </p>
-                    <div style="margin-top: 50px; display: flex; gap: 20px;">
-                        <button onclick="document.querySelector('.cat-link:nth-child(3)').click()" style="padding: 15px 30px; background: var(--accent); color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer;">არქივის დათვალიერება</button>
-                    </div>
-                </section>
-            `;
-        }
-
-        function renderNotes() {
-            const area = document.getElementById('contentArea');
-            const search = document.getElementById('search').value.toLowerCase();
-            if(!currentCategory) return;
-            
-            let filtered = notes.filter(n => n.category === currentCategory.id && 
-                (n.title.toLowerCase().includes(search) || n.content.replace(/<[^>]*>/g, '').toLowerCase().includes(search)));
-            
-            area.innerHTML = `
-                <div style="margin-bottom: 40px;">
-                    <h2 style="font-size: 32px; font-weight: 700;">${currentCategory.name}</h2>
-                    <p style="color: var(--text-dim);">${filtered.length} ჩანაწერი არქივში</p>
-                </div>
-                <div class="article-grid">
-                    ${filtered.sort((a,b) => b.id - a.id).map(n => `
-                        <div class="article-card" onclick="openFullView('${n.firebaseId}')">
-                            <h3>${n.title}</h3>
-                            <p>${n.content.replace(/<[^>]*>/g, '').substring(0, 180)}...</p>
-                            <div style="margin-top: 20px; font-size: 12px; color: var(--accent); font-weight: 600;">წაიკითხეთ მეტი →</div>
-                        </div>
-                    `).join('')}
-                </div>`;
-        }
-
-        function openFullView(id) {
-            const note = notes.find(n => n.firebaseId === id);
-            document.getElementById('viewTitle').innerText = note.title;
-            document.getElementById('viewContent').innerHTML = note.content;
-            document.getElementById('viewModal').classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeView() { 
-            document.getElementById('viewModal').classList.remove('active');
-            document.body.style.overflow = 'auto';
-        }
-
-        async function saveNote() {
-            const title = document.getElementById('inputTitle').value.trim();
-            const content = document.getElementById('editor').innerHTML;
-            if(!title || content === "") return;
-            
-            await fetch(`${DB_URL}.json`, { 
-                method: 'POST', 
-                body: JSON.stringify({
-                    id: Date.now(),
-                    category: currentCategory.id,
-                    title, content,
-                    date: new Date().toLocaleString('ka-GE')
-                }) 
-            });
-            await syncData();
-            closeModal();
-        }
-
-        function openModal() { document.getElementById('modal').classList.add('active'); }
-        function closeModal() { document.getElementById('modal').classList.remove('active'); }
-        function toggleTheme() { document.getElementById('body').classList.toggle('light-mode'); }
-        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('mobile-active'); }
-
-        const CATEGORIES = [
-            { id: "epistemology", name: "ეპისტემოლოგია" },
-            { id: "metaphysics", name: "მეტაფიზიკა" },
-            { id: "ontology", name: "ონტოლოგია" },
-            { id: "logic", name: "ლოგიკა" },
-            { id: "ethics", name: "ეთიკა" }
-        ];
-
-        const list = document.getElementById('categoryList');
-        CATEGORIES.forEach(cat => {
-            const btn = document.createElement('div');
-            btn.className = 'cat-link';
-            btn.innerText = cat.name;
-            btn.onclick = () => {
-                currentCategory = cat;
-                document.querySelectorAll('.cat-link').forEach(l => l.classList.remove('active'));
-                btn.classList.add('active');
-                document.getElementById('fabBtn').style.display = 'flex';
-                renderNotes();
-            };
-            list.appendChild(btn);
-        });
-
-        syncData();
-    </script>
-</body>
-</html>
+                <div style="padding-top: 40px;">
+                    <h1 class="hero-title">ფილოსოფიური <br> ხედვა</h1>
+                    <p style="font-size: 1.2rem; color: var(--text-dim); max-width: 650px; line-height: 1.8;">
+                        ეს არის თქვენი პირადი და საჯარო სივრცე. ადგილი, სადაც ყოველი არგუმენტი ინახება და ყოველი მსჯელობა პოულობს თავის ადგილს
