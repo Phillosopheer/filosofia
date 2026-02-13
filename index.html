@@ -9,49 +9,52 @@
         :root { --bg: #0d0d0e; --card: #161618; --accent: #3b82f6; --text-main: #ffffff; --text-dim: #a1a1aa; --border: rgba(255, 255, 255, 0.1); }
         .light-mode { --bg: #f5f5f7; --card: #ffffff; --accent: #0071e3; --text-main: #1d1d1f; --text-dim: #6e6e73; --border: rgba(0, 0, 0, 0.1); }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Noto Sans Georgian', sans-serif; }
-        body { background: var(--bg); color: var(--text-main); transition: 0.3s; }
+        body { background: var(--bg); color: var(--text-main); transition: 0.3s; padding-top: 65px; }
 
-        /* Header & Nav */
         .nav-header { position: fixed; top: 0; width: 100%; height: 65px; background: var(--bg); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 1000; }
         .sidebar { position: fixed; top: 65px; left: -280px; width: 260px; height: calc(100vh - 65px); background: var(--card); border-right: 1px solid var(--border); padding: 25px 15px; z-index: 900; transition: 0.3s; overflow-y: auto; }
         .sidebar.active { left: 0; }
         .cat-item { padding: 12px; margin-bottom: 5px; border-radius: 8px; color: var(--text-dim); cursor: pointer; }
-        .cat-item.active { background: rgba(59, 130, 246, 0.1); color: var(--accent); }
+        .cat-item:hover, .cat-item.active { background: rgba(59, 130, 246, 0.1); color: var(--accent); }
 
-        /* Content */
-        .content-wrapper { margin-top: 65px; padding: 30px 20px; max-width: 800px; margin-left: auto; margin-right: auto; }
-        .article-card { background: var(--card); border: 1px solid var(--border); padding: 25px; border-radius: 18px; margin-bottom: 25px; position: relative; line-height: 1.6; }
-        .card-actions { position: absolute; top: 15px; right: 15px; display: flex; gap: 10px; }
+        .content-wrapper { padding: 30px 20px; max-width: 800px; margin: 0 auto; }
+        
+        /* Article Card Styles */
+        .article-card { background: var(--card); border: 1px solid var(--border); padding: 20px; border-radius: 18px; margin-bottom: 15px; cursor: pointer; transition: 0.2s; position: relative; }
+        .article-card:hover { border-color: var(--accent); }
+        .note-body { display: none; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border); line-height: 1.6; }
+        .article-card.expanded .note-body { display: block; }
+        
+        .card-actions { position: absolute; top: 15px; right: 15px; display: flex; gap: 8px; z-index: 10; }
+        .card-actions button { background: #2a2a2d; border: none; color: white; padding: 5px 8px; border-radius: 5px; cursor: pointer; }
 
-        /* Editor & Toolbar */
+        /* Editor */
         .toolbar { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; background: var(--bg); padding: 10px; border-radius: 8px; border: 1px solid var(--border); }
-        .toolbar button, .toolbar input { background: #2a2a2d; border: 1px solid var(--border); color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 13px; }
-        #editor { min-height: 300px; background: var(--bg); border: 1px solid var(--border); padding: 15px; border-radius: 8px; color: white; outline: none; overflow-y: auto; }
-        #editor img { max-width: 100%; border-radius: 8px; }
+        #editor { min-height: 300px; background: var(--bg); border: 1px solid var(--border); padding: 15px; border-radius: 8px; color: white; outline: none; }
+        #editor img { max-width: 100%; }
 
-        /* Modals */
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; z-index: 2000; align-items: center; justify-content: center; padding: 20px; }
         .modal.active { display: flex; }
         .modal-box { background: var(--card); padding: 25px; border-radius: 20px; width: 100%; max-width: 700px; border: 1px solid var(--border); max-height: 90vh; overflow-y: auto; }
         
-        input[type="text"], input[type="email"], input[type="password"] { width: 100%; padding: 12px; margin-bottom: 15px; background: var(--bg); border: 1px solid var(--border); color: white; border-radius: 8px; }
+        input { width: 100%; padding: 12px; margin-bottom: 15px; background: var(--bg); border: 1px solid var(--border); color: white; border-radius: 8px; }
         .btn-main { width: 100%; padding: 14px; background: var(--accent); border: none; color: white; border-radius: 10px; cursor: pointer; font-weight: bold; }
         
-        .fab { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background: var(--accent); color: white; border-radius: 50%; border: none; font-size: 30px; cursor: pointer; display: none; box-shadow: 0 8px 20px rgba(0,0,0,0.4); z-index: 1000; align-items: center; justify-content: center; }
+        .fab { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background: var(--accent); color: white; border-radius: 50%; border: none; font-size: 30px; cursor: pointer; display: none; align-items: center; justify-content: center; z-index: 1000; }
 
         @media (min-width: 1024px) { .sidebar { left: 0; } .content-wrapper { margin-left: 260px; } }
     </style>
 </head>
-<body id="body">
+<body>
 
     <header class="nav-header">
         <div style="display:flex; align-items:center; gap:15px;">
-            <button onclick="toggleSidebar()" style="background:none; border:none; color:white; font-size:24px;">☰</button>
+            <button onclick="toggleSidebar()" style="background:none; border:none; color:white; font-size:24px; cursor:pointer;">☰</button>
             <div style="font-weight:bold; color:var(--accent);">ფილოსოფია</div>
         </div>
         <div style="display:flex; gap:15px;">
-            <button onclick="showLogin()" id="lockBtn">🔒</button>
-            <button onclick="toggleTheme()">🌓</button>
+            <button onclick="showLogin()" id="lockBtn" style="background:none; border:none; font-size:20px; cursor:pointer;">🔒</button>
+            <button onclick="toggleTheme()" style="background:none; border:none; font-size:20px; cursor:pointer;">🌓</button>
         </div>
     </header>
 
@@ -62,48 +65,39 @@
 
     <main class="content-wrapper" id="mainContent">
         <h1 style="font-family:'Noto Serif Georgian';">ჩანაწერები</h1>
-        <p style="color:var(--text-dim);">აირჩიეთ კატეგორია.</p>
+        <p style="color:var(--text-dim);">აირჩიეთ კატეგორია მარცხენა მენიუდან.</p>
     </main>
 
     <button class="fab" id="fabBtn" onclick="openEditor()">+</button>
 
-    <div class="modal" id="loginModal">
-        <div class="modal-box" style="max-width:400px;">
-            <h3>ადმინისტრატორი</h3><br>
-            <input type="email" id="emailInput" placeholder="მეილი">
-            <input type="password" id="passInput" placeholder="პაროლი">
-            <button class="btn-main" onclick="login()">შესვლა</button>
-            <button onclick="closeModal('loginModal')" style="margin-top:15px; background:none; border:none; color:var(--text-dim); width:100%;">გაუქმება</button>
-        </div>
-    </div>
-
     <div class="modal" id="editorModal">
         <div class="modal-box">
+            <h3 id="modalTitle">ახალი ჩანაწერი</h3><br>
             <input type="text" id="noteTitle" placeholder="სათაური...">
             
             <div class="toolbar">
-                <button onclick="exec('bold')"><b>B</b></button>
-                <button onclick="exec('italic')"><i>I</i></button>
-                <button onclick="exec('underline')"><u>U</u></button>
-                <input type="color" onchange="exec('foreColor', this.value)" title="ფერი">
-                <select onchange="exec('fontSize', this.value)" style="background:#2a2a2d; color:white; border:none;">
-                    <option value="3">ზომა</option>
-                    <option value="1">ძალიან პატარა</option>
-                    <option value="3">ნორმალური</option>
-                    <option value="5">დიდი</option>
-                    <option value="7">ძალიან დიდი</option>
-                </select>
-                <button onclick="insertImg()">🖼️ სურათი</button>
-                <button onclick="exec('justifyLeft')">⬅️</button>
-                <button onclick="exec('justifyCenter')">↔️</button>
+                <button onclick="exec('bold')">B</button>
+                <button onclick="exec('italic')">I</button>
+                <button onclick="exec('insertUnorderedList')">•</button>
+                <button onclick="insertImg()">🖼️</button>
             </div>
 
             <div id="editor" contenteditable="true"></div>
             
             <div style="display:flex; gap:10px; margin-top:20px;">
-                <button class="btn-main" onclick="saveNote()">შენახვა</button>
-                <button class="btn-main" style="background:#444;" onclick="closeModal('editorModal')">დახურვა</button>
+                <button class="btn-main" id="saveBtn" onclick="saveNote()">შენახვა</button>
+                <button class="btn-main" style="background:#444;" onclick="closeModal('editorModal')">გაუქმება</button>
             </div>
+        </div>
+    </div>
+
+    <div class="modal" id="loginModal">
+        <div class="modal-box" style="max-width:400px;">
+            <h3>ავტორიზაცია</h3><br>
+            <input type="email" id="emailInput" placeholder="მეილი">
+            <input type="password" id="passInput" placeholder="პაროლი">
+            <button class="btn-main" onclick="login()">შესვლა</button>
+            <button onclick="closeModal('loginModal')" style="margin-top:10px; background:none; border:none; color:var(--text-dim); cursor:pointer; width:100%;">დახურვა</button>
         </div>
     </div>
 
@@ -114,6 +108,7 @@
         let token = localStorage.getItem('fb_token');
         let notes = [];
         let currentCat = null;
+        let editingId = null; // ინახავს იმ ID-ს, რომელსაც ვაედითებთ
 
         const categories = [
             {id: 'epist', name: 'ეპისტემოლოგია'}, {id: 'ethics', name: 'ეთიკა'},
@@ -121,17 +116,19 @@
         ];
 
         function exec(cmd, val = null) { document.execCommand(cmd, false, val); }
-        function insertImg() { const url = prompt("ჩასვით სურათის ლინკი:"); if(url) exec('insertImage', url); }
+        function insertImg() { const url = prompt("სურათის URL:"); if(url) exec('insertImage', url); }
 
         async function login() {
             const email = document.getElementById('emailInput').value;
             const password = document.getElementById('passInput').value;
-            const res = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${API_KEY}`, {
-                method: 'POST', body: JSON.stringify({ email, password, returnSecureToken: true })
-            });
-            const data = await res.json();
-            if(data.idToken) { localStorage.setItem('fb_token', data.idToken); location.reload(); }
-            else alert("შეცდომა!");
+            try {
+                const res = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${API_KEY}`, {
+                    method: 'POST', body: JSON.stringify({ email, password, returnSecureToken: true })
+                });
+                const data = await res.json();
+                if(data.idToken) { localStorage.setItem('fb_token', data.idToken); location.reload(); }
+                else alert("არასწორი მონაცემები!");
+            } catch(e) { alert("შეცდომა კავშირისას"); }
         }
 
         async function fetchNotes() {
@@ -144,13 +141,25 @@
         function renderNotes() {
             const area = document.getElementById('mainContent');
             const filtered = notes.filter(n => n.cat === currentCat.id);
-            area.innerHTML = `<h2 style="color:var(--accent); margin-bottom:20px;">${currentCat.name}</h2>`;
+            area.innerHTML = `<h2 style="color:var(--accent); margin-bottom:20px; font-family:'Noto Serif Georgian';">${currentCat.name}</h2>`;
+            
+            if(filtered.length === 0) area.innerHTML += `<p style="color:var(--text-dim);">ამ კატეგორიაში ჩანაწერები ჯერ არ არის.</p>`;
+
             filtered.sort((a,b) => b.date - a.date).forEach(n => {
                 const card = document.createElement('div');
                 card.className = 'article-card';
+                // კლიკზე იხსნება/იკეტება
+                card.onclick = (e) => { 
+                    if(!e.target.closest('.card-actions')) card.classList.toggle('expanded'); 
+                };
+                
                 card.innerHTML = `
-                    ${token ? `<div class="card-actions"><button onclick="deleteNote('${n.fbId}')">🗑️</button></div>` : ''}
-                    <h3 style="margin-bottom:15px; font-family:'Noto Serif Georgian';">${n.title}</h3>
+                    ${token ? `
+                    <div class="card-actions">
+                        <button onclick="editNote('${n.fbId}')">✏️</button>
+                        <button onclick="deleteNote('${n.fbId}')">🗑️</button>
+                    </div>` : ''}
+                    <h3 style="font-family:'Noto Serif Georgian'; padding-right:60px;">${n.title}</h3>
                     <div class="note-body">${n.content}</div>
                 `;
                 area.appendChild(card);
@@ -158,21 +167,52 @@
             document.getElementById('fabBtn').style.display = (token && currentCat) ? 'flex' : 'none';
         }
 
+        function editNote(id) {
+            const note = notes.find(n => n.fbId === id);
+            if(!note) return;
+            editingId = id;
+            document.getElementById('modalTitle').innerText = "რედაქტირება";
+            document.getElementById('noteTitle').value = note.title;
+            document.getElementById('editor').innerHTML = note.content;
+            openEditor();
+        }
+
         async function saveNote() {
             const title = document.getElementById('noteTitle').value;
             const content = document.getElementById('editor').innerHTML;
-            if(!title || content === "") return;
-            const res = await fetch(`${DB_URL}.json?auth=${token}`, {
-                method: 'POST', body: JSON.stringify({ title, content, cat: currentCat.id, date: Date.now() })
-            });
-            if(res.ok) { closeModal('editorModal'); fetchNotes(); }
+            if(!title || content === "") return alert("შეავსეთ ყველა ველი");
+
+            const noteData = { title, content, cat: currentCat.id, date: Date.now() };
+            
+            // თუ editingId გვაქვს, ვაკეთებთ PUT (განახლებას), თუ არა POST (ახალს)
+            const url = editingId 
+                ? `${DB_URL}/${editingId}.json?auth=${token}` 
+                : `${DB_URL}.json?auth=${token}`;
+            
+            const method = editingId ? 'PUT' : 'POST';
+
+            const res = await fetch(url, { method, body: JSON.stringify(noteData) });
+            if(res.ok) { 
+                closeModal('editorModal'); 
+                editingId = null;
+                fetchNotes(); 
+            }
         }
 
         async function deleteNote(id) {
-            if(confirm("წავშალოთ?")) {
+            if(confirm("ნამდვილად გსურთ წაშლა?")) {
                 await fetch(`${DB_URL}/${id}.json?auth=${token}`, { method: 'DELETE' });
                 fetchNotes();
             }
+        }
+
+        function openEditor() { 
+            if(!editingId) {
+                document.getElementById('modalTitle').innerText = "ახალი ჩანაწერი";
+                document.getElementById('noteTitle').value = "";
+                document.getElementById('editor').innerHTML = "";
+            }
+            document.getElementById('editorModal').classList.add('active'); 
         }
 
         function init() {
@@ -180,7 +220,13 @@
             categories.forEach(c => {
                 const d = document.createElement('div');
                 d.className = 'cat-item'; d.innerText = c.name;
-                d.onclick = () => { currentCat = c; renderNotes(); };
+                d.onclick = () => { 
+                    document.querySelectorAll('.cat-item').forEach(i => i.classList.remove('active'));
+                    d.classList.add('active');
+                    currentCat = c; 
+                    renderNotes(); 
+                    if(window.innerWidth < 1024) toggleSidebar();
+                };
                 list.appendChild(d);
             });
             if(token) document.getElementById('lockBtn').innerText = "🔓";
@@ -189,8 +235,7 @@
 
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); }
         function showLogin() { if(token) { localStorage.removeItem('fb_token'); location.reload(); } else document.getElementById('loginModal').classList.add('active'); }
-        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-        function openEditor() { document.getElementById('editorModal').classList.add('active'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); editingId = null; }
         function toggleTheme() { document.body.classList.toggle('light-mode'); }
         function goHome() { location.reload(); }
 
