@@ -1000,10 +1000,8 @@
             <p id="readDate" style="color:var(--text-dim); font-size:0.78rem; letter-spacing:1px; margin-bottom:45px; padding-bottom:35px; border-bottom:1px solid var(--border); font-weight:500;"></p>
             <div id="readCover" style="margin-bottom:30px;"></div>
             <div id="readBody" style="font-size:1.1rem; line-height:2; color:var(--text); font-weight:300; font-family:'Cormorant Garamond', serif;"></div>
-            <div style="margin-top:40px; padding-top:30px; border-top:1px solid var(--border);">
-                <button class="btn btn-secondary" style="width:auto; padding:10px 25px;" onclick="copyNote(this)">📋 კოპირება</button>
-            </div>
-            <div id="adminControls" style="display:none; margin-top:15px;">
+            <div id="adminControls" style="display:none; margin-top:40px; padding-top:30px; border-top:1px solid var(--border);">
+                <button class="btn btn-secondary" style="width:auto; padding:10px 25px; margin-right:10px;" onclick="copyNote(this)">📋 კოპირება</button>
                 <button class="btn btn-secondary" style="width:auto; padding:10px 25px; margin-right:10px;" onclick="openEditModal()">✏️ რედაქტირება</button>
                 <button class="btn btn-danger" style="width:auto; padding:10px 25px;" onclick="deleteCurrentNote()">🗑 წაშლა</button>
             </div>
@@ -1961,7 +1959,6 @@
                     coverUrl = coverUrlInput;
                 }
 
-                btn.innerText = 'ინახება...';
                 const note = { title, cat, content, date: Date.now() };
                 if (coverUrl) note.coverUrl = coverUrl;
 
@@ -1973,6 +1970,8 @@
                 if (!res.ok) throw new Error('Firebase-ის შეცდომა');
 
                 showMsg(sucEl, '✓ ჩანაწერი შენახულია!', true);
+                showMsg(errEl, '', false); // Clear any previous errors
+                
                 await fetchNotes();
 
                 // Clear form
@@ -1982,8 +1981,11 @@
                 document.getElementById('coverUrl').value = '';
                 document.getElementById('coverPreview').innerHTML = '';
 
+                // Close modal and switch to category after short delay
                 setTimeout(() => {
+                    showMsg(sucEl, '', false); // Clear success message
                     closeModal('editorModal');
+                    
                     // Auto-switch to saved category
                     const saved = categories.find(c => c.id === cat);
                     if (saved) {
@@ -1995,10 +1997,11 @@
                         currentCat = saved;
                         renderNotes();
                     }
-                }, 1200);
+                }, 800);
 
             } catch (err) {
                 showMsg(errEl, 'შენახვა ვერ მოხერხდა: ' + err.message, true);
+                showMsg(sucEl, '', false); // Clear success message on error
             } finally {
                 btn.disabled  = false;
                 btn.innerText = 'შენახვა';
@@ -2152,6 +2155,7 @@
             document.getElementById('editTitle').value       = currentNote.title || '';
             document.getElementById('editCat').value        = currentNote.cat   || 'epist';
             document.getElementById('editArea').innerHTML   = currentNote.content || '';
+            document.getElementById('editCoverUrl').value   = currentNote.coverUrl || '';
             
             // Show existing cover image if available
             const editCoverPreview = document.getElementById('editCoverPreview');
@@ -2163,9 +2167,6 @@
             } else {
                 editCoverPreview.innerHTML = '';
             }
-            
-            // Clear file input
-            document.getElementById('editCoverImage').value = '';
             
             showMsg(document.getElementById('editError'),   '', false);
             showMsg(document.getElementById('editSuccess'), '', false);
@@ -2254,7 +2255,6 @@
                 
                 delete updated.fbId;
 
-                btn.innerText = 'ინახება...';
                 const res = await fetch(`${FIREBASE_DB}/notes/${currentNote.fbId}.json?auth=${idToken}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
@@ -2264,6 +2264,7 @@
 
                 currentNote = { ...updated, fbId: currentNote.fbId };
                 showMsg(sucEl, '✓ განახლდა!', true);
+                showMsg(errEl, '', false);
 
                 // Reader-შიც განვაახლოთ
                 document.getElementById('readTitle').innerText = title;
@@ -2280,10 +2281,15 @@
                 }
 
                 await fetchNotes();
-                setTimeout(() => closeModal('editModal'), 1000);
+                
+                setTimeout(() => {
+                    showMsg(sucEl, '', false);
+                    closeModal('editModal');
+                }, 800);
 
             } catch (err) {
                 showMsg(errEl, 'განახლება ვერ მოხერხდა: ' + err.message, true);
+                showMsg(sucEl, '', false);
             } finally {
                 btn.disabled  = false;
                 btn.innerText = 'განახლება';
@@ -2349,4 +2355,3 @@
 
 </body>
 </html>
- 
