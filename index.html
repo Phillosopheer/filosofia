@@ -199,6 +199,14 @@
             font-weight: 300;
         }
         
+        .scramble-text {
+            display: inline-block;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
+        
         /* Welcome text with animated gradient */
         .welcome-text {
             margin-top: 45px;
@@ -286,16 +294,61 @@
 
         .cat-item {
             padding: 13px 18px; border-radius: 10px; margin-bottom: 6px;
-            cursor: pointer; transition: 0.25s;
+            cursor: pointer; transition: all 0.3s ease;
             color: var(--text-dim); font-weight: 500;
             font-size: 0.95rem; letter-spacing: 0.3px;
             display: flex; justify-content: space-between; align-items: center;
+            position: relative;
+            overflow: hidden;
         }
-        .cat-item:hover { background: var(--glass); color: var(--accent); transform: translateX(4px); }
+        .cat-item::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            border-radius: 10px;
+            z-index: -1;
+            filter: blur(8px);
+        }
+        
+        /* Ripple effect for mobile touch */
+        .cat-item-ripple {
+            position: absolute;
+            border-radius: 50%;
+            transform: scale(0);
+            animation: ripple 0.6s ease-out;
+            pointer-events: none;
+        }
+        
+        @keyframes ripple {
+            0% {
+                transform: scale(0);
+                opacity: 0.6;
+            }
+            100% {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+        
+        @media (hover: hover) {
+            .cat-item:hover { 
+                background: var(--glass); 
+                color: var(--accent); 
+                transform: translateX(6px) scale(1.02);
+                box-shadow: 0 4px 15px var(--glow);
+            }
+            .cat-item:hover::before {
+                opacity: 0.15;
+            }
+        }
         .cat-item.active {
             background: linear-gradient(135deg, rgba(167,139,250,0.2), rgba(129,140,248,0.1));
             color: var(--accent); border: 1px solid var(--border);
             transform: translateX(6px);
+            box-shadow: 0 4px 12px var(--glow);
         }
 
         /* --- Overlay --- */
@@ -318,9 +371,11 @@
             background: var(--surface);
             border: 1px solid var(--border);
             padding: 20px; border-radius: 20px; cursor: pointer;
-            transition: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex; flex-direction: column;
             justify-content: space-between; position: relative; overflow: hidden;
+            transform-style: preserve-3d;
+            will-change: transform;
         }
         .card::before {
             content: ''; position: absolute;
@@ -330,12 +385,35 @@
         }
         .card::after {
             content: ''; position: absolute; inset: 0;
-            background: radial-gradient(circle at 50% 0%, var(--glow), transparent 70%);
-            opacity: 0; transition: 0.4s; pointer-events: none;
+            background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 0%), var(--glow), transparent 70%);
+            opacity: 0; transition: opacity 0.4s; pointer-events: none;
         }
-        .card:hover { transform: translateY(-8px); border-color: rgba(167,139,250,0.35); box-shadow: 0 25px 50px rgba(0,0,0,0.4); }
-        .card:hover::before { opacity: 1; }
-        .card:hover::after { opacity: 1; }
+        
+        /* Mobile tap animation */
+        .card:active {
+            transform: scale(0.98);
+            border-color: rgba(167,139,250,0.5);
+        }
+        
+        /* Ripple effect for cards */
+        .card-ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(167, 139, 250, 0.5);
+            transform: scale(0);
+            animation: ripple 0.6s ease-out;
+            pointer-events: none;
+        }
+        
+        @media (hover: hover) {
+            .card:hover { 
+                transform: translateY(-8px) scale(1.02); 
+                border-color: rgba(167,139,250,0.4); 
+                box-shadow: 0 25px 50px rgba(0,0,0,0.4), 0 0 30px var(--glow);
+            }
+            .card:hover::before { opacity: 1; }
+            .card:hover::after { opacity: 0.8; }
+        }
 
         .card h3 {
             font-family: 'Cormorant Garamond', serif;
@@ -343,6 +421,12 @@
             margin-bottom: 18px; line-height: 1.35;
             color: var(--text);
             margin-top: 12px;
+            transition: transform 0.3s ease;
+        }
+        @media (hover: hover) {
+            .card:hover h3 {
+                transform: translateZ(20px);
+            }
         }
         .card-meta { display: flex; justify-content: space-between; align-items: center; }
         .card-date { font-size: 0.75rem; color: var(--text-dim); letter-spacing: 0.5px; }
@@ -1244,6 +1328,62 @@
             quoteText.innerText = nietzscheQuotes[randomIndex];
         }
 
+        // ---- WAVE FADE ANIMATION ----
+        function waveFadeText(element, text) {
+            // Clear element and create span for each character
+            element.innerHTML = '';
+            element.style.display = 'block';
+            element.style.textAlign = 'center';
+            
+            const chars = text.split('');
+            const spans = [];
+            
+            chars.forEach((char, i) => {
+                if (char === '|') {
+                    // Line break marker
+                    const br = document.createElement('br');
+                    element.appendChild(br);
+                } else {
+                    const span = document.createElement('span');
+                    span.innerText = char;
+                    span.style.display = 'inline-block';
+                    span.style.opacity = '1';
+                    span.style.transition = 'opacity 0.4s ease';
+                    if (char === ' ') span.style.width = '0.3em';
+                    element.appendChild(span);
+                    spans.push(span);
+                }
+            });
+            
+            function animateWave() {
+                let delay = 0;
+                
+                // Fade out wave
+                spans.forEach((span, i) => {
+                    setTimeout(() => {
+                        span.style.opacity = '0';
+                    }, delay);
+                    delay += 80; // Delay between each character fading
+                });
+                
+                // Fade in wave (starts after fade out begins)
+                delay = 400; // Small pause before fade in starts
+                spans.forEach((span, i) => {
+                    setTimeout(() => {
+                        span.style.opacity = '1';
+                    }, delay);
+                    delay += 80;
+                });
+                
+                // Restart animation after completion + pause
+                setTimeout(() => {
+                    animateWave();
+                }, delay + 2000); // 2 second pause before restarting
+            }
+            
+            animateWave();
+        }
+
         // ---- INIT ----
         function init() {
             // Load saved theme from localStorage
@@ -1278,13 +1418,16 @@
             
             displayRandomQuote(); // Display random Nietzsche quote on load
             fetchNotes();
+            
+            // Start wave fade animation on page title (| = line break)
+            const titleElement = document.getElementById('pageTitle');
+            waveFadeText(titleElement, 'ციფრული|ბიბლიოთეკა');
         }
 
         function goHome() {
             currentCat = null;
             document.querySelectorAll('.cat-item').forEach(el => el.classList.remove('active'));
             const pt = document.getElementById('pageTitle'); 
-            pt.innerText = 'ციფრული ბიბლიოთეკა'; 
             pt.classList.add('shimmer');
             document.getElementById('pageSubtitle').innerText = '';
             document.getElementById('heroBook').style.display = 'block';
@@ -1297,6 +1440,9 @@
             updateFab();
             renderHomeCats();
             startClock();
+            
+            // Restart wave fade animation (| = line break)
+            waveFadeText(pt, 'ციფრული|ბიბლიოთეკა');
         }
 
         function renderHomeCats() {
@@ -1304,10 +1450,43 @@
         }
 
         // ---- CATEGORY LIST ----
+        // Colorful ripple effect function
+        function createRipple(element, e, color) {
+            const rect = element.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const ripple = document.createElement('span');
+            ripple.className = 'cat-item-ripple';
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+            ripple.style.width = '10px';
+            ripple.style.height = '10px';
+            ripple.style.background = color;
+            
+            element.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+        }
+        
         function buildCatList() {
             const list = document.getElementById('catList');
             list.innerHTML = '';
-            categories.forEach(c => {
+            
+            // Different colors for each category
+            const colors = [
+                'rgba(167, 139, 250, 0.6)', // Purple - ეთიკა
+                'rgba(129, 140, 248, 0.6)', // Blue - მეტაფიზიკა
+                'rgba(244, 114, 182, 0.6)', // Pink - ეპისტემოლოგია
+                'rgba(251, 146, 60, 0.6)',  // Orange - ლოგიკა
+                'rgba(52, 211, 153, 0.6)',  // Green - ესთეტიკა
+                'rgba(248, 113, 113, 0.6)', // Red - სოციალური
+                'rgba(96, 165, 250, 0.6)'   // Light blue - პოლიტიკური
+            ];
+            
+            categories.forEach((c, index) => {
                 const count = notes.filter(n => n.cat === c.id).length;
                 const d = document.createElement('div');
                 d.className = 'cat-item';
@@ -1316,13 +1495,29 @@
                 d.style.justifyContent = 'space-between';
                 d.style.alignItems = 'center';
                 d.innerHTML = `<span>${c.name}</span><span style="font-size:0.75rem; background:rgba(59,130,246,0.15); color:var(--accent); padding:2px 9px; border-radius:20px; font-weight:600;">${count}</span>`;
-                d.onclick = () => {
+                
+                // Get color for this category
+                const categoryColor = colors[index % colors.length];
+                
+                // Add touch/click ripple effect
+                d.addEventListener('click', (e) => {
+                    createRipple(d, e, categoryColor);
+                    
+                    // Brief color flash
+                    d.style.background = categoryColor.replace('0.6', '0.3');
+                    setTimeout(() => {
+                        if (!d.classList.contains('active')) {
+                            d.style.background = '';
+                        }
+                    }, 300);
+                    
                     document.querySelectorAll('.cat-item').forEach(el => el.classList.remove('active'));
                     d.classList.add('active');
                     currentCat = c;
                     toggleMenu();
                     renderNotes();
-                };
+                });
+                
                 list.appendChild(d);
             });
         }
@@ -1377,6 +1572,50 @@
                     card.className = 'card';
                     card.onclick = () => openReader(n);
                     const dateStr = n.date ? new Date(n.date).toLocaleDateString('ka-GE') : '—';
+                    
+                    // Add 3D parallax effect on hover (only on devices with hover support)
+                    if (window.matchMedia('(hover: hover)').matches) {
+                        card.addEventListener('mousemove', (e) => {
+                            const rect = card.getBoundingClientRect();
+                            const x = e.clientX - rect.left;
+                            const y = e.clientY - rect.top;
+                            const centerX = rect.width / 2;
+                            const centerY = rect.height / 2;
+                            const rotateX = (y - centerY) / 20;
+                            const rotateY = (centerX - x) / 20;
+                            
+                            card.style.transform = `translateY(-8px) scale(1.02) perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                            card.style.setProperty('--mouse-x', `${(x / rect.width) * 100}%`);
+                            card.style.setProperty('--mouse-y', `${(y / rect.height) * 100}%`);
+                        });
+                        
+                        card.addEventListener('mouseleave', () => {
+                            card.style.transform = '';
+                            card.style.removeProperty('--mouse-x');
+                            card.style.removeProperty('--mouse-y');
+                        });
+                    } else {
+                        // Mobile: Add ripple effect on touch
+                        card.addEventListener('touchstart', (e) => {
+                            const rect = card.getBoundingClientRect();
+                            const touch = e.touches[0];
+                            const x = touch.clientX - rect.left;
+                            const y = touch.clientY - rect.top;
+                            
+                            const ripple = document.createElement('span');
+                            ripple.className = 'card-ripple';
+                            ripple.style.left = x + 'px';
+                            ripple.style.top = y + 'px';
+                            ripple.style.width = '20px';
+                            ripple.style.height = '20px';
+                            
+                            card.appendChild(ripple);
+                            
+                            setTimeout(() => {
+                                ripple.remove();
+                            }, 600);
+                        });
+                    }
                     
                     // Build card HTML with optional cover image
                     let cardHTML = '';
