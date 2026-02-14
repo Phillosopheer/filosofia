@@ -1485,7 +1485,18 @@
         // ---- AUTH ----
         function handleAuthBtn() {
             openModal('loginModal');
-            document.getElementById('loginEmail').focus();
+            
+            // Check if locked out
+            const lockUntil = parseInt(localStorage.getItem('lockUntil') || '0');
+            if (lockUntil && Date.now() < lockUntil) {
+                const remaining = Math.ceil((lockUntil - Date.now()) / 1000 / 60 / 60);
+                const errEl = document.getElementById('loginError');
+                showMsg(errEl, `🔒 დაბლოკილია. სცადე ${remaining} საათში.`, true);
+                document.getElementById('loginBtn').disabled = true;
+            } else {
+                document.getElementById('loginBtn').disabled = false;
+                document.getElementById('loginEmail').focus();
+            }
         }
 
         async function doLogin() {
@@ -1495,6 +1506,16 @@
             const btn      = document.getElementById('loginBtn');
 
             showMsg(errEl, '', false);
+
+            // ---- LOCKOUT CHECK ----
+            const lockUntil  = parseInt(localStorage.getItem('lockUntil') || '0');
+            const failCount  = parseInt(localStorage.getItem('loginFails') || '0');
+
+            if (lockUntil && Date.now() < lockUntil) {
+                const remaining = Math.ceil((lockUntil - Date.now()) / 1000 / 60 / 60);
+                showMsg(errEl, `🔒 2-ჯერ ცდა ვერ გამოგივიდა — დაბლოკილია. სცადე ${remaining} საათში.`, true);
+                return;
+            }
 
             if (!email || !password) {
                 showMsg(errEl, 'შეიყვანეთ ელ. ფოსტა და პაროლი', true);
@@ -1513,10 +1534,28 @@
                 const data = await res.json();
 
                 if (!res.ok) {
+                    // Count failed attempt
+                    const newFails = failCount + 1;
+                    localStorage.setItem('loginFails', newFails);
+
+                    if (newFails >= 2) {
+                        const until = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+                        localStorage.setItem('lockUntil', until);
+                        localStorage.removeItem('loginFails');
+                        showMsg(errEl, '🔒 2-ჯერ ცდა ვერ გამოგივიდა — დაბლოკილია 24 საათით!', true);
+                        btn.disabled = true;
+                        btn.innerText = 'შესვლა';
+                        return;
+                    }
+
                     const msg = firebaseErrMsg(data?.error?.message);
-                    showMsg(errEl, msg, true);
+                    showMsg(errEl, `${msg} (დარჩენილია ${2 - newFails} მცდელობა)`, true);
                     return;
                 }
+
+                // Success — clear lockout data
+                localStorage.removeItem('loginFails');
+                localStorage.removeItem('lockUntil');
 
                 idToken    = data.idToken;
                 currentUid = data.localId;
@@ -2049,6 +2088,23 @@
         // Block right-click for non-admins
         document.addEventListener('contextmenu', e => {
             if (!idToken) e.preventDefault();
+        });
+
+        // ---- LOGO SECRET UNBLOCK (10 clicks) ----
+        let logoClickCount = 0;
+        let logoClickTimer = null;
+        document.querySelector('.logo').addEventListener('click', () => {
+            logoClickCount++;
+            clearTimeout(logoClickTimer);
+            logoClickTimer = setTimeout(() => { logoClickCount = 0; }, 2000);
+            if (logoClickCount >= 10) {
+                logoClickCount = 0;
+                localStorage.removeItem('lockUntil');
+                localStorage.removeItem('loginFails');
+                document.getElementById('loginBtn').disabled = false;
+                const errEl = document.getElementById('loginError');
+                showMsg(errEl, '✅ განბლოკილია! სცადე თავიდან.', false);
+            }
         });
 
         init();
