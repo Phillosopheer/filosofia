@@ -35,6 +35,32 @@
             --glow: rgba(124,58,237,0.15);
         }
 
+        .sepia-mode {
+            --bg: #f4ecd8;
+            --surface: #fdf6e3;
+            --surface2: #ede1c5;
+            --accent: #8b6914;
+            --accent2: #a67c1a;
+            --text: #3e2723;
+            --text-dim: #6d4c41;
+            --glass: rgba(139,105,20,0.03);
+            --border: rgba(139,105,20,0.15);
+            --glow: rgba(139,105,20,0.2);
+        }
+
+        .night-mode {
+            --bg: #0a0a0f;
+            --surface: #111118;
+            --surface2: #1a1a24;
+            --accent: #7c6baf;
+            --accent2: #6b5b9e;
+            --text: #c9c5d4;
+            --text-dim: #625d75;
+            --glass: rgba(124,107,175,0.03);
+            --border: rgba(124,107,175,0.08);
+            --glow: rgba(124,107,175,0.15);
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
@@ -77,11 +103,18 @@
 
         .logo {
             font-family: 'Cormorant Garamond', serif;
-            font-weight: 700; font-size: 1.55rem;
-            color: var(--accent); letter-spacing: 2px;
-            transition: opacity 0.3s;
+            transition: transform 0.3s ease, filter 0.3s ease;
         }
-        .logo:hover { opacity: 0.75; }
+        .logo:hover { 
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+        .logo svg {
+            transition: transform 0.4s ease;
+        }
+        .logo:hover svg {
+            transform: rotate(-10deg) scale(1.1);
+        }
 
         .header-btn {
             background: none; border: none; cursor: pointer;
@@ -639,8 +672,17 @@
             
             /* Mobile header adjustments */
             .logo { 
-                font-size: 1.2rem; 
-                letter-spacing: 1px;
+                gap: 6px !important;
+            }
+            
+            .logo span {
+                font-size: 1.2rem !important;
+                letter-spacing: 1px !important;
+            }
+            
+            .logo svg {
+                width: 24px !important;
+                height: 24px !important;
             }
             
             .header > div {
@@ -743,7 +785,20 @@
     <!-- Header -->
     <header class="header">
         <button class="menu-btn" onclick="toggleMenu()">☰</button>
-        <div class="logo" onclick="goHome()" style="cursor:pointer;">ფილოსოფია</div>
+        <div class="logo" onclick="goHome()" style="cursor:pointer; display: flex; align-items: center; gap: 10px;">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 0 8px rgba(167,139,250,0.4));">
+                <!-- Owl icon -->
+                <circle cx="11" cy="14" r="3" fill="var(--accent)" opacity="0.9"/>
+                <circle cx="21" cy="14" r="3" fill="var(--accent)" opacity="0.9"/>
+                <circle cx="11" cy="14" r="1.5" fill="var(--bg)"/>
+                <circle cx="21" cy="14" r="1.5" fill="var(--bg)"/>
+                <path d="M16 18 L14 20 L16 21 L18 20 Z" fill="var(--accent)" opacity="0.8"/>
+                <path d="M6 10 C6 6 8 4 12 4 C14 4 15 5 16 5 C17 5 18 4 20 4 C24 4 26 6 26 10 L26 18 C26 24 22 28 16 28 C10 28 6 24 6 18 Z" fill="none" stroke="var(--accent)" stroke-width="2" opacity="0.7"/>
+                <path d="M6 12 L4 8 L6 10" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+                <path d="M26 12 L28 8 L26 10" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+            </svg>
+            <span style="background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 50%, #e0d7ff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 700; font-size: 1.55rem; letter-spacing: 2px;">ფილოსოფია</span>
+        </div>
         <div style="display:flex; gap:12px; align-items:center;">
             <span class="user-badge" id="userBadge"></span>
             <button class="header-btn" id="themeBtn" onclick="toggleTheme()" title="თემის შეცვლა">
@@ -786,6 +841,13 @@
         <div class="welcome-text">
             <p>კეთილი იყოს თქვენი მობრძანება ფილოსოფიურ პლატფორმაზე</p>
             <p>წინამდებარე რესურსი წარმოადგენს სივრცეს კრიტიკული აზროვნებისა და ინტელექტუალური ძიებისთვის. ჩვენი მიზანია, მკითხველს მივაწოდოთ სიღრმისეული ანალიზი ფილოსოფიის სხვადასხვა ქვედარგის შესახებ - მეტაფიზიკიდან და ეპისტემოლოგიიდან დაწყებული, ეთიკითა და პოლიტიკური ფილოსოფიით დასრულებული.</p>
+        </div>
+        
+        <!-- Random Nietzsche Quote -->
+        <div id="quoteSection" style="margin-top: 40px; padding: 30px 40px; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; max-width: 800px; margin-left: auto; margin-right: auto; position: relative; overflow: hidden;">
+            <div style="position: absolute; top: 15px; left: 25px; font-size: 4rem; opacity: 0.1; color: var(--accent); font-family: Georgia, serif; line-height: 1;">"</div>
+            <p id="quoteText" style="font-family: 'Cormorant Garamond', serif; font-size: 1.25rem; line-height: 1.9; font-style: italic; color: var(--text); margin: 0 0 15px 0; position: relative; z-index: 1;"></p>
+            <p id="quoteAuthor" style="text-align: right; color: var(--accent); font-size: 0.95rem; font-weight: 600; letter-spacing: 1px; margin: 0;">— ფრიდრიხ ნიცშე</p>
         </div>
     </section>
 
@@ -1080,14 +1142,85 @@
         let currentNote = null;
 
         const categories = [
-            { id: 'epist',  name: 'ეპისტემოლოგია' },
-            { id: 'ethics', name: 'ეთიკა' },
-            { id: 'logic',  name: 'ლოგიკა' },
-            { id: 'meta',   name: 'მეტაფიზიკა' }
+            { 
+                id: 'epist',  
+                name: 'ეპისტემოლოგია',
+                desc: 'ცოდნის ბუნების, წარმოშობისა და საზღვრების შესწავლა'
+            },
+            { 
+                id: 'ethics', 
+                name: 'ეთიკა',
+                desc: 'მორალური ღირებულებების, სიკეთისა და ბოროტების ანალიზი'
+            },
+            { 
+                id: 'logic',  
+                name: 'ლოგიკა',
+                desc: 'სწორი მსჯელობის პრინციპებისა და არგუმენტაციის შესწავლა'
+            },
+            { 
+                id: 'meta',   
+                name: 'მეტაფიზიკა',
+                desc: 'რეალობის ბუნების, არსებობისა და თვისებების ძიება'
+            }
         ];
+
+        // ---- NIETZSCHE QUOTES ----
+        const nietzscheQuotes = [
+            "რაც ჩვენ არ გვკლავს, ის გვაძლიერებს.",
+            "ურჩხულებთან მებრძოლს მართებს ფიქრი იმაზე, რომ თავად არ იქცეს ურჩხულად.",
+            "როდესაც იყურები უფსკრულში უნდა იცოდე, რომ უფსკრულიც შემოგყურებს შენ.",
+            "არ არსებობს ფაქტები, აქ მხოლოდ ინტერპრეტაციებია.",
+            "რაც უფრო მაღლა ავფრინდებით ხოლმე, მით უფრო პატარები ვჩანვართ მათთვის, ვისაც ფრენა არ შეუძლიათ.",
+            "უბოროტესი მტერი, რომელსაც გადაეყრები, თავად შენ ხარ.",
+            "სიმართლე რომ ვთქვა, მსოფლიოში მხოლოდ ერთადერთი ქრისტიანი იყო და ისიც ჯვარზე გააკრეს.",
+            "ღმერთი მოკვდა.",
+            "სულში ქაოსის შექმნა გჭირდება, რომ დაბადო ახალი მოკაშკაშე ვარსკვლავი.",
+            "სიყვარულში ყოველთვის არსებობს სიგიჟე, მაგრამ ასევე არსებობს ამ სიგიჟის მიზეზებიც.",
+            "არა მხოლოდ მრისხანებით შეიძლება მოკვლა, არამედ დაცინვითაც.",
+            "მე ვირწმუნებდი ისეთ ღმერთს, რომელსაც ცეკვა ძალუძს.",
+            "სჯობს რეგვენი იყო და შენი აზრები გქონდეს, ვიდრე ბრძენი სხვისი აზრებით.",
+            "ადამიანი ყველაზე ბოროტი ცხოველია.",
+            "ჩვენ გვესმინება მხოლოდ ისეთი კითხვები, რომლზეც პასუხის გაცემა ძალგვიძს.",
+            "სიზარმაცე ფსიქოლოგიის მშობელია.",
+            "დოსტოევსკი ერთადერთი ფსიქოლოგი იყო, რომლისგანაც მე რაღარ ვისწავლე.",
+            "მუსიკის გარეშე ცხოვრება ერთი დიდი შეცდომა იქნებოდა.",
+            "ვარსკვლავო, რა იქნებოდა შენი სიცოცხლე, რომ არ გყოლოდა ის, ვისთვისაც ანათებ.",
+            "ქალებს მეგობრობა არ შეუძლიათ, მათ მხოლოდ სიყვარული ძალუძთ.",
+            "ცხოვრება ტანჯვაა. გადარჩენის გზა კი მდგომარეობა იმაში, რომ ვიპოვოთ აზრი ამ ტანჯვაში.",
+            "მე ამბიციური ვარ. მსურს, რომ ათი წინადადებით ვთქვა ის, რასაც სხვები მთელი წიგნით ამბობენ."
+        ];
+
+        function displayRandomQuote() {
+            const quoteText = document.getElementById('quoteText');
+            const randomIndex = Math.floor(Math.random() * nietzscheQuotes.length);
+            quoteText.innerText = nietzscheQuotes[randomIndex];
+        }
 
         // ---- INIT ----
         function init() {
+            // Load saved theme from localStorage
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            const body = document.body;
+            const icons = {
+                dark: '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
+                light: '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>',
+                sepia: '<path d="M12 2v20M2 12h20M6.34 6.34l11.32 11.32M6.34 17.66L17.66 6.34"/><rect x="3" y="3" width="18" height="18" rx="2" fill="none"/>',
+                night: '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/><path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707" stroke-width="1"/>'
+            };
+            const titles = {
+                dark: 'ბნელი თემა',
+                light: 'ღია თემა',
+                sepia: 'Sepia - კითხვა',
+                night: 'ღამის რეჟიმი'
+            };
+            
+            if (savedTheme === 'light') body.classList.add('light-mode');
+            else if (savedTheme === 'sepia') body.classList.add('sepia-mode');
+            else if (savedTheme === 'night') body.classList.add('night-mode');
+            
+            document.getElementById('themeIcon').innerHTML = icons[savedTheme];
+            document.getElementById('themeBtn').setAttribute('title', titles[savedTheme]);
+            
             // Load saved token from localStorage
             const savedToken = localStorage.getItem('idToken');
             const savedUid = localStorage.getItem('currentUid');
@@ -1109,6 +1242,7 @@
                 document.getElementById('logoutBtn').classList.add('active');
             }
             
+            displayRandomQuote(); // Display random Nietzsche quote on load
             fetchNotes();
         }
 
@@ -1120,6 +1254,8 @@
             pt.classList.add('shimmer');
             document.getElementById('pageSubtitle').innerText = 'აღმოაჩინეთ მარადიული იდეები და ფილოსოფიური ჩანაწერები. აირჩიეთ კატეგორია მენიუდან.';
             document.querySelector('.welcome-text').style.display = 'block';
+            document.getElementById('quoteSection').style.display = 'block';
+            displayRandomQuote(); // Show new random quote each time
             document.getElementById('notesGrid').innerHTML = '';
             document.getElementById('searchBar').style.display = 'none';
             document.getElementById('homeSection').style.display = 'block';
@@ -1181,13 +1317,14 @@
             grid.innerHTML = '';
             document.getElementById('homeSection').style.display = 'none';
             document.querySelector('.welcome-text').style.display = 'none';
+            document.getElementById('quoteSection').style.display = 'none';
             document.getElementById('searchBar').style.display = 'block';
             stopClock();
 
             if (!currentCat) { goHome(); return; }
 
             const tEl = document.getElementById('pageTitle'); tEl.innerText = currentCat.name; tEl.classList.remove('shimmer');
-            document.getElementById('pageSubtitle').innerText = '';
+            document.getElementById('pageSubtitle').innerText = currentCat.desc || '';
 
             const filtered = filtered_override !== undefined ? filtered_override : notes.filter(n => n.cat === currentCat.id);
 
@@ -1667,10 +1804,17 @@
         function filterNotes() {
             const q = document.getElementById('searchInput').value.toLowerCase().trim();
             if (!currentCat) return;
-            const filtered = notes.filter(n =>
-                n.cat === currentCat.id &&
-                (n.title || '').toLowerCase().includes(q)
-            );
+            const filtered = notes.filter(n => {
+                if (n.cat !== currentCat.id) return false;
+                
+                const titleMatch = (n.title || '').toLowerCase().includes(q);
+                
+                // Remove HTML tags from content for better search
+                const contentText = (n.content || '').replace(/<[^>]*>/g, ' ').toLowerCase();
+                const contentMatch = contentText.includes(q);
+                
+                return titleMatch || contentMatch;
+            });
             renderNotes(filtered);
         }
 
@@ -1680,11 +1824,46 @@
         }
 
         function toggleTheme() {
-            document.body.classList.toggle('light-mode');
-            const isLight = document.body.classList.contains('light-mode');
-            document.getElementById('themeIcon').innerHTML = isLight
-                ? '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>'
-                : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+            const body = document.body;
+            const themes = ['dark', 'light', 'sepia', 'night'];
+            const icons = {
+                dark: '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
+                light: '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>',
+                sepia: '<path d="M12 2v20M2 12h20M6.34 6.34l11.32 11.32M6.34 17.66L17.66 6.34"/><rect x="3" y="3" width="18" height="18" rx="2" fill="none"/>',
+                night: '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/><path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707" stroke-width="1"/>'
+            };
+            const titles = {
+                dark: 'ბნელი თემა',
+                light: 'ღია თემა', 
+                sepia: 'Sepia - კითხვა',
+                night: 'ღამის რეჟიმი'
+            };
+            
+            // Get current theme
+            let currentTheme = 'dark';
+            if (body.classList.contains('light-mode')) currentTheme = 'light';
+            else if (body.classList.contains('sepia-mode')) currentTheme = 'sepia';
+            else if (body.classList.contains('night-mode')) currentTheme = 'night';
+            
+            // Get next theme
+            const currentIndex = themes.indexOf(currentTheme);
+            const nextIndex = (currentIndex + 1) % themes.length;
+            const nextTheme = themes[nextIndex];
+            
+            // Remove all theme classes
+            body.classList.remove('light-mode', 'sepia-mode', 'night-mode');
+            
+            // Add new theme class (except for dark which is default)
+            if (nextTheme === 'light') body.classList.add('light-mode');
+            else if (nextTheme === 'sepia') body.classList.add('sepia-mode');
+            else if (nextTheme === 'night') body.classList.add('night-mode');
+            
+            // Update icon and title
+            document.getElementById('themeIcon').innerHTML = icons[nextTheme];
+            document.getElementById('themeBtn').setAttribute('title', titles[nextTheme]);
+            
+            // Save to localStorage
+            localStorage.setItem('theme', nextTheme);
         }
 
         function openModal(id)  { document.getElementById(id).classList.add('active'); }
@@ -1915,7 +2094,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#1877f2">
                 <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
             </svg>
-            შემქმნელის გვერდი
+            ადმინის Facebook პროფილი
         </a>
         <p style="margin-top:16px; color:var(--text-dim); font-size:0.72rem; letter-spacing:2px; opacity:0.5;">ფილოსოფია © 2026</p>
     </footer>
