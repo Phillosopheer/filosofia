@@ -7,7 +7,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
     <!-- Firebase App (the core Firebase SDK) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
     <style>
         :root {
             --bg: #080810;
@@ -939,22 +938,7 @@
             </div>
             <div class="form-group">
                 <label>Cover სურათი (არასავალდებულო)</label>
-                <div style="display:flex; gap:12px; margin-bottom:12px;">
-                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-                        <input type="radio" name="coverMethod" value="file" checked onchange="toggleCoverMethod()" style="cursor:pointer;" />
-                        <span style="font-size:0.9rem;">ფაილიდან ატვირთვა</span>
-                    </label>
-                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-                        <input type="radio" name="coverMethod" value="url" onchange="toggleCoverMethod()" style="cursor:pointer;" />
-                        <span style="font-size:0.9rem;">ლინკით (URL)</span>
-                    </label>
-                </div>
-                <div id="coverFileInput">
-                    <input type="file" id="coverImage" accept="image/*" onchange="previewCoverImage(this, 'coverPreview')" style="padding:8px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); cursor:pointer; width:100%;" />
-                </div>
-                <div id="coverUrlInput" style="display:none;">
-                    <input type="text" id="coverUrl" placeholder="https://example.com/image.jpg" onchange="previewCoverUrl(this.value, 'coverPreview')" style="width:100%; padding:12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text);" />
-                </div>
+                <input type="text" id="coverUrl" placeholder="https://example.com/image.jpg" onchange="previewCoverUrl(this.value, 'coverPreview')" style="width:100%; padding:12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text);" />
                 <div id="coverPreview" style="margin-top:10px;"></div>
             </div>
             <div class="form-group">
@@ -1034,21 +1018,8 @@
             <div class="form-group">
                 <label>Cover სურათი (არასავალდებულო)</label>
                 <div style="display:flex; gap:12px; margin-bottom:12px;">
-                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-                        <input type="radio" name="editCoverMethod" value="file" checked onchange="toggleEditCoverMethod()" style="cursor:pointer;" />
-                        <span style="font-size:0.9rem;">ფაილიდან ატვირთვა</span>
-                    </label>
-                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-                        <input type="radio" name="editCoverMethod" value="url" onchange="toggleEditCoverMethod()" style="cursor:pointer;" />
-                        <span style="font-size:0.9rem;">ლინკით (URL)</span>
-                    </label>
-                    <button type="button" onclick="removeCoverImage()" style="margin-left:auto; padding:6px 14px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); border-radius:8px; color:#ef4444; font-size:0.85rem; cursor:pointer; transition:0.3s;" onmouseover="this.style.background='rgba(239,68,68,0.2)'" onmouseout="this.style.background='rgba(239,68,68,0.1)'">🗑 სურათის წაშლა</button>
-                </div>
-                <div id="editCoverFileInput">
-                    <input type="file" id="editCoverImage" accept="image/*" onchange="previewCoverImage(this, 'editCoverPreview')" style="padding:8px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); cursor:pointer; width:100%;" />
-                </div>
-                <div id="editCoverUrlInput" style="display:none;">
-                    <input type="text" id="editCoverUrl" placeholder="https://example.com/image.jpg" onchange="previewCoverUrl(this.value, 'editCoverPreview')" style="width:100%; padding:12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text);" />
+                    <input type="text" id="editCoverUrl" placeholder="https://example.com/image.jpg" onchange="previewCoverUrl(this.value, 'editCoverPreview')" style="flex:1; padding:12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text);" />
+                    <button type="button" onclick="removeCoverImage()" style="padding:6px 14px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); border-radius:8px; color:#ef4444; font-size:0.85rem; cursor:pointer; transition:0.3s;" onmouseover="this.style.background='rgba(239,68,68,0.2)'" onmouseout="this.style.background='rgba(239,68,68,0.1)'">🗑 წაშლა</button>
                 </div>
                 <div id="editCoverPreview" style="margin-top:10px;"></div>
             </div>
@@ -1127,7 +1098,6 @@
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
-        const storage = firebase.storage();
 
         // ---- CONFIG ----
         const FIREBASE_DB   = "https://gen-lang-client-0339684222-default-rtdb.firebaseio.com";
@@ -1586,20 +1556,6 @@
         }
 
         // ---- COVER IMAGE FUNCTIONS ----
-        function toggleCoverMethod() {
-            const method = document.querySelector('input[name="coverMethod"]:checked').value;
-            document.getElementById('coverFileInput').style.display = method === 'file' ? 'block' : 'none';
-            document.getElementById('coverUrlInput').style.display = method === 'url' ? 'block' : 'none';
-            document.getElementById('coverPreview').innerHTML = '';
-        }
-        
-        function toggleEditCoverMethod() {
-            const method = document.querySelector('input[name="editCoverMethod"]:checked').value;
-            document.getElementById('editCoverFileInput').style.display = method === 'file' ? 'block' : 'none';
-            document.getElementById('editCoverUrlInput').style.display = method === 'url' ? 'block' : 'none';
-            document.getElementById('editCoverPreview').innerHTML = '';
-        }
-        
         function removeCoverImage() {
             if (!currentNote) return;
             if (!confirm('ნამდვილად გსურთ სურათის წაშლა?')) return;
@@ -1609,21 +1565,7 @@
             
             // Clear preview and inputs
             document.getElementById('editCoverPreview').innerHTML = '<p style="color:var(--text-dim); font-size:0.85rem; margin-top:8px;">✓ სურათი წაიშლება შენახვის შემდეგ</p>';
-            document.getElementById('editCoverImage').value = '';
             document.getElementById('editCoverUrl').value = '';
-        }
-        
-        function previewCoverImage(input, previewId) {
-            const preview = document.getElementById(previewId);
-            preview.innerHTML = '';
-            
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    preview.innerHTML = `<img src="${e.target.result}" style="max-width:100%; max-height:200px; border-radius:12px; border:1px solid var(--border);" />`;
-                };
-                reader.readAsDataURL(input.files[0]);
-            }
         }
         
         function previewCoverUrl(url, previewId) {
@@ -1635,75 +1577,11 @@
             }
         }
 
-        // Image compression and resize function
-        async function compressImage(file, maxWidth = 1920, maxHeight = 1080, quality = 0.8) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        let width = img.width;
-                        let height = img.height;
-                        
-                        // Calculate new dimensions while maintaining aspect ratio
-                        if (width > maxWidth || height > maxHeight) {
-                            const ratio = Math.min(maxWidth / width, maxHeight / height);
-                            width = width * ratio;
-                            height = height * ratio;
-                        }
-                        
-                        canvas.width = width;
-                        canvas.height = height;
-                        
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, width, height);
-                        
-                        // Convert to blob with compression
-                        canvas.toBlob((blob) => {
-                            if (blob) {
-                                resolve(blob);
-                            } else {
-                                reject(new Error('სურათის კომპრესია ვერ მოხერხდა'));
-                            }
-                        }, 'image/jpeg', quality);
-                    };
-                    img.onerror = () => reject(new Error('სურათის ჩატვირთვა ვერ მოხერხდა'));
-                    img.src = e.target.result;
-                };
-                reader.onerror = () => reject(new Error('ფაილის წაკითხვა ვერ მოხერხდა'));
-                reader.readAsDataURL(file);
-            });
-        }
-
-        async function uploadCoverImage(file) {
-            if (!file) return null;
-            
-            try {
-                // Compress image before upload
-                const compressedBlob = await compressImage(file);
-                
-                const timestamp = Date.now();
-                const fileName = `covers/${timestamp}_${file.name}`;
-                const storageRef = storage.ref(fileName);
-                
-                const snapshot = await storageRef.put(compressedBlob);
-                const downloadURL = await snapshot.ref.getDownloadURL();
-                
-                return downloadURL;
-            } catch (error) {
-                console.error('სურათის ატვირთვის შეცდომა:', error);
-                throw error;
-            }
-        }
-
         async function saveNote() {
             const title   = document.getElementById('editorTitle').value.trim();
             const cat     = document.getElementById('editorCat').value;
             const content = document.getElementById('editorArea').innerHTML.trim();
-            const coverMethod = document.querySelector('input[name="coverMethod"]:checked').value;
-            const coverFile = coverMethod === 'file' ? document.getElementById('coverImage').files[0] : null;
-            const coverUrlInput = coverMethod === 'url' ? document.getElementById('coverUrl').value.trim() : '';
+            const coverUrlInput = document.getElementById('coverUrl').value.trim();
             const errEl   = document.getElementById('editorError');
             const sucEl   = document.getElementById('editorSuccess');
             const btn     = document.getElementById('saveBtn');
@@ -1720,13 +1598,8 @@
             try {
                 let coverUrl = null;
                 
-                // Upload cover image if file is selected
-                if (coverFile) {
-                    btn.innerText = 'სურათი იტვირთება...';
-                    coverUrl = await uploadCoverImage(coverFile);
-                }
-                // Or use URL directly if provided
-                else if (coverUrlInput) {
+                // Use URL if provided
+                if (coverUrlInput) {
                     coverUrl = coverUrlInput;
                 }
 
@@ -1992,9 +1865,7 @@
             const title   = document.getElementById('editTitle').value.trim();
             const cat     = document.getElementById('editCat').value;
             const content = document.getElementById('editArea').innerHTML.trim();
-            const coverMethod = document.querySelector('input[name="editCoverMethod"]:checked').value;
-            const coverFile = coverMethod === 'file' ? document.getElementById('editCoverImage').files[0] : null;
-            const coverUrlInput = coverMethod === 'url' ? document.getElementById('editCoverUrl').value.trim() : '';
+            const coverUrlInput = document.getElementById('editCoverUrl').value.trim();
             const errEl   = document.getElementById('editError');
             const sucEl   = document.getElementById('editSuccess');
             const btn     = document.getElementById('updateBtn');
@@ -2011,14 +1882,8 @@
             try {
                 const updated = { ...currentNote, title, cat, content };
                 
-                // Upload new cover image if file is selected
-                if (coverFile) {
-                    btn.innerText = 'სურათი იტვირთება...';
-                    const coverUrl = await uploadCoverImage(coverFile);
-                    updated.coverUrl = coverUrl;
-                }
-                // Or use URL directly if provided
-                else if (coverUrlInput) {
+                // Use URL if provided
+                if (coverUrlInput) {
                     updated.coverUrl = coverUrlInput;
                 }
                 // If coverUrl was set to null (by removeCoverImage), keep it null
