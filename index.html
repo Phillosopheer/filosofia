@@ -1967,23 +1967,29 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(note)
                 });
-                if (!res.ok) throw new Error('Firebase-ის შეცდომა');
+                
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    throw new Error(errorData.error || 'Firebase-ის შეცდომა');
+                }
 
+                // Success!
                 showMsg(sucEl, '✓ ჩანაწერი შენახულია!', true);
-                showMsg(errEl, '', false); // Clear any previous errors
                 
                 await fetchNotes();
 
                 // Clear form
                 document.getElementById('editorTitle').value = '';
                 document.getElementById('editorArea').innerHTML = '';
-                document.getElementById('coverImage').value = '';
-                document.getElementById('coverUrl').value = '';
-                document.getElementById('coverPreview').innerHTML = '';
+                const coverUrlEl = document.getElementById('coverUrl');
+                if (coverUrlEl) coverUrlEl.value = '';
+                const coverPreviewEl = document.getElementById('coverPreview');
+                if (coverPreviewEl) coverPreviewEl.innerHTML = '';
 
                 // Close modal and switch to category after short delay
                 setTimeout(() => {
-                    showMsg(sucEl, '', false); // Clear success message
+                    showMsg(sucEl, '', false);
+                    showMsg(errEl, '', false);
                     closeModal('editorModal');
                     
                     // Auto-switch to saved category
@@ -1997,11 +2003,12 @@
                         currentCat = saved;
                         renderNotes();
                     }
-                }, 800);
+                }, 1000);
 
             } catch (err) {
+                console.error('Save error:', err);
                 showMsg(errEl, 'შენახვა ვერ მოხერხდა: ' + err.message, true);
-                showMsg(sucEl, '', false); // Clear success message on error
+                showMsg(sucEl, '', false);
             } finally {
                 btn.disabled  = false;
                 btn.innerText = 'შენახვა';
