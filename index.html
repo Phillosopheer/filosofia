@@ -1453,8 +1453,18 @@
         // Colorful ripple effect function
         function createRipple(element, e, color) {
             const rect = element.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
+            
+            // Handle both mouse and touch events
+            let x, y;
+            if (e.touches && e.touches.length > 0) {
+                // Touch event
+                x = e.touches[0].clientX - rect.left;
+                y = e.touches[0].clientY - rect.top;
+            } else {
+                // Mouse event
+                x = e.clientX - rect.left;
+                y = e.clientY - rect.top;
+            }
             
             const ripple = document.createElement('span');
             ripple.className = 'cat-item-ripple';
@@ -1977,8 +1987,11 @@
                     // Auto-switch to saved category
                     const saved = categories.find(c => c.id === cat);
                     if (saved) {
+                        const catElement = document.getElementById('cat_' + cat);
                         document.querySelectorAll('.cat-item').forEach(el => el.classList.remove('active'));
-                        document.getElementById('cat_' + cat)?.classList.add('active');
+                        if (catElement) {
+                            catElement.classList.add('active');
+                        }
                         currentCat = saved;
                         renderNotes();
                     }
@@ -2336,3 +2349,4 @@
 
 </body>
 </html>
+ 
