@@ -615,7 +615,7 @@
             background: linear-gradient(135deg, rgba(10,25,41,0.95) 0%, rgba(10,25,41,0.85) 100%);
             border-bottom: 2px solid var(--accent);
             position: relative;
-            overflow: hidden;
+            overflow: visible;
         }
         .glossary-header::before {
             content: '';
@@ -685,7 +685,7 @@
             overflow-y: auto;
             display: none;
             box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-            z-index: 10;
+            z-index: 9999;
         }
         .suggestions-dropdown.active {
             display: block;
@@ -1450,9 +1450,9 @@
         <button class="close-glossary-btn" onclick="closeGlossary()">✕</button>
         
         <div class="glossary-header">
-            <h1>ფილოსოფიური ლექსიკონი</h1>
+            <h1>ლექსიკონი</h1>
             <p style="color: var(--text-dim); font-size: 1.05rem; margin-bottom: 10px;">
-                ტერმინების განმარტებები და ახსნა-განმარტებები
+                აქ იპოვით სიტყვების განმარტებებს
             </p>
             
             <div class="glossary-search-container">
@@ -1485,14 +1485,7 @@
             </div>
         </div>
 
-        <div id="glossaryInitialView" style="max-width: 900px; margin: 60px auto; padding: 0 6%; text-align: center;">
-            <p style="color: var(--text-dim); font-size: 1.1rem; line-height: 1.8;">
-                დაიწყეთ ძიება ზემოთ მოცემულ საძებნ ველში რომ იპოვოთ ფილოსოფიური ტერმინების განმარტებები
-            </p>
-            <div style="margin-top: 40px; color: var(--text-dim); font-size: 0.9rem;">
-                <p>ლექსიკონი შეიცავს <strong id="glossaryCount">0</strong> ტერმინს</p>
-            </div>
-        </div>
+        <div id="glossaryInitialView" style="display:none;"></div>
     </div>
 
     <!-- ===== LOGIN MODAL ===== -->
