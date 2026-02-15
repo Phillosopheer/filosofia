@@ -1008,13 +1008,13 @@
         <h1 id="pageTitle" class="shimmer">ციფრული ბიბლიოთეკა</h1>
         <div id="heroBook" style="display: none;"></div>
         <p id="pageSubtitle" style="max-width: 700px; margin: 0 auto 30px; line-height: 2;"></p>
-        <div class="welcome-text">
+        <div class="welcome-text" style="display: block;">
             <p>კეთილი იყოს თქვენი მობრძანება ფილოსოფიურ პლატფორმაზე</p>
             <p>წინამდებარე რესურსი წარმოადგენს სივრცეს კრიტიკული აზროვნებისა და ინტელექტუალური ძიებისთვის. ჩვენი მიზანია, მკითხველს მივაწოდოთ სიღრმისეული ანალიზი ფილოსოფიის სხვადასხვა ქვედარგის შესახებ - მეტაფიზიკიდან და ეპისტემოლოგიიდან დაწყებული, ეთიკითა და პოლიტიკური ფილოსოფიით დასრულებული.</p>
         </div>
         
         <!-- Random Nietzsche Quote -->
-        <div id="quoteSection" style="margin-top: 40px; padding: 30px 40px; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; max-width: 800px; margin-left: auto; margin-right: auto; position: relative; overflow: hidden;">
+        <div id="quoteSection" style="display: block; margin-top: 40px; padding: 30px 40px; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; max-width: 800px; margin-left: auto; margin-right: auto; position: relative; overflow: hidden;">
             <div style="position: absolute; top: 15px; left: 25px; font-size: 4rem; opacity: 0.1; color: var(--accent); font-family: Georgia, serif; line-height: 1;">"</div>
             <p id="quoteText" style="font-family: 'Cormorant Garamond', serif; font-size: 1.25rem; line-height: 1.9; font-style: italic; color: var(--text); margin: 0 0 15px 0; position: relative; z-index: 1;"></p>
             <p id="quoteAuthor" style="text-align: right; color: var(--accent); font-size: 0.95rem; font-weight: 600; letter-spacing: 1px; margin: 0;">— ფრიდრიხ ნიცშე</p>
@@ -1047,11 +1047,16 @@
         <div style="background:var(--surface); border:1px solid var(--border); border-radius:24px; padding:55px 50px; text-align:center; position:relative; overflow:hidden;">
             <div style="position:absolute; top:-80px; right:-80px; width:250px; height:250px; background:radial-gradient(circle, rgba(167,139,250,0.1), transparent); border-radius:50%; pointer-events:none;"></div>
             <div style="position:absolute; bottom:-60px; left:-60px; width:200px; height:200px; background:radial-gradient(circle, rgba(129,140,248,0.07), transparent); border-radius:50%; pointer-events:none;"></div>
-            <!-- Clock -->
+            <!-- Featured Articles Carousel -->
             <div style="margin-top:45px; padding-top:35px; border-top:1px solid var(--border);">
-                <div id="clockTime" style="font-size:clamp(1.8rem, 8vw, 3.2rem); font-weight:300; letter-spacing:clamp(2px, 2vw, 6px); color:var(--text); font-variant-numeric:tabular-nums; font-family:'Montserrat', sans-serif;"></div>
-                <div id="clockDate" style="color:var(--text-dim); font-size:0.95rem; margin-top:12px; font-family:'Cormorant Garamond', serif; font-size:1.15rem; letter-spacing:1px;"></div>
-                <div id="clockDay"  style="color:var(--accent); font-size:0.75rem; margin-top:6px; font-weight:600; letter-spacing:3px; text-transform:uppercase; opacity:0.8;"></div>
+                <h3 style="font-family:'Cormorant Garamond', serif; font-size:1.5rem; font-weight:600; color:var(--text); margin-bottom:30px; letter-spacing:1px;">შემოთავაზებული სტატიები</h3>
+                <div id="featuredCarousel" style="overflow:hidden; position:relative; border-radius:16px;">
+                    <div id="carouselTrack" style="display:flex; transition:transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); gap:20px;">
+                        <!-- Cards will be inserted here by JavaScript -->
+                    </div>
+                    <!-- Navigation Dots -->
+                    <div id="carouselDots" style="display:flex; justify-content:center; gap:8px; margin-top:25px;"></div>
+                </div>
             </div>
         </div>
     </section>
@@ -1502,7 +1507,7 @@
             document.getElementById('homeSection').style.display = 'block';
             updateFab();
             renderHomeCats();
-            startClock();
+            initCarousel();
             
             // Restart wave fade animation (| = line break)
             waveFadeText(pt, 'ციფრული|ბიბლიოთეკა');
@@ -1623,7 +1628,7 @@
             document.getElementById('quoteSection').style.display = 'none';
             document.getElementById('heroBook').style.display = 'none';
             document.getElementById('searchBar').style.display = 'block';
-            stopClock();
+            stopCarousel();
 
             if (!currentCat) { goHome(); return; }
 
@@ -2081,32 +2086,164 @@
         }
 
         // ---- UTILS ----
-        // ---- CLOCK ----
-        let clockInterval = null;
-        const GEO_DAYS   = ['კვირა','ორშაბათი','სამშაბათი','ოთხშაბათი','ხუთშაბათი','პარასკევი','შაბათი'];
-        const GEO_MONTHS = ['იანვარი','თებერვალი','მარტი','აპრილი','მაისი','ივნისი','ივლისი','აგვისტო','სექტემბერი','ოქტომბერი','ნოემბერი','დეკემბერი'];
+        // Helper functions for carousel
+        function getCategoryLabel(catId) {
+            const cat = categories.find(c => c.id === catId);
+            return cat ? cat.name : 'ზოგადი';
+        }
 
-        function startClock() {
-            updateClock();
-            if (!clockInterval) clockInterval = setInterval(updateClock, 1000);
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const d = new Date(dateStr);
+            return d.toLocaleDateString('ka-GE', { year:'numeric', month:'long', day:'numeric' });
         }
-        function stopClock() {
-            clearInterval(clockInterval);
-            clockInterval = null;
+
+        // ---- FEATURED CAROUSEL ----
+        let carouselInterval = null;
+        let currentSlide = 0;
+        let carouselNotes = [];
+
+        function initCarousel() {
+            // Get all notes (up to 6)
+            carouselNotes = notes.slice(0, 6);
+            if (carouselNotes.length === 0) return;
+
+            const track = document.getElementById('carouselTrack');
+            const dotsContainer = document.getElementById('carouselDots');
+            
+            if (!track || !dotsContainer) return;
+            
+            // Clear previous content
+            track.innerHTML = '';
+            dotsContainer.innerHTML = '';
+
+            // Create carousel cards
+            carouselNotes.forEach((note, index) => {
+                const card = document.createElement('div');
+                card.style.cssText = `
+                    min-width: 100%;
+                    background: var(--surface2);
+                    border: 1px solid var(--border);
+                    border-radius: 16px;
+                    padding: 30px;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 15px;
+                `;
+                
+                // Add cover image if available
+                let coverHTML = '';
+                if (note.coverUrl) {
+                    coverHTML = `<img src="${note.coverUrl}" style="width:100%; height:200px; object-fit:cover; border-radius:12px; margin-bottom:10px;" />`;
+                }
+                
+                card.innerHTML = `
+                    ${coverHTML}
+                    <p style="color:var(--accent); font-size:0.7rem; font-weight:600; letter-spacing:2px; text-transform:uppercase;">${getCategoryLabel(note.cat)}</p>
+                    <h4 style="font-family:'Cormorant Garamond', serif; font-size:1.6rem; font-weight:600; color:var(--text); line-height:1.3;">${note.title}</h4>
+                    <p style="color:var(--text-dim); font-size:0.85rem; line-height:1.6;">${getExcerpt(note.content)}</p>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:15px; border-top:1px solid var(--border);">
+                        <span style="color:var(--text-dim); font-size:0.75rem;">${formatDate(note.date)}</span>
+                        <span style="color:var(--accent); font-size:0.85rem; font-weight:600;">კითხვა →</span>
+                    </div>
+                `;
+                
+                card.addEventListener('click', () => openReader(note));
+                card.addEventListener('mouseenter', () => {
+                    card.style.transform = 'translateY(-5px)';
+                    card.style.borderColor = 'var(--accent)';
+                    card.style.boxShadow = '0 10px 30px var(--glow)';
+                });
+                card.addEventListener('mouseleave', () => {
+                    card.style.transform = 'translateY(0)';
+                    card.style.borderColor = 'var(--border)';
+                    card.style.boxShadow = 'none';
+                });
+                
+                track.appendChild(card);
+
+                // Create dot
+                const dot = document.createElement('div');
+                dot.style.cssText = `
+                    width: 8px;
+                    height: 8px;
+                    border-radius: 50%;
+                    background: ${index === 0 ? 'var(--accent)' : 'var(--border)'};
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                `;
+                dot.addEventListener('click', () => goToSlide(index));
+                dotsContainer.appendChild(dot);
+            });
+
+            // Only start auto-scroll if there are 2+ articles
+            if (carouselNotes.length >= 2) {
+                startCarousel();
+            } else {
+                // If only 1 article, make the dot spin/pulse
+                const dot = dotsContainer.firstChild;
+                if (dot) {
+                    dot.style.animation = 'pulse 2s ease-in-out infinite';
+                    // Add pulse animation to head if not exists
+                    if (!document.querySelector('#pulseAnimation')) {
+                        const style = document.createElement('style');
+                        style.id = 'pulseAnimation';
+                        style.textContent = `
+                            @keyframes pulse {
+                                0%, 100% { transform: scale(1); opacity: 1; }
+                                50% { transform: scale(1.3); opacity: 0.7; }
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+                }
+            }
         }
-        function updateClock() {
-            const now  = new Date();
-            const h    = String(now.getHours()).padStart(2,'0');
-            const m    = String(now.getMinutes()).padStart(2,'0');
-            const s    = String(now.getSeconds()).padStart(2,'0');
-            const day  = GEO_DAYS[now.getDay()];
-            const date = now.getDate() + ' ' + GEO_MONTHS[now.getMonth()] + ', ' + now.getFullYear();
-            const tEl  = document.getElementById('clockTime');
-            const dEl  = document.getElementById('clockDate');
-            const dyEl = document.getElementById('clockDay');
-            if (tEl)  tEl.innerText  = `${h}:${m}:${s}`;
-            if (dEl)  dEl.innerText  = date;
-            if (dyEl) dyEl.innerText = day;
+
+        function startCarousel() {
+            stopCarousel();
+            carouselInterval = setInterval(nextSlide, 5000); // Change slide every 5 seconds
+        }
+
+        function stopCarousel() {
+            if (carouselInterval) {
+                clearInterval(carouselInterval);
+                carouselInterval = null;
+            }
+        }
+
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % carouselNotes.length;
+            updateCarousel();
+        }
+
+        function goToSlide(index) {
+            currentSlide = index;
+            updateCarousel();
+            stopCarousel();
+            setTimeout(startCarousel, 10000); // Resume auto-scroll after 10s
+        }
+
+        function updateCarousel() {
+            const track = document.getElementById('carouselTrack');
+            const dots = document.getElementById('carouselDots').children;
+            
+            if (!track) return;
+            
+            track.style.transform = `translateX(-${currentSlide * 100}%)`;
+            
+            // Update dots
+            Array.from(dots).forEach((dot, index) => {
+                dot.style.background = index === currentSlide ? 'var(--accent)' : 'var(--border)';
+                dot.style.width = index === currentSlide ? '20px' : '8px';
+            });
+        }
+
+        function getExcerpt(html) {
+            const text = html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+            return text.length > 120 ? text.substring(0, 120) + '...' : text;
         }
 
         // ---- SEARCH ----
