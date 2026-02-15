@@ -1645,13 +1645,16 @@
                 // Update badge
                 const badge = document.getElementById('pendingBadge');
                 const btn = document.getElementById('pendingBtn');
+                
+                // Always show button for admin
+                btn.style.display = 'flex';
+                
+                // Only show badge if there are pending notes
                 if (pendingNotes.length > 0) {
                     badge.innerText = pendingNotes.length;
                     badge.style.display = 'block';
-                    btn.style.display = 'flex';
                 } else {
                     badge.style.display = 'none';
-                    btn.style.display = 'none';
                 }
             } catch (err) {
                 console.error('Pending notes fetch error:', err);
