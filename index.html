@@ -460,6 +460,18 @@
         .card img {
             transition: transform 0.4s ease, filter 0.4s ease;
         }
+        
+        /* Desktop/Tablet: use cover to fill space completely */
+        @media (min-width: 768px) {
+            .card img {
+                width: 120% !important;
+                height: 350px !important;
+                object-fit: cover !important;
+                object-position: center !important;
+                margin: -20px -35px 16px -35px !important;
+            }
+        }
+        
         @media (hover: hover) {
             .card:hover img {
                 transform: scale(1.05);
@@ -1711,7 +1723,7 @@
             // Display cover image if available
             const coverContainer = document.getElementById('readCover');
             if (note.coverUrl) {
-                coverContainer.innerHTML = `<img src="${note.coverUrl}" style="width:100%; max-height:400px; object-fit:cover; border-radius:16px; margin-bottom:30px;" />`;
+                coverContainer.innerHTML = `<img src="${note.coverUrl}" style="width:100%; max-height:500px; object-fit:contain; border-radius:16px; margin-bottom:30px;" />`;
             } else {
                 coverContainer.innerHTML = '';
             }
@@ -2334,7 +2346,7 @@
                 const coverContainer = document.getElementById('readCover');
                 if (coverContainer) {
                     if (updated.coverUrl) {
-                        coverContainer.innerHTML = `<img src="${updated.coverUrl}" style="width:100%; max-height:400px; object-fit:cover; border-radius:16px; margin-bottom:30px;" />`;
+                        coverContainer.innerHTML = `<img src="${updated.coverUrl}" style="width:100%; max-height:500px; object-fit:contain; border-radius:16px; margin-bottom:30px;" />`;
                     } else {
                         coverContainer.innerHTML = '';
                     }
