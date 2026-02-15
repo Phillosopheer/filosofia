@@ -455,6 +455,18 @@
             margin-top: 12px;
             transition: transform 0.3s ease;
         }
+        
+        /* Card cover image styling */
+        .card img {
+            transition: transform 0.4s ease, filter 0.4s ease;
+        }
+        @media (hover: hover) {
+            .card:hover img {
+                transform: scale(1.05);
+                filter: brightness(1.1);
+            }
+        }
+        
         @media (hover: hover) {
             .card:hover h3 {
                 transform: translateZ(20px);
@@ -1669,7 +1681,7 @@
                     // Build card HTML with optional cover image
                     let cardHTML = '';
                     if (n.coverUrl) {
-                        cardHTML += `<img src="${n.coverUrl}" style="width:100%; height:180px; object-fit:cover; border-radius:12px 12px 0 0; margin:-20px -20px 16px -20px;" />`;
+                        cardHTML += `<img src="${n.coverUrl}" style="width:100%; height:140px; object-fit:cover; border-radius:12px 12px 0 0; margin:-20px -20px 16px -20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);" />`;
                     }
                     cardHTML += `
                         <h3>${escapeHtml(n.title || 'უსახელო')}</h3>
