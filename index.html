@@ -1681,7 +1681,7 @@
                     // Build card HTML with optional cover image
                     let cardHTML = '';
                     if (n.coverUrl) {
-                        cardHTML += `<img src="${n.coverUrl}" style="width:100%; height:140px; object-fit:cover; border-radius:12px 12px 0 0; margin:-20px -20px 16px -20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);" />`;
+                        cardHTML += `<img src="${n.coverUrl}" style="width:120%; height:250px; object-fit:cover; object-position:center; border-radius:12px 12px 0 0; margin:-20px -35px 16px -35px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);" />`;
                     }
                     cardHTML += `
                         <h3>${escapeHtml(n.title || 'უსახელო')}</h3>
