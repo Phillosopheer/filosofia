@@ -587,6 +587,241 @@
         }
         .close-btn:hover { background: var(--accent); color: white; border-color: transparent; box-shadow: 0 8px 20px var(--glow); }
 
+        /* ===== GLOSSARY STYLES ===== */
+        .glossary-btn {
+            display: flex; align-items: center; padding: 16px 20px;
+            border-radius: 14px; cursor: pointer; transition: 0.3s;
+            margin: 25px 0 10px 0; gap: 12px; border: 2px solid var(--accent);
+            font-size: 1rem; letter-spacing: 0.5px; font-weight: 600;
+            background: linear-gradient(135deg, var(--glass), rgba(0,217,255,0.08));
+            color: var(--accent);
+        }
+        .glossary-btn:hover {
+            background: linear-gradient(135deg, rgba(0,217,255,0.15), rgba(0,217,255,0.2));
+            transform: translateX(3px) scale(1.02);
+            box-shadow: 0 8px 20px var(--glow);
+        }
+
+        .glossary-view {
+            display: none; position: fixed; inset: 0; z-index: 3000;
+            background: var(--bg); overflow-y: auto;
+            animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glossary-view.active { display: block; }
+
+        .glossary-header {
+            padding: 100px 6% 60px;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(10,25,41,0.95) 0%, rgba(10,25,41,0.85) 100%);
+            border-bottom: 2px solid var(--accent);
+            position: relative;
+            overflow: hidden;
+        }
+        .glossary-header::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at center, transparent 0%, rgba(10,25,41,0.6) 100%);
+            pointer-events: none;
+        }
+        .glossary-header > * {
+            position: relative;
+            z-index: 2;
+        }
+
+        .glossary-header h1 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #e3f2fd 0%, #00d9ff 50%, #0ea5e9 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .glossary-search-container {
+            max-width: 800px;
+            margin: 30px auto 0;
+            position: relative;
+        }
+
+        .glossary-search-input {
+            width: 100%;
+            padding: 20px 25px 20px 60px;
+            border-radius: 16px;
+            border: 2px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            font-size: 1.15rem;
+            font-family: 'Montserrat', sans-serif;
+            outline: none;
+            transition: 0.3s;
+        }
+        .glossary-search-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(0,217,255,0.15);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 22px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.4rem;
+            color: var(--text-dim);
+            pointer-events: none;
+        }
+
+        .suggestions-dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            left: 0;
+            right: 0;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            max-height: 400px;
+            overflow-y: auto;
+            display: none;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+        .suggestions-dropdown.active {
+            display: block;
+        }
+
+        .suggestion-item {
+            padding: 18px 25px;
+            cursor: pointer;
+            transition: 0.2s;
+            border-bottom: 1px solid var(--border);
+        }
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+        .suggestion-item:hover {
+            background: var(--glass);
+        }
+
+        .suggestion-term {
+            font-weight: 600;
+            font-size: 1.05rem;
+            color: var(--accent);
+            margin-bottom: 5px;
+        }
+
+        .suggestion-preview {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            line-height: 1.5;
+        }
+
+        .no-results {
+            padding: 30px;
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 0.95rem;
+        }
+
+        .term-display {
+            max-width: 900px;
+            margin: 60px auto;
+            padding: 0 6%;
+        }
+
+        .term-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 50px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .term-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 30px;
+            letter-spacing: 0.5px;
+        }
+
+        .term-category {
+            display: inline-block;
+            padding: 8px 16px;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 30px;
+            letter-spacing: 1px;
+        }
+
+        .term-definition {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.2rem;
+            line-height: 2;
+            color: var(--text);
+        }
+
+        .back-to-search {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 24px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-dim);
+            cursor: pointer;
+            transition: 0.3s;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+        }
+        .back-to-search:hover {
+            background: var(--glass);
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .close-glossary-btn {
+            position: fixed;
+            top: 20px;
+            right: 5%;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            font-size: 1.3rem;
+            cursor: pointer;
+            z-index: 3100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+        }
+        .close-glossary-btn:hover {
+            background: var(--accent);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 8px 20px var(--glow);
+        }
+
+        .glossary-admin-controls {
+            display: none;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border);
+        }
+        .glossary-admin-controls.active {
+            display: block;
+        }
+
         /* --- Modal Base --- */
         .modal {
             display: none; position: fixed; inset: 0; z-index: 4000;
@@ -1014,6 +1249,12 @@
             <h2>კატეგორიები</h2>
             <button onclick="toggleMenu()" style="background:none; border:none; font-size:1.5rem; color:var(--text); cursor:pointer;">✕</button>
         </div>
+        
+        <!-- Glossary Button -->
+        <div class="glossary-btn" onclick="openGlossary()">
+            📚 ლექსიკონი
+        </div>
+        
         <div id="catList"></div>
     </aside>
 
@@ -1095,6 +1336,56 @@
 
     <!-- FAB -->
     <button class="fab" id="fabBtn" onclick="openEditor()">+</button>
+
+    <!-- ===== GLOSSARY VIEW ===== -->
+    <div id="glossaryView" class="glossary-view">
+        <button class="close-glossary-btn" onclick="closeGlossary()">✕</button>
+        
+        <div class="glossary-header">
+            <h1>ფილოსოფიური ლექსიკონი</h1>
+            <p style="color: var(--text-dim); font-size: 1.05rem; margin-bottom: 10px;">
+                ტერმინების განმარტებები და ახსნა-განმარტებები
+            </p>
+            
+            <div class="glossary-search-container">
+                <span class="search-icon">🔍</span>
+                <input
+                    type="text"
+                    id="glossarySearchInput"
+                    class="glossary-search-input"
+                    placeholder="მოძებნე ტერმინი..."
+                    oninput="searchGlossary()"
+                    autocomplete="off"
+                />
+                <div id="suggestionDropdown" class="suggestions-dropdown"></div>
+            </div>
+        </div>
+
+        <div id="termDisplay" class="term-display" style="display: none;">
+            <div class="back-to-search" onclick="backToGlossarySearch()">
+                ← უკან ძებნაზე
+            </div>
+            <div class="term-card">
+                <div id="termCategory" class="term-category"></div>
+                <h2 id="termTitle" class="term-title"></h2>
+                <div id="termDefinition" class="term-definition"></div>
+                
+                <div id="glossaryAdminControls" class="glossary-admin-controls">
+                    <button class="btn btn-secondary" style="margin-right: 10px;" onclick="editGlossaryTerm()">✏️ რედაქტირება</button>
+                    <button class="btn btn-danger" onclick="deleteGlossaryTerm()">🗑 წაშლა</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="glossaryInitialView" style="max-width: 900px; margin: 60px auto; padding: 0 6%; text-align: center;">
+            <p style="color: var(--text-dim); font-size: 1.1rem; line-height: 1.8;">
+                დაიწყეთ ძიება ზემოთ მოცემულ საძებნ ველში რომ იპოვოთ ფილოსოფიური ტერმინების განმარტებები
+            </p>
+            <div style="margin-top: 40px; color: var(--text-dim); font-size: 0.9rem;">
+                <p>ლექსიკონი შეიცავს <strong id="glossaryCount">0</strong> ტერმინს</p>
+            </div>
+        </div>
+    </div>
 
     <!-- ===== LOGIN MODAL ===== -->
     <div class="modal" id="loginModal">
@@ -1359,6 +1650,60 @@
         </div>
     </div>
 
+    <!-- ===== ADD GLOSSARY TERM MODAL ===== -->
+    <div class="modal" id="addGlossaryModal">
+        <div class="modal-box wide">
+            <button class="modal-close" onclick="closeModal('addGlossaryModal')">✕</button>
+            <h2>ახალი ტერმინის დამატება</h2>
+            <div class="msg error" id="addGlossaryError"></div>
+            <div class="msg success" id="addGlossarySuccess"></div>
+            
+            <div class="form-group">
+                <label>ტერმინი</label>
+                <input type="text" id="newTermName" placeholder="მაგ: ონტოლოგია" />
+            </div>
+            
+            <div class="form-group">
+                <label>კატეგორია (არასავალდებულო)</label>
+                <input type="text" id="newTermCategory" placeholder="მაგ: მეტაფიზიკა" />
+            </div>
+            
+            <div class="form-group">
+                <label>განმარტება</label>
+                <textarea id="newTermDefinition" placeholder="ტერმინის სრული განმარტება..." rows="6"></textarea>
+            </div>
+            
+            <button class="btn btn-primary" style="width:100%;" id="addTermBtn" onclick="addGlossaryTerm()">დამატება</button>
+        </div>
+    </div>
+
+    <!-- ===== EDIT GLOSSARY TERM MODAL ===== -->
+    <div class="modal" id="editGlossaryModal">
+        <div class="modal-box wide">
+            <button class="modal-close" onclick="closeModal('editGlossaryModal')">✕</button>
+            <h2>ტერმინის რედაქტირება</h2>
+            <div class="msg error" id="editGlossaryError"></div>
+            <div class="msg success" id="editGlossarySuccess"></div>
+            
+            <div class="form-group">
+                <label>ტერმინი</label>
+                <input type="text" id="editTermName" />
+            </div>
+            
+            <div class="form-group">
+                <label>კატეგორია</label>
+                <input type="text" id="editTermCategory" />
+            </div>
+            
+            <div class="form-group">
+                <label>განმარტება</label>
+                <textarea id="editTermDefinition" rows="6"></textarea>
+            </div>
+            
+            <button class="btn btn-primary" style="width:100%;" id="updateTermBtn" onclick="updateGlossaryTerm()">განახლება</button>
+        </div>
+    </div>
+
     <!-- ===== SCRIPTS ===== -->
     <script>
         // ---- FIREBASE CONFIG & INIT ----
@@ -1388,6 +1733,8 @@
         let notes      = [];
         let currentCat = null;
         let currentNote = null;
+        let allGlossaryTerms = [];
+        let currentGlossaryTerm = null;
 
         const categories = [
             { 
@@ -1845,6 +2192,7 @@
             displayRandomQuote(); // Display random Nietzsche quote on load
             updateHeaderButtons(); // Set initial header button visibility
             fetchNotes();
+            fetchGlossary();
             
             // Start wave fade animation on page title (| = line break)
             const titleElement = document.getElementById('pageTitle');
@@ -2942,6 +3290,7 @@
             if (e.key === 'Escape') {
                 document.querySelectorAll('.modal.active').forEach(m => m.classList.remove('active'));
                 if (document.getElementById('reader').style.display === 'block') closeReader();
+                if (document.getElementById('glossaryView').classList.contains('active')) closeGlossary();
                 if (document.getElementById('sidebar').classList.contains('active')) toggleMenu();
             }
         });
@@ -2967,6 +3316,271 @@
                 showMsg(errEl, '✅ განბლოკილია! სცადე თავიდან.', false);
             }
         });
+
+        // ===== GLOSSARY FUNCTIONS =====
+        async function fetchGlossary() {
+            try {
+                const res = await fetch(`${FIREBASE_DB}/glossary.json`);
+                if (!res.ok) throw new Error('Failed to fetch glossary');
+                const data = await res.json();
+                
+                allGlossaryTerms = data ? Object.keys(data).map(key => ({
+                    ...data[key],
+                    fbId: key
+                })) : [];
+                
+                // Sort alphabetically
+                allGlossaryTerms.sort((a, b) => a.term.localeCompare(b.term, 'ka'));
+                
+                updateGlossaryCount();
+            } catch (err) {
+                console.error('Error fetching glossary:', err);
+                allGlossaryTerms = [];
+            }
+        }
+
+        function updateGlossaryCount() {
+            const countEl = document.getElementById('glossaryCount');
+            if (countEl) {
+                countEl.innerText = allGlossaryTerms.length;
+            }
+        }
+
+        function openGlossary() {
+            document.getElementById('glossaryView').classList.add('active');
+            document.getElementById('glossarySearchInput').focus();
+            document.getElementById('termDisplay').style.display = 'none';
+            document.getElementById('glossaryInitialView').style.display = 'block';
+            document.getElementById('glossarySearchInput').value = '';
+            document.getElementById('suggestionDropdown').classList.remove('active');
+            toggleMenu();
+        }
+
+        function closeGlossary() {
+            document.getElementById('glossaryView').classList.remove('active');
+        }
+
+        function searchGlossary() {
+            const query = document.getElementById('glossarySearchInput').value.trim().toLowerCase();
+            const dropdown = document.getElementById('suggestionDropdown');
+            
+            if (!query) {
+                dropdown.classList.remove('active');
+                return;
+            }
+            
+            // Filter terms
+            const filtered = allGlossaryTerms.filter(term =>
+                term.term.toLowerCase().includes(query)
+            );
+            
+            if (filtered.length === 0) {
+                dropdown.innerHTML = '<div class="no-results">ტერმინი ვერ მოიძებნა</div>';
+                dropdown.classList.add('active');
+                return;
+            }
+            
+            // Display suggestions
+            dropdown.innerHTML = filtered.slice(0, 8).map(term => `
+                <div class="suggestion-item" onclick="showTerm('${term.fbId}')">
+                    <div class="suggestion-term">${term.term}</div>
+                    <div class="suggestion-preview">${term.definition.substring(0, 100)}...</div>
+                </div>
+            `).join('');
+            
+            dropdown.classList.add('active');
+        }
+
+        function showTerm(termId) {
+            const term = allGlossaryTerms.find(t => t.fbId === termId);
+            if (!term) return;
+            
+            currentGlossaryTerm = term;
+            
+            // Hide search, show term
+            document.getElementById('glossaryInitialView').style.display = 'none';
+            document.getElementById('suggestionDropdown').classList.remove('active');
+            document.getElementById('termDisplay').style.display = 'block';
+            
+            // Populate term details
+            document.getElementById('termTitle').innerText = term.term;
+            document.getElementById('termDefinition').innerText = term.definition;
+            
+            if (term.category) {
+                document.getElementById('termCategory').innerText = term.category;
+                document.getElementById('termCategory').style.display = 'inline-block';
+            } else {
+                document.getElementById('termCategory').style.display = 'none';
+            }
+            
+            // Show admin controls if logged in
+            if (idToken) {
+                document.getElementById('glossaryAdminControls').classList.add('active');
+            }
+        }
+
+        function backToGlossarySearch() {
+            document.getElementById('termDisplay').style.display = 'none';
+            document.getElementById('glossaryInitialView').style.display = 'block';
+            document.getElementById('glossarySearchInput').value = '';
+            document.getElementById('glossarySearchInput').focus();
+        }
+
+        async function addGlossaryTerm() {
+            if (!idToken) return;
+            
+            const term = document.getElementById('newTermName').value.trim();
+            const category = document.getElementById('newTermCategory').value.trim();
+            const definition = document.getElementById('newTermDefinition').value.trim();
+            const errEl = document.getElementById('addGlossaryError');
+            const sucEl = document.getElementById('addGlossarySuccess');
+            const btn = document.getElementById('addTermBtn');
+            
+            showMsg(errEl, '', false);
+            showMsg(sucEl, '', false);
+            
+            if (!term) {
+                showMsg(errEl, 'ტერმინი სავალდებულოა', true);
+                return;
+            }
+            
+            if (!definition) {
+                showMsg(errEl, 'განმარტება სავალდებულოა', true);
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.innerText = 'ემატება...';
+            
+            try {
+                const newTerm = {
+                    term,
+                    definition,
+                    category: category || null,
+                    timestamp: Date.now()
+                };
+                
+                const res = await fetch(`${FIREBASE_DB}/glossary.json?auth=${idToken}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newTerm)
+                });
+                
+                if (!res.ok) throw new Error('Firebase error');
+                
+                showMsg(sucEl, '✓ ტერმინი დაემატა!', true);
+                await fetchGlossary();
+                
+                setTimeout(() => {
+                    closeModal('addGlossaryModal');
+                }, 1000);
+                
+            } catch (err) {
+                showMsg(errEl, 'დამატება ვერ მოხერხდა: ' + err.message, true);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'დამატება';
+            }
+        }
+
+        function editGlossaryTerm() {
+            if (!currentGlossaryTerm) return;
+            
+            document.getElementById('editTermName').value = currentGlossaryTerm.term;
+            document.getElementById('editTermCategory').value = currentGlossaryTerm.category || '';
+            document.getElementById('editTermDefinition').value = currentGlossaryTerm.definition;
+            openModal('editGlossaryModal');
+            
+            showMsg(document.getElementById('editGlossaryError'), '', false);
+            showMsg(document.getElementById('editGlossarySuccess'), '', false);
+        }
+
+        async function updateGlossaryTerm() {
+            if (!idToken || !currentGlossaryTerm) return;
+            
+            const term = document.getElementById('editTermName').value.trim();
+            const category = document.getElementById('editTermCategory').value.trim();
+            const definition = document.getElementById('editTermDefinition').value.trim();
+            const errEl = document.getElementById('editGlossaryError');
+            const sucEl = document.getElementById('editGlossarySuccess');
+            const btn = document.getElementById('updateTermBtn');
+            
+            showMsg(errEl, '', false);
+            showMsg(sucEl, '', false);
+            
+            if (!term || !definition) {
+                showMsg(errEl, 'ტერმინი და განმარტება სავალდებულოა', true);
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.innerText = 'ინახება...';
+            
+            try {
+                const updated = {
+                    term,
+                    definition,
+                    category: category || null,
+                    timestamp: currentGlossaryTerm.timestamp
+                };
+                
+                const res = await fetch(`${FIREBASE_DB}/glossary/${currentGlossaryTerm.fbId}.json?auth=${idToken}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updated)
+                });
+                
+                if (!res.ok) throw new Error('Firebase error');
+                
+                showMsg(sucEl, '✓ განახლდა!', true);
+                
+                // Update display
+                currentGlossaryTerm = { ...updated, fbId: currentGlossaryTerm.fbId };
+                document.getElementById('termTitle').innerText = term;
+                document.getElementById('termDefinition').innerText = definition;
+                
+                if (category) {
+                    document.getElementById('termCategory').innerText = category;
+                    document.getElementById('termCategory').style.display = 'inline-block';
+                } else {
+                    document.getElementById('termCategory').style.display = 'none';
+                }
+                
+                await fetchGlossary();
+                
+                setTimeout(() => {
+                    closeModal('editGlossaryModal');
+                }, 800);
+                
+            } catch (err) {
+                showMsg(errEl, 'განახლება ვერ მოხერხდა: ' + err.message, true);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'განახლება';
+            }
+        }
+
+        async function deleteGlossaryTerm() {
+            if (!idToken || !currentGlossaryTerm) return;
+            
+            if (!confirm(`დარწმუნებული ხართ, რომ გსურთ ტერმინის "${currentGlossaryTerm.term}" წაშლა?`)) {
+                return;
+            }
+            
+            try {
+                const res = await fetch(`${FIREBASE_DB}/glossary/${currentGlossaryTerm.fbId}.json?auth=${idToken}`, {
+                    method: 'DELETE'
+                });
+                
+                if (!res.ok) throw new Error('Firebase error');
+                
+                await fetchGlossary();
+                backToGlossarySearch();
+                
+            } catch (err) {
+                alert('წაშლა ვერ მოხერხდა: ' + err.message);
+            }
+        }
 
         init();
     </script>
