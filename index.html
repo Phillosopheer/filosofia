@@ -1644,10 +1644,6 @@
                 
                 // Update badge
                 const badge = document.getElementById('pendingBadge');
-                const btn = document.getElementById('pendingBtn');
-                
-                // Always show button for admin
-                btn.style.display = 'flex';
                 
                 // Only show badge if there are pending notes
                 if (pendingNotes.length > 0) {
@@ -1822,6 +1818,7 @@
             currentUid = null;
             
             displayRandomQuote(); // Display random Nietzsche quote on load
+            updateHeaderButtons(); // Set initial header button visibility
             fetchNotes();
             
             // Start wave fade animation on page title (| = line break)
@@ -2211,6 +2208,7 @@
                 document.body.classList.add('admin-mode');
                 closeModal('loginModal');
                 updateFab();
+                updateHeaderButtons();
                 fetchPendingNotes(); // Load pending submissions
 
             } catch (err) {
@@ -2249,6 +2247,9 @@
             
             // Update FAB
             updateFab();
+            
+            // Update header buttons
+            updateHeaderButtons();
             
             // Refresh notes to show only public view
             fetchNotes();
@@ -2673,6 +2674,21 @@
         function updateFab() {
             const fab = document.getElementById('fabBtn');
             fab.style.display = (idToken && currentCat) ? 'flex' : 'none';
+        }
+
+        function updateHeaderButtons() {
+            const submitBtn = document.getElementById('submitBtn');
+            const pendingBtn = document.getElementById('pendingBtn');
+            
+            if (idToken) {
+                // Admin mode - show pending button, hide submit button
+                submitBtn.style.display = 'none';
+                pendingBtn.style.display = 'flex';
+            } else {
+                // Guest mode - show submit button, hide pending button
+                submitBtn.style.display = 'flex';
+                pendingBtn.style.display = 'none';
+            }
         }
 
         function showMsg(el, text, show) {
