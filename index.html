@@ -2286,17 +2286,39 @@
             document.getElementById('themeIcon').innerHTML = icons[savedTheme];
             document.getElementById('themeBtn').setAttribute('title', titles[savedTheme]);
             
-            // Always start logged out - clear any saved session
-            localStorage.removeItem('idToken');
-            localStorage.removeItem('currentUid');
-            localStorage.removeItem('userEmail');
-            idToken = null;
-            currentUid = null;
+            // Restore session from localStorage if exists
+            const savedToken = localStorage.getItem('idToken');
+            const savedUid = localStorage.getItem('currentUid');
+            const savedEmail = localStorage.getItem('userEmail');
+            
+            if (savedToken && savedUid) {
+                idToken = savedToken;
+                currentUid = savedUid;
+                
+                // Restore UI state
+                if (savedEmail) {
+                    const badge = document.getElementById('userBadge');
+                    badge.innerText = savedEmail.split('@')[0];
+                    badge.style.display = 'inline-block';
+                }
+                
+                document.getElementById('lockIcon').innerHTML = '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>';
+                document.getElementById('logoutBtn').classList.add('active');
+                document.body.classList.add('admin-mode');
+            } else {
+                idToken = null;
+                currentUid = null;
+            }
             
             displayRandomQuote(); // Display random Nietzsche quote on load
             updateHeaderButtons(); // Set initial header button visibility
             fetchNotes();
             fetchGlossary();
+            
+            // Fetch pending notes if logged in
+            if (idToken) {
+                fetchPendingNotes();
+            }
             
             // Start wave fade animation on page title (| = line break)
             const titleElement = document.getElementById('pageTitle');
