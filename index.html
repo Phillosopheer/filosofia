@@ -2136,7 +2136,7 @@
                 // Add cover image if available
                 let coverHTML = '';
                 if (note.coverUrl) {
-                    coverHTML = `<img src="${note.coverUrl}" style="width:100%; height:200px; object-fit:cover; border-radius:12px; margin-bottom:10px;" />`;
+                    coverHTML = `<img src="${note.coverUrl}" style="width:100%; height:300px; object-fit:contain; border-radius:12px; margin-bottom:10px; background:var(--surface);" />`;
                 }
                 
                 card.innerHTML = `
