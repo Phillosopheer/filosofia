@@ -1730,8 +1730,17 @@
             const note = pendingNotes.find(n => n.fbId === noteId);
             if (!note) return;
             
+            // Close pending modal first
+            closeModal('pendingModal');
+            
+            // Create a preview version with date field
+            const previewNote = { 
+                ...note, 
+                date: note.submittedDate || note.date || Date.now() 
+            };
+            
             // Use existing reader to preview
-            openReader(note);
+            openReader(previewNote);
         }
 
         function editPendingNote(noteId) {
