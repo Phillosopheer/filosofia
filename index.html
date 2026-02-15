@@ -1633,14 +1633,23 @@
 
         // ---- PENDING PANEL (ADMIN ONLY) ----
         async function fetchPendingNotes() {
-            if (!idToken) return;
+            if (!idToken) {
+                console.log('fetchPendingNotes: No idToken, skipping');
+                return;
+            }
             try {
-                const res = await fetch(`${FIREBASE_DB}/pending-notes.json`);
-                if (!res.ok) return;
+                console.log('Fetching pending notes...');
+                const res = await fetch(`${FIREBASE_DB}/pending-notes.json?auth=${idToken}`);
+                if (!res.ok) {
+                    console.error('Fetch pending notes failed:', res.status);
+                    return;
+                }
                 const data = await res.json();
+                console.log('Pending notes data:', data);
                 pendingNotes = data
                     ? Object.entries(data).map(([k, v]) => ({ ...v, fbId: k }))
                     : [];
+                console.log('Pending notes array:', pendingNotes);
                 
                 // Update badge
                 const badge = document.getElementById('pendingBadge');
@@ -1657,10 +1666,17 @@
             }
         }
 
-        function openPendingPanel() {
+        async function openPendingPanel() {
             if (!idToken) return;
             
+            console.log('Opening pending panel, fetching latest data...');
+            
             const list = document.getElementById('pendingList');
+            list.innerHTML = '<div class="spinner"></div>';
+            
+            // Fetch latest pending notes
+            await fetchPendingNotes();
+            
             list.innerHTML = '';
 
             if (pendingNotes.length === 0) {
