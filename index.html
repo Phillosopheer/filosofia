@@ -1067,7 +1067,8 @@
         <div class="reader-inner">
             <p id="readCat" style="color:var(--accent); font-size:0.72rem; font-weight:600; letter-spacing:3px; text-transform:uppercase; margin-bottom:18px; opacity:0.8;"></p>
             <h1 id="readTitle" style="font-family:'Cormorant Garamond', serif; font-size:3rem; font-weight:700; margin-bottom:14px; line-height:1.2; letter-spacing:0.3px;"></h1>
-            <p id="readDate" style="color:var(--text-dim); font-size:0.78rem; letter-spacing:1px; margin-bottom:45px; padding-bottom:35px; border-bottom:1px solid var(--border); font-weight:500;"></p>
+            <p id="readDate" style="color:var(--text-dim); font-size:0.78rem; letter-spacing:1px; margin-bottom:12px; font-weight:500;"></p>
+            <p id="readAuthor" style="color:var(--accent); font-size:0.85rem; font-weight:600; margin-bottom:35px; padding-bottom:25px; border-bottom:1px solid var(--border); letter-spacing:0.5px;"></p>
             <div id="readCover" style="margin-bottom:30px;"></div>
             <div id="readBody" style="font-size:1.1rem; line-height:2; color:var(--text); font-weight:300; font-family:'Cormorant Garamond', serif;"></div>
             <div id="adminControls" style="display:none; margin-top:40px; padding-top:30px; border-top:1px solid var(--border);">
@@ -1131,6 +1132,10 @@
                     <option value="histphil">ფილოსოფიის ისტორია</option>
                     <option value="relphil">რელიგიის ფილოსოფია</option>
                 </select>
+            </div>
+            <div class="form-group">
+                <label>ავტორი (არასავალდებულო)</label>
+                <input type="text" id="editorAuthor" placeholder="მაგ: ნ. ქებაძე" style="width:100%; padding:12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text);" />
             </div>
             <div class="form-group">
                 <label>შინაარსი</label>
@@ -1221,6 +1226,10 @@
                     <option value="histphil">ფილოსოფიის ისტორია</option>
                     <option value="relphil">რელიგიის ფილოსოფია</option>
                 </select>
+            </div>
+            <div class="form-group">
+                <label>ავტორი (არასავალდებულო)</label>
+                <input type="text" id="editAuthor" placeholder="მაგ: ნ. ქებაძე" style="width:100%; padding:12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text);" />
             </div>
             <div class="form-group">
                 <label>შინაარსი</label>
@@ -1703,7 +1712,10 @@
                     cardHTML += `
                         <h3>${escapeHtml(n.title || 'უსახელო')}</h3>
                         <div class="card-meta">
-                            <span class="card-date">${dateStr}</span>
+                            <div style="display:flex; flex-direction:column; gap:4px;">
+                                ${n.author ? `<span style="color:var(--accent); font-size:0.75rem; font-weight:600; letter-spacing:0.5px;">✍️ ${escapeHtml(n.author)}</span>` : ''}
+                                <span class="card-date">${dateStr}</span>
+                            </div>
                             <span class="card-read">კითხვა →</span>
                         </div>
                     `;
@@ -1724,6 +1736,16 @@
             document.getElementById('readDate').innerText  = note.date
                 ? new Date(note.date).toLocaleDateString('ka-GE', { year:'numeric', month:'long', day:'numeric' })
                 : '';
+            
+            // Display author if available
+            const authorEl = document.getElementById('readAuthor');
+            if (note.author) {
+                authorEl.innerText = `✍️ ${note.author}`;
+                authorEl.style.display = 'block';
+            } else {
+                authorEl.innerText = '';
+                authorEl.style.display = 'none';
+            }
 
             // Display cover image if available
             const coverContainer = document.getElementById('readCover');
@@ -2008,6 +2030,7 @@
             const cat     = document.getElementById('editorCat').value;
             const content = document.getElementById('editorArea').innerHTML.trim();
             const coverUrlInput = document.getElementById('coverUrl').value.trim();
+            const author  = document.getElementById('editorAuthor').value.trim();
             const errEl   = document.getElementById('editorError');
             const sucEl   = document.getElementById('editorSuccess');
             const btn     = document.getElementById('saveBtn');
@@ -2031,6 +2054,7 @@
 
                 const note = { title, cat, content, date: Date.now() };
                 if (coverUrl) note.coverUrl = coverUrl;
+                if (author) note.author = author;
 
                 const res = await fetch(`${FIREBASE_DB}/notes.json?auth=${idToken}`, {
                     method: 'POST',
@@ -2051,6 +2075,7 @@
                 // Clear form
                 document.getElementById('editorTitle').value = '';
                 document.getElementById('editorArea').innerHTML = '';
+                document.getElementById('editorAuthor').value = '';
                 const coverUrlEl = document.getElementById('coverUrl');
                 if (coverUrlEl) coverUrlEl.value = '';
                 const coverPreviewEl = document.getElementById('coverPreview');
@@ -2143,6 +2168,7 @@
                     ${coverHTML}
                     <p style="color:var(--accent); font-size:0.7rem; font-weight:600; letter-spacing:2px; text-transform:uppercase;">${getCategoryLabel(note.cat)}</p>
                     <h4 style="font-family:'Cormorant Garamond', serif; font-size:1.6rem; font-weight:600; color:var(--text); line-height:1.3;">${note.title}</h4>
+                    ${note.author ? `<p style="color:var(--accent); font-size:0.8rem; font-weight:600; margin-top:-8px;">✍️ ${note.author}</p>` : ''}
                     <p style="color:var(--text-dim); font-size:0.85rem; line-height:1.6;">${getExcerpt(note.content)}</p>
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:15px; border-top:1px solid var(--border);">
                         <span style="color:var(--text-dim); font-size:0.75rem;">${formatDate(note.date)}</span>
@@ -2365,6 +2391,7 @@
             document.getElementById('editCat').value        = currentNote.cat   || 'epist';
             document.getElementById('editArea').innerHTML   = currentNote.content || '';
             document.getElementById('editCoverUrl').value   = currentNote.coverUrl || '';
+            document.getElementById('editAuthor').value     = currentNote.author || '';
             
             // Show existing cover image if available
             const editCoverPreview = document.getElementById('editCoverPreview');
@@ -2437,6 +2464,7 @@
             const cat     = document.getElementById('editCat').value;
             const content = document.getElementById('editArea').innerHTML.trim();
             const coverUrlInput = document.getElementById('editCoverUrl').value.trim();
+            const author  = document.getElementById('editAuthor').value.trim();
             const errEl   = document.getElementById('editError');
             const sucEl   = document.getElementById('editSuccess');
             const btn     = document.getElementById('updateBtn');
@@ -2452,6 +2480,13 @@
 
             try {
                 const updated = { ...currentNote, title, cat, content };
+                
+                // Update author
+                if (author) {
+                    updated.author = author;
+                } else {
+                    delete updated.author; // Remove author if empty
+                }
                 
                 // Use URL if provided
                 if (coverUrlInput) {
@@ -2486,6 +2521,18 @@
                         coverContainer.innerHTML = `<img src="${updated.coverUrl}" style="width:100%; max-height:500px; object-fit:contain; border-radius:16px; margin-bottom:30px;" />`;
                     } else {
                         coverContainer.innerHTML = '';
+                    }
+                }
+                
+                // Update author in reader
+                const authorEl = document.getElementById('readAuthor');
+                if (authorEl) {
+                    if (updated.author) {
+                        authorEl.innerText = `✍️ ${updated.author}`;
+                        authorEl.style.display = 'block';
+                    } else {
+                        authorEl.innerText = '';
+                        authorEl.style.display = 'none';
                     }
                 }
 
