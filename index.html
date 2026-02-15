@@ -970,6 +970,20 @@
         </div>
         <div style="display:flex; gap:12px; align-items:center;">
             <span class="user-badge" id="userBadge"></span>
+            <!-- Public Submission Button -->
+            <button class="header-btn" id="submitBtn" onclick="openPublicSubmission()" title="სტატიის გაგზავნა" style="color: var(--accent);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+            </button>
+            <!-- Admin Pending Button -->
+            <button class="header-btn" id="pendingBtn" onclick="openPendingPanel()" title="მოლოდინში" style="display:none; position:relative;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                </svg>
+                <span id="pendingBadge" style="position:absolute; top:-4px; right:-4px; background:#ef4444; color:white; font-size:0.65rem; font-weight:700; padding:2px 5px; border-radius:10px; display:none; min-width:18px; text-align:center;"></span>
+            </button>
             <button class="header-btn" id="themeBtn" onclick="toggleTheme()" title="თემის შეცვლა">
                 <svg id="themeIcon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
@@ -1280,6 +1294,71 @@
         </div>
     </div>
 
+    <!-- ===== PUBLIC SUBMISSION MODAL ===== -->
+    <div class="modal" id="publicSubmissionModal">
+        <div class="modal-box wide">
+            <button class="modal-close" onclick="closeModal('publicSubmissionModal')">✕</button>
+            <h2>სტატიის გაგზავნა</h2>
+            <p style="color:var(--text-dim); font-size:0.9rem; margin-bottom:20px; line-height:1.6;">თქვენი სტატია გაიგზავნება ადმინისტრატორთან. დადასტურების შემდეგ ის გამოქვეყნდება საიტზე.</p>
+            <div class="msg error" id="submissionError"></div>
+            <div class="msg success" id="submissionSuccess"></div>
+            <div class="form-group">
+                <label>სათაური</label>
+                <input type="text" id="submissionTitle" placeholder="სტატიის სათაური..." />
+            </div>
+            <div class="form-group">
+                <label>თქვენი სახელი (არასავალდებულო)</label>
+                <input type="text" id="submissionAuthor" placeholder="მაგ: ნ. ქებაძე" style="width:100%; padding:12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text);" />
+            </div>
+            <div class="form-group">
+                <label>კატეგორია</label>
+                <select id="submissionCat">
+                    <option value="epist">ეპისტემოლოგია</option>
+                    <option value="ethics">ეთიკა</option>
+                    <option value="logic">ლოგიკა</option>
+                    <option value="meta">მეტაფიზიკა</option>
+                    <option value="lang">ენის ფილოსოფია</option>
+                    <option value="anthro">ანთროპოლოგიური ფილოსოფია</option>
+                    <option value="aesthetics">ესთეტიკა</option>
+                    <option value="exist">ეგზისტენციალიზმი</option>
+                    <option value="onto">ონტოლოგია</option>
+                    <option value="axio">ობიექტური აქსიოლოგია</option>
+                    <option value="histphil">ფილოსოფიის ისტორია</option>
+                    <option value="relphil">რელიგიის ფილოსოფია</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>შინაარსი</label>
+                <div class="editor-toolbar">
+                    <button class="tb-btn" onclick="fmtS('bold')" title="მუქი"><b>B</b></button>
+                    <button class="tb-btn" onclick="fmtS('italic')" title="დახრილი"><i>I</i></button>
+                    <button class="tb-btn" onclick="fmtS('underline')" title="ხაზგასმული"><u>U</u></button>
+                    <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
+                    <button class="tb-btn" onclick="formatHeadingS('h1')" title="სათაური 1">H1</button>
+                    <button class="tb-btn" onclick="formatHeadingS('h2')" title="სათაური 2">H2</button>
+                    <button class="tb-btn" onclick="formatHeadingS('h3')" title="სათაური 3">H3</button>
+                    <button class="tb-btn" onclick="formatHeadingS('p')" title="ჩვეულებრივი ტექსტი">P</button>
+                    <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
+                    <button class="tb-btn" onclick="fmtS('insertOrderedList')" title="დანომრილი სია">1.</button>
+                    <button class="tb-btn" onclick="fmtS('insertUnorderedList')" title="ჩამონათვალი">•</button>
+                    <button class="tb-btn" onclick="insertBlockquoteS()" title="ციტატა">❝</button>
+                </div>
+                <div class="editor-area" id="submissionArea" contenteditable="true" data-placeholder="დაიწყე წერა..."></div>
+            </div>
+            <button class="btn btn-primary" id="submitArticleBtn" onclick="submitArticle()">გაგზავნა</button>
+            <button class="btn btn-secondary" onclick="closeModal('publicSubmissionModal')">გაუქმება</button>
+        </div>
+    </div>
+
+    <!-- ===== PENDING PANEL MODAL ===== -->
+    <div class="modal" id="pendingModal">
+        <div class="modal-box" style="max-width:1000px; max-height:85vh; overflow-y:auto;">
+            <button class="modal-close" onclick="closeModal('pendingModal')">✕</button>
+            <h2>მოლოდინში მყოფი სტატიები</h2>
+            <div id="pendingList" style="margin-top:25px;"></div>
+        </div>
+    </div>
+
     <!-- ===== SCRIPTS ===== -->
     <script>
         // ---- FIREBASE CONFIG & INIT ----
@@ -1459,6 +1538,252 @@
             }
             
             animateWave();
+        }
+
+        // ---- PUBLIC SUBMISSION ----
+        let pendingNotes = [];
+        
+        function openPublicSubmission() {
+            document.getElementById('submissionTitle').value = '';
+            document.getElementById('submissionAuthor').value = '';
+            document.getElementById('submissionCat').value = 'epist';
+            document.getElementById('submissionArea').innerHTML = '';
+            showMsg(document.getElementById('submissionError'), '', false);
+            showMsg(document.getElementById('submissionSuccess'), '', false);
+            openModal('publicSubmissionModal');
+        }
+
+        // Submission editor toolbar helpers
+        function fmtS(cmd, value = null) {
+            document.getElementById('submissionArea').focus();
+            document.execCommand(cmd, false, value);
+        }
+        function formatHeadingS(tag) {
+            document.getElementById('submissionArea').focus();
+            document.execCommand('formatBlock', false, tag);
+        }
+        function insertBlockquoteS() {
+            const editor = document.getElementById('submissionArea');
+            editor.focus();
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                const selectedText = range.toString();
+                if (selectedText) {
+                    document.execCommand('formatBlock', false, 'blockquote');
+                }
+            }
+        }
+
+        async function submitArticle() {
+            const title   = document.getElementById('submissionTitle').value.trim();
+            const author  = document.getElementById('submissionAuthor').value.trim();
+            const cat     = document.getElementById('submissionCat').value;
+            const content = document.getElementById('submissionArea').innerHTML.trim();
+            const errEl   = document.getElementById('submissionError');
+            const sucEl   = document.getElementById('submissionSuccess');
+            const btn     = document.getElementById('submitArticleBtn');
+
+            showMsg(errEl, '', false);
+            showMsg(sucEl, '', false);
+
+            if (!title)   { showMsg(errEl, 'სათაური სავალდებულოა', true); return; }
+            if (!content || content === '<br>') { showMsg(errEl, 'შინაარსი სავალდებულოა', true); return; }
+
+            btn.disabled  = true;
+            btn.innerText = 'იგზავნება...';
+
+            try {
+                const submission = {
+                    title,
+                    cat,
+                    content,
+                    pending: true,
+                    submittedDate: Date.now()
+                };
+                if (author) submission.author = author;
+
+                const res = await fetch(`${FIREBASE_DB}/pending-notes.json`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(submission)
+                });
+                
+                if (!res.ok) throw new Error('გაგზავნა ვერ მოხერხდა');
+
+                showMsg(sucEl, '✓ სტატია გაგზავნილია! ადმინისტრატორი მალე განიხილავს.', true);
+                
+                // Clear form
+                document.getElementById('submissionTitle').value = '';
+                document.getElementById('submissionAuthor').value = '';
+                document.getElementById('submissionArea').innerHTML = '';
+
+                setTimeout(() => {
+                    closeModal('publicSubmissionModal');
+                    showMsg(sucEl, '', false);
+                }, 2000);
+
+            } catch (err) {
+                showMsg(errEl, 'შეცდომა: ' + err.message, true);
+            } finally {
+                btn.disabled  = false;
+                btn.innerText = 'გაგზავნა';
+            }
+        }
+
+        // ---- PENDING PANEL (ADMIN ONLY) ----
+        async function fetchPendingNotes() {
+            if (!idToken) return;
+            try {
+                const res = await fetch(`${FIREBASE_DB}/pending-notes.json`);
+                if (!res.ok) return;
+                const data = await res.json();
+                pendingNotes = data
+                    ? Object.entries(data).map(([k, v]) => ({ ...v, fbId: k }))
+                    : [];
+                
+                // Update badge
+                const badge = document.getElementById('pendingBadge');
+                const btn = document.getElementById('pendingBtn');
+                if (pendingNotes.length > 0) {
+                    badge.innerText = pendingNotes.length;
+                    badge.style.display = 'block';
+                    btn.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                    btn.style.display = 'none';
+                }
+            } catch (err) {
+                console.error('Pending notes fetch error:', err);
+            }
+        }
+
+        function openPendingPanel() {
+            if (!idToken) return;
+            
+            const list = document.getElementById('pendingList');
+            list.innerHTML = '';
+
+            if (pendingNotes.length === 0) {
+                list.innerHTML = '<div class="empty-state"><div class="icon">✓</div><p>მოლოდინში სტატიები არ არის</p></div>';
+            } else {
+                pendingNotes
+                    .sort((a, b) => (b.submittedDate || 0) - (a.submittedDate || 0))
+                    .forEach(note => {
+                        const card = document.createElement('div');
+                        card.style.cssText = `
+                            background: var(--surface2);
+                            border: 1px solid var(--border);
+                            border-radius: 12px;
+                            padding: 20px;
+                            margin-bottom: 15px;
+                        `;
+                        
+                        const dateStr = note.submittedDate 
+                            ? new Date(note.submittedDate).toLocaleDateString('ka-GE', { year:'numeric', month:'long', day:'numeric' })
+                            : '—';
+                        
+                        const catLabel = getCategoryLabel(note.cat);
+                        const excerpt = getExcerpt(note.content);
+                        
+                        card.innerHTML = `
+                            <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:12px;">
+                                <div>
+                                    <p style="color:var(--accent); font-size:0.7rem; font-weight:600; letter-spacing:2px; text-transform:uppercase; margin-bottom:8px;">${catLabel}</p>
+                                    <h4 style="font-family:'Cormorant Garamond', serif; font-size:1.4rem; font-weight:600; color:var(--text); margin-bottom:6px;">${escapeHtml(note.title)}</h4>
+                                    ${note.author ? `<p style="color:var(--accent); font-size:0.8rem; font-weight:600; margin-bottom:8px;">✍️ ${escapeHtml(note.author)}</p>` : ''}
+                                    <p style="color:var(--text-dim); font-size:0.75rem;">${dateStr}</p>
+                                </div>
+                            </div>
+                            <p style="color:var(--text-dim); font-size:0.9rem; line-height:1.6; margin-bottom:15px;">${excerpt}</p>
+                            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                                <button onclick="previewPendingNote('${note.fbId}')" style="padding:8px 16px; background:var(--surface); border:1px solid var(--border); border-radius:8px; color:var(--text); cursor:pointer; font-size:0.85rem; transition:0.3s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">👁 ნახვა</button>
+                                <button onclick="editPendingNote('${note.fbId}')" style="padding:8px 16px; background:var(--surface); border:1px solid var(--border); border-radius:8px; color:var(--accent); cursor:pointer; font-size:0.85rem; transition:0.3s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">✏️ რედაქტირება</button>
+                                <button onclick="approvePendingNote('${note.fbId}')" style="padding:8px 16px; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); border-radius:8px; color:#22c55e; cursor:pointer; font-size:0.85rem; font-weight:600; transition:0.3s;" onmouseover="this.style.background='rgba(34,197,94,0.2)'" onmouseout="this.style.background='rgba(34,197,94,0.1)'">✅ დადასტურება</button>
+                                <button onclick="rejectPendingNote('${note.fbId}')" style="padding:8px 16px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); border-radius:8px; color:#ef4444; cursor:pointer; font-size:0.85rem; transition:0.3s;" onmouseover="this.style.background='rgba(239,68,68,0.2)'" onmouseout="this.style.background='rgba(239,68,68,0.1)'">❌ უარყოფა</button>
+                            </div>
+                        `;
+                        
+                        list.appendChild(card);
+                    });
+            }
+
+            openModal('pendingModal');
+        }
+
+        function previewPendingNote(noteId) {
+            const note = pendingNotes.find(n => n.fbId === noteId);
+            if (!note) return;
+            
+            // Use existing reader to preview
+            openReader(note);
+        }
+
+        function editPendingNote(noteId) {
+            const note = pendingNotes.find(n => n.fbId === noteId);
+            if (!note) return;
+            
+            // Set currentNote and open edit modal
+            currentNote = { ...note, pending: true };
+            openEditModal();
+            closeModal('pendingModal');
+        }
+
+        async function approvePendingNote(noteId) {
+            if (!idToken) return;
+            if (!confirm('დაადასტურო ეს სტატია?')) return;
+
+            try {
+                const note = pendingNotes.find(n => n.fbId === noteId);
+                if (!note) throw new Error('სტატია არ მოიძებნა');
+
+                // Create approved note (remove pending flag, add date)
+                const approved = { ...note };
+                delete approved.pending;
+                delete approved.submittedDate;
+                delete approved.fbId;
+                approved.date = Date.now();
+
+                // Add to /notes
+                const addRes = await fetch(`${FIREBASE_DB}/notes.json?auth=${idToken}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(approved)
+                });
+                if (!addRes.ok) throw new Error('დადასტურება ვერ მოხერხდა');
+
+                // Delete from /pending-notes
+                const delRes = await fetch(`${FIREBASE_DB}/pending-notes/${noteId}.json?auth=${idToken}`, {
+                    method: 'DELETE'
+                });
+                if (!delRes.ok) throw new Error('წაშლა pending-დან ვერ მოხერხდა');
+
+                // Refresh
+                await fetchPendingNotes();
+                await fetchNotes();
+                openPendingPanel();
+
+            } catch (err) {
+                alert('შეცდომა: ' + err.message);
+            }
+        }
+
+        async function rejectPendingNote(noteId) {
+            if (!idToken) return;
+            if (!confirm('უარყო ეს სტატია? ის სამუდამოდ წაიშლება.')) return;
+
+            try {
+                const res = await fetch(`${FIREBASE_DB}/pending-notes/${noteId}.json?auth=${idToken}`, {
+                    method: 'DELETE'
+                });
+                if (!res.ok) throw new Error('წაშლა ვერ მოხერხდა');
+
+                await fetchPendingNotes();
+                openPendingPanel();
+
+            } catch (err) {
+                alert('შეცდომა: ' + err.message);
+            }
         }
 
         // ---- INIT ----
@@ -1883,6 +2208,7 @@
                 document.body.classList.add('admin-mode');
                 closeModal('loginModal');
                 updateFab();
+                fetchPendingNotes(); // Load pending submissions
 
             } catch (err) {
                 showMsg(errEl, '📡 ინტერნეტი? რა ინტერნეტი? კავშირი ვერ მოხერხდა, სცადე თავიდან.', true);
@@ -2499,7 +2825,12 @@
                 
                 delete updated.fbId;
 
-                const res = await fetch(`${FIREBASE_DB}/notes/${currentNote.fbId}.json?auth=${idToken}`, {
+                // Determine endpoint based on pending status
+                const endpoint = currentNote.pending 
+                    ? `${FIREBASE_DB}/pending-notes/${currentNote.fbId}.json?auth=${idToken}`
+                    : `${FIREBASE_DB}/notes/${currentNote.fbId}.json?auth=${idToken}`;
+
+                const res = await fetch(endpoint, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(updated)
@@ -2537,6 +2868,9 @@
                 }
 
                 await fetchNotes();
+                if (currentNote.pending) {
+                    await fetchPendingNotes();
+                }
                 
                 setTimeout(() => {
                     showMsg(sucEl, '', false);
