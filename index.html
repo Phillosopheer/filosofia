@@ -61,42 +61,55 @@
             --glow: rgba(124,107,175,0.15);
         }
 
-        /* Sepia mode specific overrides for better color harmony */
+        /* Sepia mode - Pure classic book style (minimal, clean) */
         .sepia-mode .header {
-            background: rgba(244,236,216,0.9);
-            border-bottom-color: rgba(139,105,20,0.3);
+            background: rgba(244,236,216,0.95);
+            border-bottom-color: rgba(109,76,15,0.4);
+            box-shadow: 0 2px 15px rgba(109,76,15,0.1);
         }
         .sepia-mode .header-btn {
-            color: #8b6914;
+            color: #6d4c0f;
         }
         .sepia-mode .header-btn:hover {
-            color: #6d4c0f;
-            background: rgba(139,105,20,0.1);
+            color: #8b6914;
+            background: rgba(139,105,20,0.12);
         }
         .sepia-mode .logo span {
-            background: linear-gradient(135deg, #6d4c0f 0%, #8b6914 50%, #a67c1a 100%) !important;
+            background: #6d4c0f !important;
             -webkit-background-clip: text !important;
             -webkit-text-fill-color: transparent !important;
             background-clip: text !important;
         }
+        .sepia-mode .hero {
+            background: linear-gradient(135deg, rgba(244,236,216,0.95) 0%, rgba(237,225,197,0.9) 100%);
+            border-bottom-color: rgba(109,76,15,0.3);
+            box-shadow: none;
+        }
         .sepia-mode .hero h1 {
-            background: linear-gradient(135deg, #6d4c0f 0%, #8b6914 50%, #a67c1a 100%);
+            background: #6d4c0f;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            text-shadow: 0 0 40px rgba(139,105,20,0.4);
-            filter: drop-shadow(0 0 20px rgba(139,105,20,0.5));
+            text-shadow: none;
+            filter: none;
+        }
+        .sepia-mode .card {
+            background: var(--surface);
+            border-color: rgba(109,76,15,0.25);
         }
         .sepia-mode .card:hover {
             border-color: #8b6914;
-            box-shadow: 0 8px 30px rgba(139,105,20,0.15);
+            box-shadow: 0 4px 20px rgba(109,76,15,0.12);
+            transform: translateY(-3px);
         }
         .sepia-mode .btn-primary {
-            background: linear-gradient(135deg, #8b6914, #6d4c0f);
+            background: #8b6914;
             color: #fdf6e3;
+            border: 1px solid #6d4c0f;
         }
         .sepia-mode .btn-primary:hover {
-            background: linear-gradient(135deg, #6d4c0f, #8b6914);
+            background: #6d4c0f;
+            box-shadow: 0 4px 12px rgba(109,76,15,0.2);
         }
         .sepia-mode #submitBtn {
             color: #8b6914;
@@ -104,16 +117,63 @@
         .sepia-mode #submitBtn:hover {
             color: #6d4c0f;
         }
+        .sepia-mode input,
+        .sepia-mode textarea,
+        .sepia-mode select {
+            background: var(--surface);
+            border-color: rgba(109,76,15,0.25);
+            color: var(--text);
+        }
         .sepia-mode input:focus,
-        .sepia-mode textarea:focus {
+        .sepia-mode textarea:focus,
+        .sepia-mode select:focus {
             border-color: #8b6914;
             box-shadow: 0 0 0 3px rgba(139,105,20,0.1);
         }
         .sepia-mode .modal-content {
-            border-color: rgba(139,105,20,0.3);
+            background: var(--surface);
+            border-color: rgba(109,76,15,0.3);
+        }
+        .sepia-mode .welcome-text {
+            background: rgba(139,105,20,0.06);
+            border-color: rgba(109,76,15,0.25);
+        }
+        .sepia-mode .reader {
+            background: var(--surface);
+        }
+        .sepia-mode .reader blockquote {
+            border-left-color: #8b6914;
+            background: rgba(139,105,20,0.05);
+        }
+        .sepia-mode footer a {
+            color: #6d4c0f !important;
+            border-color: rgba(109,76,15,0.3) !important;
+        }
+        .sepia-mode footer a:hover {
+            border-color: #8b6914 !important;
+            color: #8b6914 !important;
+            box-shadow: 0 4px 15px rgba(109,76,15,0.15) !important;
+        }
+        .sepia-mode footer a svg {
+            fill: #8b6914 !important;
         }
         .sepia-mode::after {
-            background: radial-gradient(ellipse, rgba(139,105,20,0.12) 0%, transparent 70%) !important;
+            background: radial-gradient(ellipse, rgba(139,105,20,0.08) 0%, transparent 70%) !important;
+        }
+        /* Remove shimmer/rainbow effects in sepia */
+        .sepia-mode .shimmer {
+            animation: none !important;
+        }
+        .sepia-mode .welcome-text::before {
+            display: none;
+        }
+        .sepia-mode .badge {
+            background: #8b6914;
+            color: #fdf6e3;
+        }
+        .sepia-mode .user-badge {
+            color: #6d4c0f;
+            border-color: rgba(109,76,15,0.3);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -2630,6 +2690,16 @@
                         }
                         
                         renderNotes();
+                        
+                        // Check if we should restore an open article
+                        const savedArticleId = sessionStorage.getItem('currentArticleId');
+                        if (savedArticleId) {
+                            const article = notes.find(n => n.fbId === savedArticleId);
+                            if (article) {
+                                setTimeout(() => openReader(article), 300);
+                            }
+                        }
+                        
                         return; // Don't call goHome() - we found saved category
                     }
                 }
@@ -2637,6 +2707,15 @@
                 // Only now, if no currentCat and no saved category, go home
                 if (!currentCat) goHome();
                 else renderNotes();
+                
+                // Check if we should restore an open article (for home page articles)
+                const savedArticleId = sessionStorage.getItem('currentArticleId');
+                if (savedArticleId) {
+                    const article = notes.find(n => n.fbId === savedArticleId);
+                    if (article) {
+                        setTimeout(() => openReader(article), 300);
+                    }
+                }
             } catch (err) {
                 grid.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>${err.message}</p></div>`;
             }
@@ -2777,13 +2856,34 @@
             const adminCtrl = document.getElementById('adminControls');
             adminCtrl.style.display = idToken ? 'block' : 'none';
 
-            document.getElementById('reader').style.display = 'block';
+            const readerEl = document.getElementById('reader');
+            readerEl.style.display = 'block';
             document.body.style.overflow = 'hidden';
+            
+            // Save article ID for refresh restoration
+            sessionStorage.setItem('currentArticleId', note.fbId);
+            
+            // Restore scroll position if returning to same article
+            setTimeout(() => {
+                const savedScrollPos = sessionStorage.getItem(`scroll_${note.fbId}`);
+                if (savedScrollPos) {
+                    readerEl.scrollTop = parseInt(savedScrollPos);
+                }
+            }, 100);
+            
+            // Save scroll position on scroll
+            readerEl.onscroll = () => {
+                sessionStorage.setItem(`scroll_${note.fbId}`, readerEl.scrollTop);
+            };
         }
 
         function closeReader() {
             document.getElementById('reader').style.display = 'none';
             document.body.style.overflow = 'auto';
+            
+            // Clear current article from session
+            sessionStorage.removeItem('currentArticleId');
+            
             currentNote = null;
         }
 
