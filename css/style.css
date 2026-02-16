@@ -1262,3 +1262,57 @@ select.tb-btn option {
         font-size: 1.15rem;
     }
 }
+
+/* ===== SOCIAL FOOTER ===== */
+.social-footer {
+    margin-top: 60px;
+    padding: 40px 5%;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    text-align: center;
+}
+
+.social-footer-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.social-footer-label {
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 500;
+    margin-bottom: 20px;
+}
+
+.social-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 28px;
+    border-radius: 50px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.facebook-link {
+    background: rgba(24, 119, 242, 0.1);
+    color: #1877f2;
+    border-color: rgba(24, 119, 242, 0.25);
+}
+
+.facebook-link:hover {
+    background: rgba(24, 119, 242, 0.2);
+    border-color: rgba(24, 119, 242, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(24, 119, 242, 0.2);
+}
+
+.facebook-link svg {
+    flex-shrink: 0;
+}
