@@ -126,6 +126,11 @@ body::after {
     border-bottom: 2px solid var(--accent);
     box-shadow: 0 10px 50px rgba(167,139,250,0.2);
 }
+.hero.no-bg {
+    background: var(--bg) !important;
+    box-shadow: none;
+}
+
 .hero::before {
     content: '';
     position: absolute;
