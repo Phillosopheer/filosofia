@@ -1401,16 +1401,13 @@ function updateFab() {
 function updateHeaderButtons() {
     const submitBtn = document.getElementById('submitBtn');
     const pendingBtn = document.getElementById('pendingBtn');
-    const addBtn = document.getElementById('glossaryAddBtn');
     
     if (idToken) {
         submitBtn.style.display = 'none';
         pendingBtn.style.display = 'flex';
-        if (addBtn) addBtn.style.display = 'flex';
     } else {
         submitBtn.style.display = 'flex';
         pendingBtn.style.display = 'none';
-        if (addBtn) addBtn.style.display = 'none';
     }
 }
 
