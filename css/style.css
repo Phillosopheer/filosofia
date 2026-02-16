@@ -1279,12 +1279,14 @@ select.tb-btn option {
     transition: transform 0.3s ease;
 }
 
-.fb-admin-link:hover {
-    transform: translateY(-3px);
+.fb-admin-img {
+    width: 80px;
+    height: 80px;
+    display: block;
+    animation: slowSpin 8s linear infinite;
 }
 
-.fb-admin-img {
-    width: 100px;
-    height: 100px;
-    display: block;
+@keyframes slowSpin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
 }
