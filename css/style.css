@@ -118,9 +118,8 @@ body::after {
     padding: 130px 6% 50px;
     text-align: center;
     position: relative; z-index: 1;
-    /* აქ ჩავასწორე მისამართი -> url('../philosopher-bg.jpg') */
     background: linear-gradient(135deg, rgba(10,25,41,0.95) 0%, rgba(10,25,41,0.85) 100%),
-                url('../philosopher-bg.jpg');
+                url('philosopher-bg.jpg');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
