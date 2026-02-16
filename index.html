@@ -23,29 +23,29 @@
         }
 
         .light-mode {
-            --bg: #faf8ff;
-            --surface: #ffffff;
-            --surface2: #f0eeff;
-            --accent: #7c3aed;
-            --accent2: #6366f1;
-            --text: #1a1530;
-            --text-dim: #6b6888;
-            --glass: rgba(124,58,237,0.03);
-            --border: rgba(124,58,237,0.1);
-            --glow: rgba(124,58,237,0.15);
+            --bg: #0d0a14;
+            --surface: #1a1525;
+            --surface2: #251f35;
+            --accent: #a78bfa;
+            --accent2: #8b5cf6;
+            --text: #e9e3f5;
+            --text-dim: #b4a5d8;
+            --glass: rgba(167,139,250,0.08);
+            --border: rgba(167,139,250,0.2);
+            --glow: rgba(167,139,250,0.3);
         }
 
         .sepia-mode {
             --bg: #f4ecd8;
             --surface: #fdf6e3;
             --surface2: #ede1c5;
-            --accent: #8b6914;
-            --accent2: #a67c1a;
-            --text: #3e2723;
-            --text-dim: #6d4c41;
-            --glass: rgba(139,105,20,0.03);
-            --border: rgba(139,105,20,0.15);
-            --glow: rgba(139,105,20,0.2);
+            --accent: #6d4c0f;
+            --accent2: #8b6914;
+            --text: #2c1810;
+            --text-dim: #4a3020;
+            --glass: rgba(109,76,15,0.08);
+            --border: rgba(109,76,15,0.3);
+            --glow: rgba(109,76,15,0.35);
         }
 
         .night-mode {
@@ -59,6 +59,61 @@
             --glass: rgba(124,107,175,0.03);
             --border: rgba(124,107,175,0.08);
             --glow: rgba(124,107,175,0.15);
+        }
+
+        /* Sepia mode specific overrides for better color harmony */
+        .sepia-mode .header {
+            background: rgba(244,236,216,0.9);
+            border-bottom-color: rgba(139,105,20,0.3);
+        }
+        .sepia-mode .header-btn {
+            color: #8b6914;
+        }
+        .sepia-mode .header-btn:hover {
+            color: #6d4c0f;
+            background: rgba(139,105,20,0.1);
+        }
+        .sepia-mode .logo span {
+            background: linear-gradient(135deg, #6d4c0f 0%, #8b6914 50%, #a67c1a 100%) !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+            background-clip: text !important;
+        }
+        .sepia-mode .hero h1 {
+            background: linear-gradient(135deg, #6d4c0f 0%, #8b6914 50%, #a67c1a 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 40px rgba(139,105,20,0.4);
+            filter: drop-shadow(0 0 20px rgba(139,105,20,0.5));
+        }
+        .sepia-mode .card:hover {
+            border-color: #8b6914;
+            box-shadow: 0 8px 30px rgba(139,105,20,0.15);
+        }
+        .sepia-mode .btn-primary {
+            background: linear-gradient(135deg, #8b6914, #6d4c0f);
+            color: #fdf6e3;
+        }
+        .sepia-mode .btn-primary:hover {
+            background: linear-gradient(135deg, #6d4c0f, #8b6914);
+        }
+        .sepia-mode #submitBtn {
+            color: #8b6914;
+        }
+        .sepia-mode #submitBtn:hover {
+            color: #6d4c0f;
+        }
+        .sepia-mode input:focus,
+        .sepia-mode textarea:focus {
+            border-color: #8b6914;
+            box-shadow: 0 0 0 3px rgba(139,105,20,0.1);
+        }
+        .sepia-mode .modal-content {
+            border-color: rgba(139,105,20,0.3);
+        }
+        .sepia-mode::after {
+            background: radial-gradient(ellipse, rgba(139,105,20,0.12) 0%, transparent 70%) !important;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -124,7 +179,7 @@
             border-bottom: 1px solid var(--border);
             box-shadow: 0 4px 30px rgba(0,217,255,0.1);
         }
-        .light-mode .header { background: rgba(250,248,255,0.85); }
+        .light-mode .header { background: rgba(13,10,20,0.85); }
 
         .logo {
             font-family: 'Cormorant Garamond', serif;
@@ -1081,13 +1136,13 @@
             }
             
             .logo span {
-                font-size: 1.2rem !important;
+                font-size: 1.4rem !important;
                 letter-spacing: 1px !important;
             }
             
             .logo svg {
-                width: 24px !important;
-                height: 24px !important;
+                width: 45px !important;
+                height: 45px !important;
             }
             
             .header > div {
@@ -1299,18 +1354,85 @@
     <header class="header">
         <button class="menu-btn" onclick="toggleMenu()">☰</button>
         <div class="logo" onclick="goHome()" style="cursor:pointer; display: flex; align-items: center; gap: 10px;">
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 0 8px rgba(167,139,250,0.4));">
-                <!-- Owl icon -->
-                <circle cx="11" cy="14" r="3" fill="var(--accent)" opacity="0.9"/>
-                <circle cx="21" cy="14" r="3" fill="var(--accent)" opacity="0.9"/>
-                <circle cx="11" cy="14" r="1.5" fill="var(--bg)"/>
-                <circle cx="21" cy="14" r="1.5" fill="var(--bg)"/>
-                <path d="M16 18 L14 20 L16 21 L18 20 Z" fill="var(--accent)" opacity="0.8"/>
-                <path d="M6 10 C6 6 8 4 12 4 C14 4 15 5 16 5 C17 5 18 4 20 4 C24 4 26 6 26 10 L26 18 C26 24 22 28 16 28 C10 28 6 24 6 18 Z" fill="none" stroke="var(--accent)" stroke-width="2" opacity="0.7"/>
-                <path d="M6 12 L4 8 L6 10" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
-                <path d="M26 12 L28 8 L26 10" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+            <svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 2px 12px rgba(167,139,250,0.5)); min-width: 60px; min-height: 60px; max-width: 60px; max-height: 60px;">
+                <defs>
+                    <linearGradient id="brainGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#a78bfa" stop-opacity="1"/>
+                        <stop offset="50%" stop-color="#8b5cf6" stop-opacity="0.9"/>
+                        <stop offset="100%" stop-color="#7c3aed" stop-opacity="0.85"/>
+                    </linearGradient>
+                    <linearGradient id="glowGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#a78bfa" stop-opacity="0.6"/>
+                        <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0.2"/>
+                    </linearGradient>
+                </defs>
+                
+                <!-- Outer glow circle -->
+                <circle cx="30" cy="30" r="28" fill="url(#glowGrad)" opacity="0.15">
+                    <animate attributeName="r" values="28;30;28" dur="3s" repeatCount="indefinite"/>
+                </circle>
+                
+                <!-- Head silhouette -->
+                <path d="M 30 12 Q 20 12 16 20 Q 15 24 15 28 L 15 38 Q 16 42 20 44 L 25 46 L 35 46 L 40 44 Q 44 42 45 38 L 45 28 Q 45 24 44 20 Q 40 12 30 12 Z" 
+                      fill="none" stroke="url(#brainGrad)" stroke-width="2.5" stroke-linecap="round" opacity="0.9"/>
+                
+                <!-- Brain/thought network connections -->
+                <!-- Central node -->
+                <circle cx="30" cy="28" r="2.5" fill="#a78bfa" opacity="0.95">
+                    <animate attributeName="opacity" values="0.95;0.6;0.95" dur="2s" repeatCount="indefinite"/>
+                </circle>
+                
+                <!-- Top left connection -->
+                <line x1="30" y1="28" x2="22" y2="20" stroke="#a78bfa" stroke-width="1.5" opacity="0.6" stroke-linecap="round">
+                    <animate attributeName="opacity" values="0.6;0.3;0.6" dur="2.5s" begin="0s" repeatCount="indefinite"/>
+                </line>
+                <circle cx="22" cy="20" r="1.8" fill="#8b5cf6" opacity="0.8"/>
+                
+                <!-- Top right connection -->
+                <line x1="30" y1="28" x2="38" y2="20" stroke="#a78bfa" stroke-width="1.5" opacity="0.6" stroke-linecap="round">
+                    <animate attributeName="opacity" values="0.6;0.3;0.6" dur="2.5s" begin="0.5s" repeatCount="indefinite"/>
+                </line>
+                <circle cx="38" cy="20" r="1.8" fill="#8b5cf6" opacity="0.8"/>
+                
+                <!-- Left connection -->
+                <line x1="30" y1="28" x2="20" y2="28" stroke="#a78bfa" stroke-width="1.5" opacity="0.6" stroke-linecap="round">
+                    <animate attributeName="opacity" values="0.6;0.3;0.6" dur="2.5s" begin="1s" repeatCount="indefinite"/>
+                </line>
+                <circle cx="20" cy="28" r="1.8" fill="#8b5cf6" opacity="0.8"/>
+                
+                <!-- Right connection -->
+                <line x1="30" y1="28" x2="40" y2="28" stroke="#a78bfa" stroke-width="1.5" opacity="0.6" stroke-linecap="round">
+                    <animate attributeName="opacity" values="0.6;0.3;0.6" dur="2.5s" begin="1.5s" repeatCount="indefinite"/>
+                </line>
+                <circle cx="40" cy="28" r="1.8" fill="#8b5cf6" opacity="0.8"/>
+                
+                <!-- Bottom left connection -->
+                <line x1="30" y1="28" x2="24" y2="36" stroke="#a78bfa" stroke-width="1.5" opacity="0.6" stroke-linecap="round">
+                    <animate attributeName="opacity" values="0.6;0.3;0.6" dur="2.5s" begin="2s" repeatCount="indefinite"/>
+                </line>
+                <circle cx="24" cy="36" r="1.8" fill="#8b5cf6" opacity="0.8"/>
+                
+                <!-- Bottom right connection -->
+                <line x1="30" y1="28" x2="36" y2="36" stroke="#a78bfa" stroke-width="1.5" opacity="0.6" stroke-linecap="round">
+                    <animate attributeName="opacity" values="0.6;0.3;0.6" dur="2.5s" begin="0.3s" repeatCount="indefinite"/>
+                </line>
+                <circle cx="36" cy="36" r="1.8" fill="#8b5cf6" opacity="0.8"/>
+                
+                <!-- Secondary connections (web-like) -->
+                <line x1="22" y1="20" x2="20" y2="28" stroke="#8b5cf6" stroke-width="1" opacity="0.25"/>
+                <line x1="38" y1="20" x2="40" y2="28" stroke="#8b5cf6" stroke-width="1" opacity="0.25"/>
+                <line x1="24" y1="36" x2="20" y2="28" stroke="#8b5cf6" stroke-width="1" opacity="0.25"/>
+                <line x1="36" y1="36" x2="40" y2="28" stroke="#8b5cf6" stroke-width="1" opacity="0.25"/>
+                
+                <!-- Subtle sparkles for wisdom -->
+                <circle cx="26" cy="16" r="0.8" fill="#d4af37" opacity="0.8">
+                    <animate attributeName="opacity" values="0.8;0.3;0.8" dur="1.5s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="34" cy="16" r="0.8" fill="#d4af37" opacity="0.6">
+                    <animate attributeName="opacity" values="0.6;0.2;0.6" dur="2s" begin="0.5s" repeatCount="indefinite"/>
+                </circle>
             </svg>
-            <span style="background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 50%, #e0d7ff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 700; font-size: 1.55rem; letter-spacing: 2px;">ფილოსოფია</span>
+            <span style="background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 50%, #e0d7ff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 700; font-size: 1.75rem; letter-spacing: 2px;">ფილოსოფია</span>
         </div>
         <div style="display:flex; gap:12px; align-items:center;">
             <span class="user-badge" id="userBadge"></span>
