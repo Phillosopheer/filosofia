@@ -1270,29 +1270,18 @@ select.tb-btn option {
     border-top: 1px solid var(--border);
     background: var(--surface);
     text-align: center;
-}
-
-.social-footer-inner {
-    max-width: 1400px;
-    margin: 0 auto;
-}
-
-.social-footer-label {
-    color: var(--text-dim);
-    font-size: 0.8rem;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    font-weight: 500;
-    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .social-link {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
-    padding: 12px 28px;
+    gap: 12px;
+    padding: 14px 32px;
     border-radius: 50px;
-    font-size: 0.95rem;
+    font-size: 1rem;
     font-weight: 600;
     letter-spacing: 0.5px;
     text-decoration: none;
@@ -1309,8 +1298,8 @@ select.tb-btn option {
 .facebook-link:hover {
     background: rgba(24, 119, 242, 0.2);
     border-color: rgba(24, 119, 242, 0.5);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(24, 119, 242, 0.2);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(24, 119, 242, 0.25);
 }
 
 .facebook-link svg {
