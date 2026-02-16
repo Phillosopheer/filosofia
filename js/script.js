@@ -1401,15 +1401,16 @@ function updateFab() {
 function updateHeaderButtons() {
     const submitBtn = document.getElementById('submitBtn');
     const pendingBtn = document.getElementById('pendingBtn');
+    const addBtn = document.getElementById('glossaryAddBtn');
     
     if (idToken) {
-        // Admin mode - show pending button, hide submit button
         submitBtn.style.display = 'none';
         pendingBtn.style.display = 'flex';
+        if (addBtn) addBtn.style.display = 'flex';
     } else {
-        // Guest mode - show submit button, hide pending button
         submitBtn.style.display = 'flex';
         pendingBtn.style.display = 'none';
+        if (addBtn) addBtn.style.display = 'none';
     }
 }
 
@@ -1703,10 +1704,20 @@ function openGlossary() {
     document.getElementById('glossarySearchInput').value = '';
     document.getElementById('suggestionDropdown').classList.remove('active');
     toggleMenu();
+
+    // Hide main FAB, show glossary add button for admin
+    const fab = document.getElementById('fabBtn');
+    if (fab) fab.style.display = 'none';
+    const addBtn = document.getElementById('glossaryAddBtn');
+    if (addBtn) addBtn.style.display = idToken ? 'flex' : 'none';
 }
 
 function closeGlossary() {
     document.getElementById('glossaryView').classList.remove('active');
+    const addBtn = document.getElementById('glossaryAddBtn');
+    if (addBtn) addBtn.style.display = 'none';
+    // Restore main FAB if admin is in category view
+    updateFab();
 }
 
 function searchGlossary() {
