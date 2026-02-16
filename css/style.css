@@ -1263,10 +1263,10 @@ select.tb-btn option {
     }
 }
 
+
 /* ===== SOCIAL FOOTER ===== */
 .social-footer {
-    margin-top: 60px;
-    padding: 40px 5%;
+    padding: 30px 5%;
     border-top: 1px solid var(--border);
     background: var(--surface);
     display: flex;
@@ -1276,20 +1276,15 @@ select.tb-btn option {
 
 .fb-admin-link {
     display: inline-block;
-    border-radius: 50%;
-    overflow: hidden;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 0.3s ease;
 }
 
 .fb-admin-link:hover {
     transform: translateY(-3px);
-    filter: brightness(1.1);
 }
 
 .fb-admin-img {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
+    width: 100px;
+    height: 100px;
     display: block;
-    object-fit: cover;
 }
