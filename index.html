@@ -644,6 +644,7 @@
             max-width: 800px;
             margin: 30px auto 0;
             position: relative;
+            z-index: 10; /* Ensure search container and dropdown are above other header content */
         }
 
         .glossary-search-input {
@@ -685,7 +686,7 @@
             overflow-y: auto;
             display: none;
             box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-            z-index: 9999;
+            z-index: 100; /* High enough to be above header content but not excessively high */
         }
         .suggestions-dropdown.active {
             display: block;
@@ -2286,28 +2287,63 @@
             document.getElementById('themeIcon').innerHTML = icons[savedTheme];
             document.getElementById('themeBtn').setAttribute('title', titles[savedTheme]);
             
-            // Restore session from localStorage if exists
+            // Restore session from localStorage if exists - WITH SECURITY CHECKS
             const savedToken = localStorage.getItem('idToken');
             const savedUid = localStorage.getItem('currentUid');
             const savedEmail = localStorage.getItem('userEmail');
+            const sessionTimestamp = parseInt(localStorage.getItem('sessionTimestamp') || '0');
             
-            if (savedToken && savedUid) {
-                idToken = savedToken;
-                currentUid = savedUid;
+            // Check if session exists
+            if (savedToken && savedUid && sessionTimestamp) {
+                // SECURITY CHECK 1: Check if token expired (7 days)
+                const sevenDays = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
+                const sessionAge = Date.now() - sessionTimestamp;
                 
-                // Restore UI state
-                if (savedEmail) {
-                    const badge = document.getElementById('userBadge');
-                    badge.innerText = savedEmail.split('@')[0];
-                    badge.style.display = 'inline-block';
+                if (sessionAge > sevenDays) {
+                    // Token expired - clear everything and logout
+                    console.log('🔒 Session expired (7+ days old) - auto logout');
+                    clearSession();
+                    idToken = null;
+                    currentUid = null;
+                } else {
+                    // Token not expired - restore session
+                    idToken = savedToken;
+                    currentUid = savedUid;
+                    
+                    // Restore UI state
+                    if (savedEmail) {
+                        const badge = document.getElementById('userBadge');
+                        badge.innerText = savedEmail.split('@')[0];
+                        badge.style.display = 'inline-block';
+                    }
+                    
+                    document.getElementById('lockIcon').innerHTML = '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>';
+                    document.getElementById('logoutBtn').classList.add('active');
+                    document.body.classList.add('admin-mode');
+                    
+                    // SECURITY CHECK 2: Validate token with Firebase in background
+                    validateToken(savedToken);
                 }
-                
-                document.getElementById('lockIcon').innerHTML = '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>';
-                document.getElementById('logoutBtn').classList.add('active');
-                document.body.classList.add('admin-mode');
             } else {
                 idToken = null;
                 currentUid = null;
+            }
+            
+            // Pre-check saved category to prevent flash effect on page load
+            const preSavedCatId = localStorage.getItem('lastCategoryId');
+            if (preSavedCatId) {
+                // Try to find the category (works because categories is already defined)
+                const preSavedCat = categories.find(c => c.id === preSavedCatId);
+                if (preSavedCat) {
+                    currentCat = preSavedCat;
+                    // Hide home content immediately to prevent flash
+                    document.getElementById('heroBook').style.display = 'none';
+                    document.querySelector('.welcome-text').style.display = 'none';
+                    document.getElementById('quoteSection').style.display = 'none';
+                    document.getElementById('homeSection').style.display = 'none';
+                    // Don't render yet - fetchNotes will handle it
+                    // This just prevents goHome() from being called and home content from showing
+                }
             }
             
             displayRandomQuote(); // Display random Nietzsche quote on load
@@ -2327,6 +2363,10 @@
 
         function goHome() {
             currentCat = null;
+            
+            // Clear saved category from localStorage
+            localStorage.removeItem('lastCategoryId');
+            
             document.querySelectorAll('.cat-item').forEach(el => el.classList.remove('active'));
             const pt = document.getElementById('pageTitle'); 
             pt.classList.add('shimmer');
@@ -2425,6 +2465,10 @@
                     document.querySelectorAll('.cat-item').forEach(el => el.classList.remove('active'));
                     d.classList.add('active');
                     currentCat = c;
+                    
+                    // Save current category to localStorage for page refresh
+                    localStorage.setItem('lastCategoryId', c.id);
+                    
                     toggleMenu();
                     renderNotes();
                 });
@@ -2445,6 +2489,30 @@
                     ? Object.entries(data).map(([k, v]) => ({ ...v, fbId: k }))
                     : [];
                 buildCatList();
+                
+                // Check localStorage FIRST before making any navigation decisions
+                const lastCatId = localStorage.getItem('lastCategoryId');
+                
+                // If we have a saved category and currentCat is not set, restore it
+                if (!currentCat && lastCatId) {
+                    // Find the saved category
+                    const savedCat = categories.find(c => c.id === lastCatId);
+                    if (savedCat) {
+                        currentCat = savedCat;
+                        
+                        // Highlight the category in the menu
+                        const catElement = document.getElementById('cat_' + lastCatId);
+                        if (catElement) {
+                            document.querySelectorAll('.cat-item').forEach(el => el.classList.remove('active'));
+                            catElement.classList.add('active');
+                        }
+                        
+                        renderNotes();
+                        return; // Don't call goHome() - we found saved category
+                    }
+                }
+                
+                // Only now, if no currentCat and no saved category, go home
                 if (!currentCat) goHome();
                 else renderNotes();
             } catch (err) {
@@ -2692,10 +2760,11 @@
                 idToken    = data.idToken;
                 currentUid = data.localId;
 
-                // Save to localStorage
+                // Save to localStorage with timestamp for security
                 localStorage.setItem('idToken', data.idToken);
                 localStorage.setItem('currentUid', data.localId);
                 localStorage.setItem('userEmail', data.email);
+                localStorage.setItem('sessionTimestamp', Date.now().toString()); // Track session age
 
                 const badge = document.getElementById('userBadge');
                 badge.innerText = data.email.split('@')[0];
@@ -2728,6 +2797,7 @@
             localStorage.removeItem('idToken');
             localStorage.removeItem('currentUid');
             localStorage.removeItem('userEmail');
+            localStorage.removeItem('sessionTimestamp'); // Clear session timestamp too
             
             // Update lock icon to locked state
             document.getElementById('lockIcon').innerHTML = '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>';
@@ -2763,6 +2833,53 @@
                 return '😅 ამდენჯერ ცდა? ცოტა დაისვენე, მერე სცადე.';
             }
             return 'პაროლი ან ელფოსტა არასწორია';
+        }
+
+        // ---- SECURITY HELPERS ----
+        function clearSession() {
+            // Clear all session data from localStorage
+            localStorage.removeItem('idToken');
+            localStorage.removeItem('currentUid');
+            localStorage.removeItem('userEmail');
+            localStorage.removeItem('sessionTimestamp');
+            
+            // Reset global variables
+            idToken = null;
+            currentUid = null;
+            
+            // Update UI
+            document.getElementById('lockIcon').innerHTML = '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>';
+            document.getElementById('logoutBtn').classList.remove('active');
+            document.getElementById('userBadge').style.display = 'none';
+            document.body.classList.remove('admin-mode');
+            
+            updateFab();
+            updateHeaderButtons();
+        }
+
+        async function validateToken(token) {
+            // Validate token with Firebase in background
+            // This checks if token is still valid on Firebase servers
+            try {
+                // Try to fetch user data with the token
+                const res = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${API_KEY}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ idToken: token })
+                });
+                
+                if (!res.ok) {
+                    // Token invalid - force logout
+                    console.log('🔒 Token validation failed - forcing logout');
+                    clearSession();
+                    alert('⚠️ სესია არავალიდურია. გთხოვთ ხელახლა შეხვიდეთ.');
+                    fetchNotes(); // Refresh to public view
+                }
+                // If ok, token is valid - do nothing, user stays logged in
+            } catch (err) {
+                // Network error - don't logout, just log the error
+                console.log('Token validation failed due to network error:', err);
+            }
         }
 
         // ---- EDITOR ----
