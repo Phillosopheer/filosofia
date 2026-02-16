@@ -505,6 +505,7 @@ function init() {
             document.querySelector('.welcome-text').style.display = 'none';
             document.getElementById('quoteSection').style.display = 'none';
             document.getElementById('homeSection').style.display = 'none';
+            document.querySelector('.hero').classList.add('no-bg');
             // Don't render yet - fetchNotes will handle it
             // This just prevents goHome() from being called and home content from showing
         }
@@ -538,6 +539,7 @@ function goHome() {
     document.getElementById('heroBook').style.display = 'block';
     document.querySelector('.welcome-text').style.display = 'block';
     document.getElementById('quoteSection').style.display = 'block';
+    document.querySelector('.hero').classList.remove('no-bg');
     displayRandomQuote(); // Show new random quote each time
     document.getElementById('notesGrid').innerHTML = '';
     document.getElementById('searchBar').style.display = 'none';
@@ -693,6 +695,7 @@ function renderNotes(filtered_override) {
     document.getElementById('quoteSection').style.display = 'none';
     document.getElementById('heroBook').style.display = 'none';
     document.getElementById('searchBar').style.display = 'block';
+    document.querySelector('.hero').classList.add('no-bg');
     stopCarousel();
 
     if (!currentCat) { goHome(); return; }
