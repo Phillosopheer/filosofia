@@ -123,60 +123,11 @@ function displayRandomQuote() {
     quoteText.innerText = nietzscheQuotes[randomIndex];
 }
 
-// ---- WAVE FADE ANIMATION ----
+// ---- WAVE FADE ANIMATION (optimized - CSS only) ----
 function waveFadeText(element, text) {
-    // Clear element and create span for each character
-    element.innerHTML = '';
-    element.style.display = 'block';
-    element.style.textAlign = 'center';
-    
-    const chars = text.split('');
-    const spans = [];
-    
-    chars.forEach((char, i) => {
-        if (char === '|') {
-            // Line break marker
-            const br = document.createElement('br');
-            element.appendChild(br);
-        } else {
-            const span = document.createElement('span');
-            span.innerText = char;
-            span.style.display = 'inline-block';
-            span.style.opacity = '1';
-            span.style.transition = 'opacity 0.4s ease';
-            if (char === ' ') span.style.width = '0.3em';
-            element.appendChild(span);
-            spans.push(span);
-        }
-    });
-    
-    function animateWave() {
-        let delay = 0;
-        
-        // Fade out wave
-        spans.forEach((span, i) => {
-            setTimeout(() => {
-                span.style.opacity = '0';
-            }, delay);
-            delay += 80; // Delay between each character fading
-        });
-        
-        // Fade in wave (starts after fade out begins)
-        delay = 400; // Small pause before fade in starts
-        spans.forEach((span, i) => {
-            setTimeout(() => {
-                span.style.opacity = '1';
-            }, delay);
-            delay += 80;
-        });
-        
-        // Restart animation after completion + pause
-        setTimeout(() => {
-            animateWave();
-        }, delay + 2000); // 2 second pause before restarting
-    }
-    
-    animateWave();
+    const lines = text.split('|');
+    element.innerHTML = lines.join('<br>');
+    element.classList.add('wave-anim');
 }
 
 // ---- PUBLIC SUBMISSION ----
