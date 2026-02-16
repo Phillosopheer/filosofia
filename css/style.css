@@ -1276,6 +1276,8 @@ select.tb-btn option {
 
 .fb-admin-link {
     display: inline-block;
+    border-radius: 50%;
+    overflow: hidden;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -1285,8 +1287,9 @@ select.tb-btn option {
 }
 
 .fb-admin-img {
-    width: 240px;
-    height: 240px;
+    width: 120px;
+    height: 120px;
     border-radius: 50%;
     display: block;
+    object-fit: cover;
 }
