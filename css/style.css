@@ -1269,39 +1269,24 @@ select.tb-btn option {
     padding: 40px 5%;
     border-top: 1px solid var(--border);
     background: var(--surface);
-    text-align: center;
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-.social-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    padding: 14px 32px;
-    border-radius: 50px;
-    font-size: 1rem;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    border: 1px solid transparent;
+.fb-admin-link {
+    display: inline-block;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.facebook-link {
-    background: rgba(24, 119, 242, 0.1);
-    color: #1877f2;
-    border-color: rgba(24, 119, 242, 0.25);
-}
-
-.facebook-link:hover {
-    background: rgba(24, 119, 242, 0.2);
-    border-color: rgba(24, 119, 242, 0.5);
+.fb-admin-link:hover {
     transform: translateY(-3px);
-    box-shadow: 0 10px 30px rgba(24, 119, 242, 0.25);
+    filter: brightness(1.1);
 }
 
-.facebook-link svg {
-    flex-shrink: 0;
+.fb-admin-img {
+    width: 240px;
+    height: 240px;
+    border-radius: 50%;
+    display: block;
 }
