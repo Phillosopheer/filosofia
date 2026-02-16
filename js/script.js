@@ -147,9 +147,11 @@ const philosopherQuotes = [
 
 function displayRandomQuote() {
     const quoteText = document.getElementById('quoteText');
+    const quoteAuthor = document.getElementById('quoteAuthor');
     const randomIndex = Math.floor(Math.random() * philosopherQuotes.length);
     const quote = philosopherQuotes[randomIndex];
-    quoteText.innerHTML = `"${quote.text}"<br><span style="font-size:0.85rem; color:var(--accent); margin-top:8px; display:block;">— ${quote.author}</span>`;
+    quoteText.innerHTML = `"${quote.text}"`;
+    if (quoteAuthor) quoteAuthor.innerText = `— ${quote.author}`;
 }
 
 // ---- WAVE FADE ANIMATION (optimized - CSS only) ----
