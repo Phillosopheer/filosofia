@@ -118,7 +118,7 @@ body::after {
     padding: 130px 6% 50px;
     text-align: center;
     position: relative; z-index: 1;
-    background: linear-gradient(135deg, rgba(10,25,41,0.95) 0%, rgba(10,25,41,0.85) 100%),
+    background: linear-gradient(135deg, rgba(10,25,41,0.55) 0%, rgba(10,25,41,0.45) 100%),
                 url('../philosopher-bg.jpg');
     background-size: cover;
     background-position: center;
@@ -1007,6 +1007,9 @@ select.tb-btn option {
 }
 
 @media (max-width: 768px) {
+    .hero {
+        background-attachment: scroll;
+    }
     .hero h1 { font-size: 2.4rem; }
     .grid { grid-template-columns: 1fr; padding: 25px 4%; }
     .reader { padding: 80px 5%; }
