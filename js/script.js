@@ -433,6 +433,10 @@ async function rejectPendingNote(noteId) {
 
 // ---- INIT ----
 function init() {
+    // Always hide glossary add button on load
+    const addBtn = document.getElementById('glossaryAddBtn');
+    if (addBtn) addBtn.style.display = 'none';
+    
     // Restore session from localStorage if exists - WITH SECURITY CHECKS
     const savedToken = localStorage.getItem('idToken');
     const savedUid = localStorage.getItem('currentUid');
@@ -511,7 +515,10 @@ function init() {
 function goHome() {
     currentCat = null;
     
-    // Clear saved category from localStorage
+    // Always hide glossary add button
+    const addBtn = document.getElementById('glossaryAddBtn');
+    if (addBtn) addBtn.style.display = 'none';
+    
     localStorage.removeItem('lastCategoryId');
     
     document.querySelectorAll('.cat-item').forEach(el => el.classList.remove('active'));
@@ -672,6 +679,9 @@ async function fetchNotes() {
 function renderNotes(filtered_override) {
     const grid = document.getElementById('notesGrid');
     grid.innerHTML = '';
+    // Always hide glossary add button
+    const addBtn = document.getElementById('glossaryAddBtn');
+    if (addBtn) addBtn.style.display = 'none';
     document.getElementById('homeSection').style.display = 'none';
     document.querySelector('.welcome-text').style.display = 'none';
     document.getElementById('quoteSection').style.display = 'none';
