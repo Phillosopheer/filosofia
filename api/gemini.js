@@ -1,4 +1,5 @@
 // ===== gemma-3-27b-it (14,400 მოთხოვნა/დღეში) =====
+// ავტომატურად იყენებს ყველა GEMINI_KEY_* გასაღებს — რამდენსაც დაამატებ Vercel-ში
 
 export default async function handler(req, res) {
     res.setHeader("Access-Control-Allow-Origin", "*");
@@ -16,13 +17,12 @@ export default async function handler(req, res) {
     try {
         const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
 
-        const apiKeys = [
-            process.env.GEMINI_KEY_1,
-            process.env.GEMINI_KEY_2,
-            process.env.GEMINI_KEY_3,
-            process.env.GEMINI_KEY_4,
-            process.env.GEMINI_KEY_5,
-        ].filter(Boolean);
+        // ავტომატურად კითხულობს ყველა GEMINI_KEY_1, KEY_2, KEY_3... რამდენიც გაქვს
+        const apiKeys = Object.keys(process.env)
+            .filter(k => k.startsWith("GEMINI_KEY_"))
+            .sort()
+            .map(k => process.env[k])
+            .filter(Boolean);
 
         if (apiKeys.length === 0) {
             return res.status(500).json({ error: "No API keys configured" });
