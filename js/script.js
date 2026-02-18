@@ -1742,8 +1742,8 @@ function searchGlossary() {
     );
     
     if (filtered.length === 0) {
-        dropdown.classList.remove('active');
-        fetchGeminiDefinition(query);
+        dropdown.innerHTML = '<div class="no-results">სიტყვა ვერ მოიძებნა</div>';
+        dropdown.classList.add('active');
         return;
     }
     
@@ -1952,78 +1952,12 @@ async function deleteGlossaryTerm() {
 init();
 
 
-// ===== GEMINI DEFINITION FUNCTION =====
+// ===== GEMINI DEFINITION FUNCTION FOR BOTTOM SEARCH ONLY =====
 const GEMINI_KEYS = [
     "AIzaSyDm0MmUrkDTSSFVpSDYWioMgsGIXzla4Uc"
 ];
 
 let geminiKeyIndex = 0;
-let geminiTimer = null;
-
-async function fetchGeminiDefinition(word) {
-    const loading = document.getElementById('aiGlossaryLoading');
-    const dropdown = document.getElementById('suggestionDropdown');
-
-    // debounce — დაველოდოთ აკრეფის დასრულებას
-    clearTimeout(geminiTimer);
-    geminiTimer = setTimeout(async () => {
-        loading.style.display = 'block';
-        dropdown.classList.remove('active');
-
-        const prompt = `დაწერე მოკლე ლექსიკონური განმარტება ტერმინისთვის: "${word}". მაქსიმუმ 2 წინადადება, ლექსიკონის სტილში, ზედმეტი შესავლის გარეშე. პასუხი მხოლოდ ქართულად.`;
-
-        let success = false;
-        let attempts = 0;
-
-        while (!success && attempts < GEMINI_KEYS.length) {
-            const key = "";
-            try {
-                const res = await fetch(
-                    `https://filosofia-xi.vercel.app/api/gemini`,
-                    {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            contents: [{ parts: [{ text: prompt }] }]
-                        })
-                    }
-                );
-
-                if (res.status === 429 || res.status === 403) {
-                    // ეს key ამოიწურა, შემდეგზე გადავიდეთ
-                    geminiKeyIndex++;
-                    attempts++;
-                    continue;
-                }
-
-                const data = await res.json();
-                const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-                if (text) {
-                    // შედეგი dropdown-ში ვაჩვენოთ
-                    dropdown.innerHTML = `
-                        <div class="suggestion-item" style="cursor:default;">
-                            <div class="suggestion-term" style="margin-bottom:8px;">${word}</div>
-                            <div class="suggestion-preview" style="line-height:1.7; font-size:0.88rem; color:var(--text);">${text.replace(/\n/g, '<br>')}</div>
-                        </div>`;
-                    dropdown.classList.add('active');
-                    success = true;
-                }
-
-            } catch (err) {
-                geminiKeyIndex++;
-                attempts++;
-            }
-        }
-
-        if (!success) {
-            dropdown.innerHTML = '<div class="no-results">განმარტება ვერ მოიძებნა</div>';
-            dropdown.classList.add('active');
-        }
-
-        loading.style.display = 'none';
-    }, 800); // 800ms დაველოდოთ აკრეფის დასრულებას
-}
 
 async function getAiDefinition() {
     const input = document.getElementById('aiDefinitionInput');
