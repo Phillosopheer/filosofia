@@ -1294,10 +1294,10 @@ select.tb-btn option {
 /* ===== AI DEFINITION SECTION ===== */
 .ai-definition-section {
     max-width: 700px;
-    margin: 30px auto 0;
+    margin: 30px auto 40px;
     padding: 28px 30px;
-    background: linear-gradient(135deg, rgba(139,122,199,0.08), rgba(99,102,241,0.05));
-    border: 1px solid rgba(139,122,199,0.25);
+    background: var(--surface);
+    border: 1px solid var(--border);
     border-radius: 20px;
     position: relative;
     overflow: hidden;
