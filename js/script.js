@@ -1989,6 +1989,8 @@ async function getAiDefinition() {
 განმარტე: ${word}`;
 
     try {
+        console.log('🔍 ბოტი იწყებს მუშაობას:', word);
+        
         const res = await fetch(
             `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyCLDlXXqAgJp5SdE_xefzS1sQ2fHI-l1Tg`,
             {
@@ -1998,18 +2000,43 @@ async function getAiDefinition() {
             }
         );
         
+        console.log('📡 Response status:', res.status);
+        
+        if (!res.ok) {
+            const errorData = await res.json();
+            console.error('❌ API Error:', errorData);
+            const errorMessage = errorData?.error?.message || 'Unknown error';
+            throw new Error(`API შეცდომა: ${errorMessage}`);
+        }
+        
         const data = await res.json();
+        console.log('✅ Response data received');
+        
         const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
         
         if (text) {
+            console.log('✅ განმარტება:', text);
             resultText.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
             result.style.display = 'block';
         } else {
-            resultText.innerHTML = 'განმარტება ვერ მოიძებნა. სცადე თავიდან.';
+            console.warn('⚠️ პასუხი ცარიელია');
+            
+            // Check for safety blocks
+            if (data?.candidates?.[0]?.finishReason === 'SAFETY') {
+                resultText.innerHTML = '<span style="color:#ef4444">⚠️ API-მ დაბლოკა მოთხოვნა უსაფრთხოების მიზეზით</span>';
+            } else {
+                resultText.innerHTML = 'განმარტება ვერ მოიძებნა. სცადე თავიდან.';
+            }
             result.style.display = 'block';
         }
     } catch (err) {
-        resultText.innerHTML = 'განმარტება ვერ მოიძებნა. სცადე თავიდან.';
+        console.error('❌ ბოტის შეცდომა:', err);
+        resultText.innerHTML = `<div style="color:#ef4444; line-height:1.8;">
+            <strong>შეცდომა:</strong> ${err.message}<br>
+            <small style="color:var(--text-dim); font-size:0.85rem;">
+            შეამოწმე ინტერნეტი და სცადე თავიდან. დეტალებისთვის: F12 → Console
+            </small>
+        </div>`;
         result.style.display = 'block';
     }
 
