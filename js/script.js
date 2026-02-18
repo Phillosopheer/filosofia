@@ -822,6 +822,12 @@ function closeReader() {
     document.getElementById('reader').style.display = 'none';
     document.body.style.overflow = 'auto';
     currentNote = null;
+    // Reset article bot
+    document.getElementById('articleBotPanel').style.display = 'none';
+    document.getElementById('articleBotChevron').style.transform = 'rotate(0deg)';
+    document.getElementById('articleBotResult').style.display = 'none';
+    document.getElementById('articleBotResult').innerHTML = '';
+    document.getElementById('articleBotInput').value = '';
 }
 
 // ---- DELETE NOTE ----
@@ -1952,5 +1958,99 @@ async function deleteGlossaryTerm() {
 init();
 
 
-// ===== GEMINI BOT — გადატანილია სტატიის Reader-ში =====
-// ლექსიკონიდან ამოღებულია. ახალი ფუნქცია: სტატიის ასისტენტი (მომდევნო ეტაპი)
+// ===== ARTICLE BOT =====
+
+function toggleArticleBot() {
+    const panel = document.getElementById('articleBotPanel');
+    const chevron = document.getElementById('articleBotChevron');
+    const isOpen = panel.style.display !== 'none';
+
+    panel.style.display = isOpen ? 'none' : 'block';
+    chevron.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+
+    if (!isOpen) {
+        setTimeout(() => document.getElementById('articleBotInput').focus(), 100);
+    }
+}
+
+function renderBotMarkdown(text) {
+    return text
+        // escape HTML first for safety
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        // **bold**
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        // * bullet point lines
+        .replace(/^\*\s+(.+)$/gm, '<li>$1</li>')
+        // wrap consecutive <li> in <ul>
+        .replace(/(<li>[\s\S]+?<\/li>)(?!\s*<li>)/g, '<ul>$1</ul>')
+        // line breaks
+        .replace(/\n{2,}/g, '</p><p>')
+        .replace(/\n/g, '<br>')
+        // wrap in paragraph
+        .replace(/^(.+)/, '<p>$1')
+        .replace(/(.+)$/, '$1</p>');
+}
+
+async function askArticleBot() {
+    const input = document.getElementById('articleBotInput');
+    const question = input.value.trim();
+    if (!question) return;
+
+    const resultEl  = document.getElementById('articleBotResult');
+    const loadingEl = document.getElementById('articleBotLoading');
+    const sendBtn   = document.getElementById('articleBotSendBtn');
+
+    const articleText  = document.getElementById('readBody').innerText;
+    const articleTitle = document.getElementById('readTitle').innerText;
+
+    // UI state: loading
+    input.disabled  = true;
+    sendBtn.disabled = true;
+    resultEl.style.display  = 'none';
+    loadingEl.style.display = 'flex';
+
+    const prompt = `შენ ხარ სტატიის ასისტენტი. გაქვს წვდომა მხოლოდ ამ სტატიაზე.
+
+სტატია: "${articleTitle}"
+შინაარსი: ${articleText}
+
+წესები:
+1. პასუხი მხოლოდ ამ სტატიის მიხედვით
+2. თუ პასუხი სტატიაში არ არის — თქვი "ამ სტატიაში ეს არ განხილულა"
+3. მოკლედ და ზუსტად
+4. ქართულად
+5. თუ გკითხეს სტატიაში მოყვანილი სიტყვის განმარტება, განმარტე ის სტატიის კონტექსტის მიხედვით
+6. თუ გკითხეს ვინ შეგქმნა, ვინ ხარ, ან მსგავსი — უპასუხე რომ შენ ხარ ფილოსოფიის საიტის ასისტენტი, შექმნილი ნოდარ ქებაძის მიერ, საიტის ადმინისტრატორის მიერ
+
+კითხვა: ${question}`;
+
+    try {
+        const res = await fetch('https://filosofia-xi.vercel.app/api/gemini', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }]
+            })
+        });
+
+        if (!res.ok) throw new Error('სერვერის შეცდომა');
+
+        const data = await res.json();
+        const answer = data?.candidates?.[0]?.content?.parts?.[0]?.text || 'პასუხი ვერ მოიძებნა';
+
+        resultEl.innerHTML = `
+            <div class="article-bot-a">${renderBotMarkdown(answer)}</div>
+        `;
+        resultEl.style.display = 'block';
+        input.value = '';
+
+    } catch (err) {
+        resultEl.innerHTML = `<div class="article-bot-a" style="color:#ef4444;">⚠️ შეცდომა: ${err.message}</div>`;
+        resultEl.style.display = 'block';
+    } finally {
+        loadingEl.style.display = 'none';
+        input.disabled  = false;
+        sendBtn.disabled = false;
+        input.focus();
+    }
+}
