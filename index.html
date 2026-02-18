@@ -233,6 +233,37 @@
             </p>
         </div>
 
+        <!-- AI განმარტების სექცია -->
+        <div class="ai-definition-section">
+            <div class="ai-definition-header">
+                <span class="ai-badge">✨ AI</span>
+                <h3>ნებისმიერი სიტყვის განმარტება</h3>
+                <p>ჩაწერე ნებისმიერი სიტყვა და AI განგიმარტავს</p>
+            </div>
+            <div class="ai-search-wrapper">
+                <input 
+                    type="text" 
+                    id="aiDefinitionInput" 
+                    class="ai-search-input"
+                    placeholder="მაგ: სოლიფსიზმი, კანტი, ნება..."
+                    onkeydown="if(event.key==='Enter') getAiDefinition()"
+                    autocomplete="off"
+                />
+                <button class="ai-search-btn" onclick="getAiDefinition()" id="aiSearchBtn">
+                    განმარტება
+                </button>
+            </div>
+            <div id="aiDefinitionResult" class="ai-result" style="display:none;">
+                <div class="ai-result-inner">
+                    <div id="aiDefinitionText"></div>
+                </div>
+            </div>
+            <div id="aiDefinitionLoading" class="ai-loading" style="display:none;">
+                <div class="ai-spinner"></div>
+                <span>AI ფიქრობს...</span>
+            </div>
+        </div>
+
         <div id="termDisplay" class="term-display" style="display: none;">
             <div class="back-to-search" onclick="backToGlossarySearch()">
                 ← უკან ძებნაზე
