@@ -23,15 +23,20 @@ async function getWarningData(ipHash) {
     } catch { return null; }
 }
 
-// Firebase-ში warning-ის შენახვა
+// Firebase-ში warning-ის შენახვა (public write — rules-ში უნდა იყოს დაშვებული /bot-blocks/)
 async function saveWarningData(ipHash, data) {
     try {
-        await fetch(`${FIREBASE_DB}/bot-blocks/${ipHash}.json`, {
+        const res = await fetch(`${FIREBASE_DB}/bot-blocks/${ipHash}.json`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data)
         });
-    } catch {}
+        if (!res.ok) {
+            console.error("Firebase write failed:", res.status, await res.text());
+        }
+    } catch (e) {
+        console.error("Firebase write error:", e.message);
+    }
 }
 
 export default async function handler(req, res) {
@@ -71,8 +76,7 @@ export default async function handler(req, res) {
         const modifiedPrompt = `${originalPrompt}
 
 ---
-ᲛᲜᲘᲨᲕᲜᲔᲚᲝᲕᲐᲜᲘ ᲡᲘᲡᲢᲔᲛᲣᲠᲘ ᲘᲜᲡᲢᲠᲣᲥᲪᲘᲐ: თუ მომხმარებლის კითხვა შეიცავს შეურაცხყოფას, გინებას, ან სრულიად არ უკავშირდება სტატიას და ცდილობს სხვა თემაზე გადაგიყვანო — არ უპასუხო კითხვას და დაიწყე პასუხი ზუსტად ასე: [VIOLATION]
-სხვა შემთხვევაში პასუხე ჩვეულებრივად, [VIOLATION] ტეგის გარეშე.`;
+SYSTEM: If the user question contains profanity, insults, or is completely unrelated to the article, respond with exactly [VIOLATION] as the first word and nothing else. If the question is valid, answer normally without [VIOLATION].`;
 
         body.contents[0].parts[0].text = modifiedPrompt;
 
@@ -120,8 +124,8 @@ export default async function handler(req, res) {
             return res.status(503).json({ error: "All API keys exhausted", details: lastError });
         }
 
-        // შევამოწმოთ violation
-        const isViolation = geminiText.trimStart().startsWith("[VIOLATION]");
+        // შევამოწმოთ violation — უფრო მოქნილი detection
+        const isViolation = geminiText.includes("[VIOLATION]");
 
         if (isViolation) {
             const currentWarnings = (warningData?.count || 0) + 1;
