@@ -237,6 +237,31 @@
             </p>
         </div>
 
+        <div class="ai-definition-section">
+            <div class="ai-search-wrapper">
+                <input 
+                    type="text" 
+                    id="aiDefinitionInput" 
+                    class="ai-search-input"
+                    placeholder="სიტყვის განმარტება..."
+                    onkeydown="if(event.key==='Enter') getAiDefinition()"
+                    autocomplete="off"
+                />
+                <button class="ai-search-btn" onclick="getAiDefinition()" id="aiSearchBtn">
+                    განმარტება
+                </button>
+            </div>
+            <div id="aiDefinitionResult" class="ai-result" style="display:none;">
+                <div class="ai-result-inner">
+                    <div id="aiDefinitionText"></div>
+                </div>
+            </div>
+            <div id="aiDefinitionLoading" class="ai-loading" style="display:none;">
+                <div class="ai-spinner"></div>
+                <span>განმარტება იძებნება...</span>
+            </div>
+        </div>
+
 
 
         <div id="termDisplay" class="term-display" style="display: none;">
