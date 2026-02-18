@@ -1991,8 +1991,8 @@ async function getAiDefinition() {
     try {
         console.log('🔍 ბოტი იწყებს მუშაობას:', word);
         
-        // ✅ Vercel-ის დაცული endpoint-ი გამოვიყენოთ (API key server-ზეა)
-        const res = await fetch('/api/gemini', {
+        // ✅ Vercel-ის დაცული endpoint-ი (სრული URL — GitHub Pages-ზეც მუშაობს)
+        const res = await fetch('https://filosofia-xi.vercel.app/api/gemini', {
             method: 'POST',
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
