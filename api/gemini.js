@@ -71,8 +71,31 @@ export default async function handler(req, res) {
 
         const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
 
-        // original prompt-ს ვამატებთ violation detection ინსტრუქციას
+        // ქართული გინებისა და off-topic keyword სია
+        const VIOLATION_KEYWORDS = [
+            "ყლე","მუდე","პიდარ","გათხოვდი","შენი დედა","შენი დედის",
+            "დედაშენი","დედამოვტყნ","მოვტყნ","fuck","shit","bitch",
+            "asshole","motherfuck","კანჭი","ნდა","სასქესო","სასიკვდილო"
+        ];
+
         const originalPrompt = body.contents[0].parts[0].text;
+        
+        // კითხვა prompt-ის ბოლო ხაზიდან ამოვიღოთ
+        const lines = originalPrompt.split("\n");
+        const questionLine = lines[lines.length - 1].toLowerCase();
+        
+        const hasKeyword = VIOLATION_KEYWORDS.some(kw => questionLine.includes(kw.toLowerCase()));
+        
+        if (hasKeyword) {
+            const currentWarnings = (warningData?.count || 0) + 1;
+            if (currentWarnings >= MAX_WARNINGS) {
+                await saveWarningData(ipHash, { count: currentWarnings, blockedUntil: now + BLOCK_HOURS * 60 * 60 * 1000, lastViolation: now });
+                return res.status(403).json({ status: "blocked", hoursLeft: BLOCK_HOURS, message: "დაბლოკილი." });
+            } else {
+                await saveWarningData(ipHash, { count: currentWarnings, blockedUntil: null, lastViolation: now });
+                return res.status(200).json({ status: "warning", warningNumber: currentWarnings, warningsLeft: MAX_WARNINGS - currentWarnings, message: \`⚠️ გაფრთხილება \${currentWarnings}/\${MAX_WARNINGS} — დასვი კითხვა სტატიის შესახებ. კიდევ \${MAX_WARNINGS - currentWarnings} გაფრთხილება და 24 საათით დაიბლოკები.\` });
+            }
+        }
         const modifiedPrompt = `${originalPrompt}
 
 ---
