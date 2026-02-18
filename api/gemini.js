@@ -84,9 +84,11 @@ export default async function handler(req, res) {
         const lines = originalPrompt.split("\n");
         const questionLine = lines[lines.length - 1].toLowerCase();
         
+        // სპამი ან off-topic სიგნალი script.js-იდან
+        const isInternalViolation = questionLine.includes('__spam_violation__') || questionLine.includes('__offtopic_violation__');
         const hasKeyword = VIOLATION_KEYWORDS.some(kw => questionLine.includes(kw.toLowerCase()));
         
-        if (hasKeyword) {
+        if (hasKeyword || isInternalViolation) {
             const currentWarnings = (warningData?.count || 0) + 1;
             if (currentWarnings >= MAX_WARNINGS) {
                 await saveWarningData(ipHash, { count: currentWarnings, blockedUntil: now + BLOCK_HOURS * 60 * 60 * 1000, lastViolation: now });
