@@ -1,5 +1,5 @@
 export default async function handler(req, res) {
-    res.setHeader("Access-Control-Allow-Origin", "https://hillosopheer.github.io");
+    res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
@@ -12,12 +12,14 @@ export default async function handler(req, res) {
     }
 
     try {
+        const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+
         const geminiRes = await fetch(
             `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_KEY}`,
             {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(req.body),
+                body: JSON.stringify(body),
             }
         );
 
