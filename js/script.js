@@ -1742,7 +1742,7 @@ function searchGlossary() {
     );
     
     if (filtered.length === 0) {
-        dropdown.innerHTML = '<div class="no-results">სიტყვა ვერ მოიძებნა</div>';
+        dropdown.innerHTML = `<div class="no-results">სიტყვა ლექსიკონში ვერ მოიძებნა — სცადე AI-ით! <br><button onclick="aiSearchFromGlossary()" style="margin-top:12px; padding:10px 22px; background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#0a1929; border:none; border-radius:10px; font-size:0.95rem; font-weight:700; cursor:pointer;">🤖 AI განმარტება</button></div>`;
         dropdown.classList.add('active');
         return;
     }
@@ -2011,4 +2011,24 @@ async function getAiDefinition() {
 
     btn.disabled = false;
     loading.style.display = 'none';
+}
+
+// ===== AI SEARCH FROM GLOSSARY (when word not found) =====
+function aiSearchFromGlossary() {
+    const query = document.getElementById('glossarySearchInput').value.trim();
+    if (!query) return;
+
+    // Hide dropdown
+    document.getElementById('suggestionDropdown').classList.remove('active');
+
+    // Fill AI input and trigger
+    document.getElementById('aiDefinitionInput').value = query;
+
+    // Show AI section and scroll to it
+    const aiSection = document.querySelector('.ai-definition-section');
+    if (aiSection) {
+        aiSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    getAiDefinition();
 }
