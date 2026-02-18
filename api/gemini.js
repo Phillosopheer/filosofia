@@ -180,7 +180,7 @@ SYSTEM: If the user question contains profanity, insults, or is completely unrel
                     status: "warning",
                     warningNumber: currentWarnings,
                     warningsLeft: MAX_WARNINGS - currentWarnings,
-                return res.status(200).json({ status: "warning", warningNumber: currentWarnings, warningsLeft: MAX_WARNINGS - currentWarnings, message: "⚠️ გაფრთხილება " + currentWarnings + "/" + MAX_WARNINGS + " — დასვი კითხვა სტატიის შესახებ. კიდევ " + (MAX_WARNINGS - currentWarnings) + " გაფრთხილება და 24 საათით დაიბლოკები." });
+                    message: "⚠️ გაფრთხილება " + currentWarnings + "/" + MAX_WARNINGS + " — დასვი კითხვა სტატიის შესახებ. კიდევ " + (MAX_WARNINGS - currentWarnings) + " გაფრთხილება და 24 საათით დაიბლოკები."
                 });
             }
         }
