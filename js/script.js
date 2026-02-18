@@ -1954,9 +1954,7 @@ init();
 
 // ===== GEMINI DEFINITION FUNCTION =====
 const GEMINI_KEYS = [
-    "AIzaSyCC-6NDbrusfvXHQWJH9UpjjMd-JjaPupM",
-    "AIzaSyBFCbcZm9SR-UniFAbL-omt9k1KYpLb2DI",
-    "AIzaSyBxwuE_FN_zdpWgW9PCIE7_ToM8lllV6rA"
+    "AIzaSyDm0MmUrkDTSSFVpSDYWioMgsGIXzla4Uc"
 ];
 
 let geminiKeyIndex = 0;
