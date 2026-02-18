@@ -1999,9 +1999,8 @@ async function askArticleBot() {
     // localStorage block შემოწმება (backup)
     const localBlock = parseInt(localStorage.getItem('botBlockedUntil') || '0');
     if (localBlock && Date.now() < localBlock) {
-        const hoursLeft = Math.ceil((localBlock - Date.now()) / 1000 / 60 / 60);
         const resultEl = document.getElementById('articleBotResult');
-        resultEl.innerHTML = `<div class="article-bot-a bot-blocked">🚫 შენ დაბლოკილი ხარ ${hoursLeft} საათით.</div>`;
+        showBotCountdown(resultEl, localBlock);
         resultEl.style.display = 'block';
         return;
     }
@@ -2045,18 +2044,18 @@ async function askArticleBot() {
             })
         });
 
-        if (!res.ok) throw new Error('სერვერის შეცდომა');
-
         const data = await res.json();
 
-        // დაბლოკილია?
+        // დაბლოკილია? (403 ან status=blocked)
         if (data.status === 'blocked') {
-            resultEl.innerHTML = `<div class="article-bot-a bot-blocked">🚫 შენ დაბლოკილი ხარ ${data.hoursLeft} საათით — დაარღვიე სარგებლობის წესები.</div>`;
+            const blockedUntil = Date.now() + data.hoursLeft * 60 * 60 * 1000;
+            localStorage.setItem('botBlockedUntil', blockedUntil);
+            showBotCountdown(resultEl, blockedUntil);
             resultEl.style.display = 'block';
-            // localStorage backup
-            localStorage.setItem('botBlockedUntil', Date.now() + data.hoursLeft * 60 * 60 * 1000);
             return;
         }
+
+        if (!res.ok) throw new Error('სერვერის შეცდომა');
 
         // გაფრთხილება?
         if (data.status === 'warning') {
@@ -2082,4 +2081,26 @@ async function askArticleBot() {
         sendBtn.disabled = false;
         input.focus();
     }
+}
+
+// ===== BOT COUNTDOWN TIMER =====
+function showBotCountdown(el, blockedUntil) {
+    function update() {
+        const remaining = blockedUntil - Date.now();
+        if (remaining <= 0) {
+            localStorage.removeItem('botBlockedUntil');
+            el.innerHTML = `<div class="article-bot-a bot-warning">✅ ბლოკი მოიხსნა! შეგიძლია კვლავ გამოიყენო ბოტი.</div>`;
+            return;
+        }
+        const h = Math.floor(remaining / 3600000);
+        const m = Math.floor((remaining % 3600000) / 60000);
+        const s = Math.floor((remaining % 60000) / 1000);
+        el.innerHTML = `<div class="article-bot-a bot-blocked">
+            🚫 დაბლოკილი ხარ სარგებლობის წესების დარღვევის გამო<br>
+            <span class="bot-countdown">${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}</span>
+            <br><small>დარჩენილი დრო განბლოკვამდე</small>
+        </div>`;
+        setTimeout(update, 1000);
+    }
+    update();
 }
