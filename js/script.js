@@ -1996,12 +1996,23 @@ async function askArticleBot() {
     const question = input.value.trim();
     if (!question) return;
 
+    // localStorage block შემოწმება (backup)
+    const localBlock = parseInt(localStorage.getItem('botBlockedUntil') || '0');
+    if (localBlock && Date.now() < localBlock) {
+        const hoursLeft = Math.ceil((localBlock - Date.now()) / 1000 / 60 / 60);
+        const resultEl = document.getElementById('articleBotResult');
+        resultEl.innerHTML = `<div class="article-bot-a bot-blocked">🚫 შენ დაბლოკილი ხარ ${hoursLeft} საათით.</div>`;
+        resultEl.style.display = 'block';
+        return;
+    }
+
     const resultEl  = document.getElementById('articleBotResult');
     const loadingEl = document.getElementById('articleBotLoading');
     const sendBtn   = document.getElementById('articleBotSendBtn');
 
     const articleText  = document.getElementById('readBody').innerText;
     const articleTitle = document.getElementById('readTitle').innerText;
+    const articleAuthor = document.getElementById('readAuthor').innerText;
 
     // UI state: loading
     input.disabled  = true;
@@ -2012,6 +2023,7 @@ async function askArticleBot() {
     const prompt = `შენ ხარ სტატიის ასისტენტი. გაქვს წვდომა მხოლოდ ამ სტატიაზე.
 
 სტატია: "${articleTitle}"
+ავტორი: ${articleAuthor || 'მითითებული არ არის'}
 შინაარსი: ${articleText}
 
 წესები:
@@ -2036,6 +2048,23 @@ async function askArticleBot() {
         if (!res.ok) throw new Error('სერვერის შეცდომა');
 
         const data = await res.json();
+
+        // დაბლოკილია?
+        if (data.status === 'blocked') {
+            resultEl.innerHTML = `<div class="article-bot-a bot-blocked">🚫 შენ დაბლოკილი ხარ ${data.hoursLeft} საათით — დაარღვიე სარგებლობის წესები.</div>`;
+            resultEl.style.display = 'block';
+            // localStorage backup
+            localStorage.setItem('botBlockedUntil', Date.now() + data.hoursLeft * 60 * 60 * 1000);
+            return;
+        }
+
+        // გაფრთხილება?
+        if (data.status === 'warning') {
+            resultEl.innerHTML = `<div class="article-bot-a bot-warning">${data.message}</div>`;
+            resultEl.style.display = 'block';
+            return;
+        }
+
         const answer = data?.candidates?.[0]?.content?.parts?.[0]?.text || 'პასუხი ვერ მოიძებნა';
 
         resultEl.innerHTML = `
