@@ -1953,11 +1953,7 @@ init();
 
 
 // ===== GEMINI DEFINITION FUNCTION FOR BOTTOM SEARCH ONLY =====
-const GEMINI_KEYS = [
-    "AIzaSyDm0MmUrkDTSSFVpSDYWioMgsGIXzla4Uc"
-];
-
-let geminiKeyIndex = 0;
+// API keys are securely stored in Vercel environment variables
 
 async function getAiDefinition() {
     const input = document.getElementById('aiDefinitionInput');
@@ -1975,32 +1971,27 @@ async function getAiDefinition() {
 
     const prompt = `დაწერე მოკლე ლექსიკონური განმარტება ტერმინისთვის: "${word}". მაქსიმუმ 2 წინადადება, ლექსიკონის სტილში, ზედმეტი შესავლის გარეშე. პასუხი მხოლოდ ქართულად.`;
 
-    let success = false;
-    let attempts = 0;
-
-    while (!success && attempts < GEMINI_KEYS.length) {
-        const key = "";
-        try {
-            const res = await fetch(
-                `https://filosofia-xi.vercel.app/api/gemini`,
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-                }
-            );
-            if (res.status === 429 || res.status === 403) { geminiKeyIndex++; attempts++; continue; }
-            const data = await res.json();
-            const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (text) {
-                resultText.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
-                result.style.display = 'block';
-                success = true;
+    try {
+        const res = await fetch(
+            `https://filosofia-xi.vercel.app/api/gemini`,
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
             }
-        } catch (err) { geminiKeyIndex++; attempts++; }
-    }
-
-    if (!success) {
+        );
+        
+        const data = await res.json();
+        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        
+        if (text) {
+            resultText.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+            result.style.display = 'block';
+        } else {
+            resultText.innerHTML = 'განმარტება ვერ მოიძებნა. სცადე თავიდან.';
+            result.style.display = 'block';
+        }
+    } catch (err) {
         resultText.innerHTML = 'განმარტება ვერ მოიძებნა. სცადე თავიდან.';
         result.style.display = 'block';
     }
