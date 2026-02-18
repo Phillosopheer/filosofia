@@ -27,6 +27,8 @@ let currentCat = null;
 let currentNote = null;
 let allGlossaryTerms = [];
 let currentGlossaryTerm = null;
+let botLastQuestion = '';
+let botSameCount = 0;
 
 const categories = [
     { 
@@ -2079,9 +2081,61 @@ async function askArticleBot() {
 
         const answer = data?.candidates?.[0]?.content?.parts?.[0]?.text || 'პასუხი ვერ მოიძებნა';
 
-        resultEl.innerHTML = `
-            <div class="article-bot-a">${renderBotMarkdown(answer)}</div>
-        `;
+        // სპამ detection — იგივე კითხვა განმეორებით
+        if (question.trim().toLowerCase() === botLastQuestion) {
+            botSameCount++;
+        } else {
+            botLastQuestion = question.trim().toLowerCase();
+            botSameCount = 1;
+        }
+
+        if (botSameCount >= 3) {
+            // სპამი → violation
+            const spamRes = await fetch('https://filosofia-xi.vercel.app/api/gemini', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: [{ parts: [{ text: '__SPAM_VIOLATION__' }] }] })
+            });
+            const spamData = await spamRes.json();
+            if (spamData.status === 'blocked') {
+                const blockedUntil = Date.now() + spamData.hoursLeft * 60 * 60 * 1000;
+                localStorage.setItem('botBlockedUntil', blockedUntil);
+                showBotCountdown(resultEl, blockedUntil);
+                resultEl.style.display = 'block';
+                botSameCount = 0;
+                return;
+            }
+            if (spamData.status === 'warning') {
+                resultEl.innerHTML = '<div class="article-bot-a bot-warning">' + spamData.message + '</div>';
+                resultEl.style.display = 'block';
+                return;
+            }
+        }
+
+        // off-topic detection — ბოტმა თქვა "სტატიაში არ განხილულა"
+        const isOffTopic = answer.includes('ამ სტატიაში ეს არ განხილულა') || answer.includes('სტატიაში არ არის განხილული');
+        if (isOffTopic) {
+            const otRes = await fetch('https://filosofia-xi.vercel.app/api/gemini', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: [{ parts: [{ text: '__OFFTOPIC_VIOLATION__' }] }] })
+            });
+            const otData = await otRes.json();
+            if (otData.status === 'blocked') {
+                const blockedUntil = Date.now() + otData.hoursLeft * 60 * 60 * 1000;
+                localStorage.setItem('botBlockedUntil', blockedUntil);
+                showBotCountdown(resultEl, blockedUntil);
+                resultEl.style.display = 'block';
+                return;
+            }
+            if (otData.status === 'warning') {
+                resultEl.innerHTML = '<div class="article-bot-a bot-warning">' + otData.message + '</div>';
+                resultEl.style.display = 'block';
+                return;
+            }
+        }
+
+        resultEl.innerHTML = '<div class="article-bot-a">' + renderBotMarkdown(answer) + '</div>';
         resultEl.style.display = 'block';
         input.value = '';
 
