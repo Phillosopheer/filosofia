@@ -200,6 +200,31 @@
                 <button class="btn btn-secondary" style="width:auto; padding:10px 25px; margin-right:10px;" onclick="openEditModal()">✏️ რედაქტირება</button>
                 <button class="btn btn-danger" style="width:auto; padding:10px 25px;" onclick="deleteCurrentNote()">🗑 წაშლა</button>
             </div>
+
+            <!-- ===== ARTICLE BOT ===== -->
+            <div id="articleBotSection" style="margin-top:40px; padding-top:30px; border-top:1px solid var(--border);">
+                <button class="article-bot-toggle" id="articleBotToggle" onclick="toggleArticleBot()">
+                    <span>🤖</span> სტატიის ასისტენტი
+                    <span id="articleBotChevron" style="margin-left:auto; transition:transform 0.3s;">▾</span>
+                </button>
+                <div id="articleBotPanel" style="display:none; margin-top:20px;">
+                    <div id="articleBotResult" class="article-bot-result" style="display:none;"></div>
+                    <div id="articleBotLoading" class="article-bot-loading" style="display:none;">
+                        <span></span><span></span><span></span>
+                    </div>
+                    <div class="article-bot-input-row">
+                        <input
+                            type="text"
+                            id="articleBotInput"
+                            class="article-bot-input"
+                            placeholder="დასვი კითხვა ამ სტატიის შესახებ..."
+                            onkeydown="if(event.key==='Enter') askArticleBot()"
+                        />
+                        <button class="article-bot-send" id="articleBotSendBtn" onclick="askArticleBot()">↑</button>
+                    </div>
+                    <p style="font-size:0.75rem; color:var(--text-dim); margin-top:10px; opacity:0.7;">ბოტი პასუხობს მხოლოდ ამ სტატიის მიხედვით</p>
+                </div>
+            </div>
         </div>
     </div>
 
