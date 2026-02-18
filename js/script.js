@@ -2027,3 +2027,53 @@ async function fetchGeminiDefinition(word) {
         loading.style.display = 'none';
     }, 800); // 800ms დაველოდოთ აკრეფის დასრულებას
 }
+
+async function getAiDefinition() {
+    const input = document.getElementById('aiDefinitionInput');
+    const word = input.value.trim();
+    if (!word) return;
+
+    const btn = document.getElementById('aiSearchBtn');
+    const loading = document.getElementById('aiDefinitionLoading');
+    const result = document.getElementById('aiDefinitionResult');
+    const resultText = document.getElementById('aiDefinitionText');
+
+    btn.disabled = true;
+    loading.style.display = 'flex';
+    result.style.display = 'none';
+
+    const prompt = `განმარტე ეს სიტყვა ან ტერმინი ქართულად, მოკლედ და გასაგებად (მაქსიმუმ 4 წინადადება): "${word}". თუ ფილოსოფიური ტერმინია — მიუთითე საიდან მოდის. პასუხი მხოლოდ ქართულად.`;
+
+    let success = false;
+    let attempts = 0;
+
+    while (!success && attempts < GEMINI_KEYS.length) {
+        const key = GEMINI_KEYS[geminiKeyIndex % GEMINI_KEYS.length];
+        try {
+            const res = await fetch(
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${key}`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                }
+            );
+            if (res.status === 429 || res.status === 403) { geminiKeyIndex++; attempts++; continue; }
+            const data = await res.json();
+            const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (text) {
+                resultText.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+                result.style.display = 'block';
+                success = true;
+            }
+        } catch (err) { geminiKeyIndex++; attempts++; }
+    }
+
+    if (!success) {
+        resultText.innerHTML = 'განმარტება ვერ მოიძებნა. სცადე თავიდან.';
+        result.style.display = 'block';
+    }
+
+    btn.disabled = false;
+    loading.style.display = 'none';
+}
