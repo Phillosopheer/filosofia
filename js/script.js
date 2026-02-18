@@ -1976,10 +1976,10 @@ async function fetchGeminiDefinition(word) {
         let attempts = 0;
 
         while (!success && attempts < GEMINI_KEYS.length) {
-            const key = GEMINI_KEYS[geminiKeyIndex % GEMINI_KEYS.length];
+            const key = "";
             try {
                 const res = await fetch(
-                    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`,
+                    `https://filosofia.vercel.app/api/gemini`,
                     {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
@@ -2045,10 +2045,10 @@ async function getAiDefinition() {
     let attempts = 0;
 
     while (!success && attempts < GEMINI_KEYS.length) {
-        const key = GEMINI_KEYS[geminiKeyIndex % GEMINI_KEYS.length];
+        const key = "";
         try {
             const res = await fetch(
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`,
+                `https://filosofia.vercel.app/api/gemini`,
                 {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
