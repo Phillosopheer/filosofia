@@ -1739,6 +1739,11 @@ function searchGlossary() {
     const query = document.getElementById('glossarySearchInput').value.trim().toLowerCase();
     const dropdown = document.getElementById('suggestionDropdown');
     
+    // თუ ბოტის რეჟიმია ჩართული, სიტყვა AI ველშიც გადავიტანოთ
+    if (botModeActive) {
+        document.getElementById('aiDefinitionInput').value = document.getElementById('glossarySearchInput').value.trim();
+    }
+    
     if (!query) {
         dropdown.classList.remove('active');
         return;
