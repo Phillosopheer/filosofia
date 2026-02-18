@@ -578,7 +578,7 @@ body::after {
 .glossary-view.active { display: block; }
 
 .glossary-header {
-    padding: 100px 6% 60px;
+    padding: 40px 6% 30px;
     text-align: center;
     background: linear-gradient(135deg, rgba(10,25,41,0.95) 0%, rgba(10,25,41,0.85) 100%);
     border-bottom: 2px solid var(--accent);
@@ -599,9 +599,9 @@ body::after {
 
 .glossary-header h1 {
     font-family: 'Cormorant Garamond', serif;
-    font-size: 3.5rem;
+    font-size: 3rem;
     font-weight: 700;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     background: linear-gradient(135deg, #e9e3f5 0%, #a78bfa 50%, #8b5cf6 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -610,7 +610,7 @@ body::after {
 
 .glossary-search-container {
     max-width: 800px;
-    margin: 30px auto 0;
+    margin: 15px auto 0;
     position: relative;
     z-index: 10; /* Ensure search container and dropdown are above other header content */
 }
