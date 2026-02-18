@@ -1721,14 +1721,6 @@ function openGlossary() {
 
 function closeGlossary() {
     document.getElementById('glossaryView').classList.remove('active');
-    document.getElementById('aiDefinitionSection').style.display = 'none';
-    document.getElementById('aiDefinitionResult').style.display = 'none';
-    // Reset bot mode
-    botModeActive = false;
-    const label = document.getElementById('botModeLabel');
-    const btn = document.getElementById('botModeToggle');
-    if (label) label.innerText = 'გააქტიურე ბოტის რეჟიმი';
-    if (btn) { btn.style.background = 'rgba(167,139,250,0.1)'; btn.style.borderColor = 'rgba(167,139,250,0.3)'; btn.style.color = 'var(--text-dim)'; }
     const addBtn = document.getElementById('glossaryAddBtn');
     if (addBtn) addBtn.style.display = 'none';
     // Restore main FAB if admin is in category view
@@ -1737,32 +1729,24 @@ function closeGlossary() {
 
 function searchGlossary() {
     const query = document.getElementById('glossarySearchInput').value.trim().toLowerCase();
-    const rawQuery = document.getElementById('glossarySearchInput').value.trim();
     const dropdown = document.getElementById('suggestionDropdown');
-
-    // ბოტის რეჟიმში AI ველში გადავიტანოთ და dropdown დავმალოთ
-    if (botModeActive) {
-        document.getElementById('aiDefinitionInput').value = rawQuery;
-        dropdown.classList.remove('active');
-        return;
-    }
-
+    
     if (!query) {
         dropdown.classList.remove('active');
         return;
     }
-
+    
     // Filter terms
     const filtered = allGlossaryTerms.filter(term =>
         term.term.toLowerCase().includes(query)
     );
-
+    
     if (filtered.length === 0) {
-        dropdown.innerHTML = `<div class="no-results">სიტყვა ლექსიკონში ვერ მოიძებნა<br><small style="color:var(--text-dim);">სცადე ბოტის რეჟიმი AI განმარტებისთვის</small></div>`;
+        dropdown.innerHTML = '<div class="no-results">სიტყვა ლექსიკონში ვერ მოიძებნა<br><small style="color:var(--text-dim);font-size:0.8rem;">სცადე ბოტის რეჟიმი 🤖</small></div>';
         dropdown.classList.add('active');
         return;
     }
-
+    
     // Display suggestions
     dropdown.innerHTML = filtered.slice(0, 8).map(term => `
         <div class="suggestion-item" onclick="showTerm('${term.fbId}')">
@@ -1770,7 +1754,7 @@ function searchGlossary() {
             <div class="suggestion-preview">${term.definition.substring(0, 100)}...</div>
         </div>
     `).join('');
-
+    
     dropdown.classList.add('active');
 }
 
@@ -1985,26 +1969,25 @@ async function getAiDefinition() {
     loading.style.display = 'flex';
     result.style.display = 'none';
 
-    const prompt = `შენ ხარ ქართული ლექსიკონის ასისტენტი. შენი ამოცანაა სიტყვის ზუსტი და სწორი განმარტება. მკაცრად დაიცავი ეს წესები:
+    const prompt = `შენ ხარ ქართული ლექსიკონის ასისტენტი. განმარტე ნებისმიერი სიტყვა — სახელი, სლენგი, ჟარგონი, ან ჩვეულებრივი სიტყვა.
 
+წესები:
 1. პასუხი მხოლოდ ქართულად
-2. ყოველთვის პირველ რიგში მიეცი სიტყვის ყველაზე გავრცელებული, ჩვეულებრივი მნიშვნელობა. მაგ: "ვაშლი" = ხილი, "სახლი" = შენობა, "ძაღლი" = ცხოველი.
-3. არასოდეს დაიწყო "რა თქმა უნდა", "კარგი კითხვაა", "მოხარული ვარ" — პირდაპირ განმარტებიდან დაიწყე
-4. თუ სიტყვას ერთი მნიშვნელობა აქვს — 1-2 წინადადებით განმარტე
-5. თუ სიტყვას რამდენიმე გაგება აქვს — ასე ჩამოწერე:
-   ▸ [ზოგადი]: ყველაზე გავრცელებული გაგება
-   ▸ [გადატანითი]: გადატანითი მნიშვნელობა (თუ არსებობს)
-   ▸ [სხვა]: სხვა კონტექსტი (მხოლოდ საჭიროების შემთხვევაში)
-6. მაქსიმუმ 3 ვარიანტი
-7. ზედმეტი სიტყვა აკრძალულია
+2. პირდაპირ განმარტებიდან დაიწყე, ყოველგვარი შესავლის გარეშე
+3. თუ სახელია — დაწერე ვის სახელია და რას ნიშნავს
+4. მაქსიმუმ 2 ვარიანტი ზუსტად ამ ფორმატით:
+   ▸ [კონტექსტი]: განმარტება
+5. ზედმეტი სიტყვა აკრძალულია
 
-განმარტე სიტყვა: "${word}"`;
+მაგალითი — ვაშლი:
+▸ [ხილი]: მრგვალი, წვნიანი ხილი, ვაშლის ხის ნაყოფი
+▸ [გადატანითი]: უვარგისი, ცუდი ადამიანი
 
-    try {
-        const res = await fetch(
-            `https://filosofia-xi.vercel.app/api/gemini`,
-            {
-                method: "POST",
+მაგალითი — საშო:
+▸ [სახელი]: ალექსანდრეს შემოკლებული ქართული სახელი
+
+განმარტე: ${word}`;
+
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
             }
@@ -2029,57 +2012,47 @@ async function getAiDefinition() {
     loading.style.display = 'none';
 }
 
-// ===== AI SEARCH FROM GLOSSARY (when word not found) =====
-function aiSearchFromGlossary() {
-    const query = document.getElementById('glossarySearchInput').value.trim();
-    if (!query) return;
 
-    // Show AI section
-    document.getElementById("aiDefinitionSection").style.display = "block";
+// ===== BOT MODE =====
+let botModeActive = false;
 
-    // Hide dropdown
-    document.getElementById('suggestionDropdown').classList.remove('active');
-
-    // Fill AI input and trigger
-    document.getElementById('aiDefinitionInput').value = query;
-
-    // Show AI section and scroll to it
-    const aiSection = document.querySelector('.ai-definition-section');
-    if (aiSection) {
-        aiSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-
-    getAiDefinition();
-}
-
-// ===== BOT MODE TOGGLE =====
 function toggleBotMode() {
     botModeActive = !botModeActive;
-    const btn = document.getElementById('botModeToggle');
+    const btn   = document.getElementById('botModeToggle');
     const label = document.getElementById('botModeLabel');
-    const aiSection = document.getElementById('aiDefinitionSection');
-    const glossaryInput = document.getElementById('glossarySearchInput');
-    const dropdown = document.getElementById('suggestionDropdown');
+    const aiSec = document.getElementById('aiDefinitionSection');
+    const gInput = document.getElementById('glossarySearchInput');
+    const drop  = document.getElementById('suggestionDropdown');
 
     if (botModeActive) {
-        // ON
         label.innerText = 'ბოტის რეჟიმი ჩართულია ✓';
-        btn.style.background = 'rgba(167,139,250,0.25)';
-        btn.style.borderColor = 'var(--accent)';
-        btn.style.color = 'var(--accent)';
-        aiSection.style.display = 'block';
-        dropdown.classList.remove('active');
-        if (glossaryInput.value.trim()) {
-            document.getElementById('aiDefinitionInput').value = glossaryInput.value.trim();
+        btn.style.background   = 'rgba(167,139,250,0.25)';
+        btn.style.borderColor  = 'var(--accent)';
+        btn.style.color        = 'var(--accent)';
+        aiSec.style.display    = 'block';
+        drop.classList.remove('active');
+        if (gInput.value.trim()) {
+            document.getElementById('aiDefinitionInput').value = gInput.value.trim();
         }
-        glossaryInput.focus();
     } else {
-        // OFF
         label.innerText = 'გააქტიურე ბოტის რეჟიმი';
-        btn.style.background = 'rgba(167,139,250,0.1)';
-        btn.style.borderColor = 'rgba(167,139,250,0.3)';
-        btn.style.color = 'var(--text-dim)';
-        aiSection.style.display = 'none';
+        btn.style.background   = 'rgba(167,139,250,0.1)';
+        btn.style.borderColor  = 'rgba(167,139,250,0.3)';
+        btn.style.color        = 'var(--text-dim)';
+        aiSec.style.display    = 'none';
         document.getElementById('aiDefinitionResult').style.display = 'none';
     }
+}
+
+// ბოტის რეჟიმში glossary input-ის sync
+const _gInput = document.getElementById('glossarySearchInput');
+if (_gInput) {
+    _gInput.addEventListener('input', function() {
+        if (botModeActive) {
+            document.getElementById('aiDefinitionInput').value = this.value.trim();
+        }
+    });
+    _gInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && botModeActive) getAiDefinition();
+    });
 }
