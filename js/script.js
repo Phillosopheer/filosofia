@@ -1737,29 +1737,32 @@ function closeGlossary() {
 
 function searchGlossary() {
     const query = document.getElementById('glossarySearchInput').value.trim().toLowerCase();
+    const rawQuery = document.getElementById('glossarySearchInput').value.trim();
     const dropdown = document.getElementById('suggestionDropdown');
-    
-    // თუ ბოტის რეჟიმია ჩართული, სიტყვა AI ველშიც გადავიტანოთ
+
+    // ბოტის რეჟიმში AI ველში გადავიტანოთ და dropdown დავმალოთ
     if (botModeActive) {
-        document.getElementById('aiDefinitionInput').value = document.getElementById('glossarySearchInput').value.trim();
+        document.getElementById('aiDefinitionInput').value = rawQuery;
+        dropdown.classList.remove('active');
+        return;
     }
-    
+
     if (!query) {
         dropdown.classList.remove('active');
         return;
     }
-    
+
     // Filter terms
     const filtered = allGlossaryTerms.filter(term =>
         term.term.toLowerCase().includes(query)
     );
-    
+
     if (filtered.length === 0) {
-        dropdown.innerHTML = `<div class="no-results">სიტყვა ლექსიკონში ვერ მოიძებნა — სცადე AI-ით! <br><button onclick="aiSearchFromGlossary()" style="margin-top:12px; padding:10px 22px; background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#0a1929; border:none; border-radius:10px; font-size:0.95rem; font-weight:700; cursor:pointer;">🤖 AI განმარტება</button></div>`;
+        dropdown.innerHTML = `<div class="no-results">სიტყვა ლექსიკონში ვერ მოიძებნა<br><small style="color:var(--text-dim);">სცადე ბოტის რეჟიმი AI განმარტებისთვის</small></div>`;
         dropdown.classList.add('active');
         return;
     }
-    
+
     // Display suggestions
     dropdown.innerHTML = filtered.slice(0, 8).map(term => `
         <div class="suggestion-item" onclick="showTerm('${term.fbId}')">
@@ -1767,7 +1770,7 @@ function searchGlossary() {
             <div class="suggestion-preview">${term.definition.substring(0, 100)}...</div>
         </div>
     `).join('');
-    
+
     dropdown.classList.add('active');
 }
 
@@ -2050,24 +2053,28 @@ function aiSearchFromGlossary() {
 }
 
 // ===== BOT MODE TOGGLE =====
-let botModeActive = false;
-
 function toggleBotMode() {
     botModeActive = !botModeActive;
     const btn = document.getElementById('botModeToggle');
     const label = document.getElementById('botModeLabel');
     const aiSection = document.getElementById('aiDefinitionSection');
+    const glossaryInput = document.getElementById('glossarySearchInput');
+    const dropdown = document.getElementById('suggestionDropdown');
 
     if (botModeActive) {
-        // ON state
-        label.innerText = 'ბოტის რეჟიმი ჩართულია';
+        // ON
+        label.innerText = 'ბოტის რეჟიმი ჩართულია ✓';
         btn.style.background = 'rgba(167,139,250,0.25)';
         btn.style.borderColor = 'var(--accent)';
         btn.style.color = 'var(--accent)';
         aiSection.style.display = 'block';
-        document.getElementById('aiDefinitionInput').focus();
+        dropdown.classList.remove('active');
+        if (glossaryInput.value.trim()) {
+            document.getElementById('aiDefinitionInput').value = glossaryInput.value.trim();
+        }
+        glossaryInput.focus();
     } else {
-        // OFF state
+        // OFF
         label.innerText = 'გააქტიურე ბოტის რეჟიმი';
         btn.style.background = 'rgba(167,139,250,0.1)';
         btn.style.borderColor = 'rgba(167,139,250,0.3)';
