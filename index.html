@@ -224,6 +224,7 @@
                     class="glossary-search-input"
                     placeholder="მოძებნე ტერმინი..."
                     oninput="searchGlossary()"
+                    onkeydown="if(event.key==='Enter' && botModeActive) getAiDefinition()"
                     autocomplete="off"
                 />
                 <div id="suggestionDropdown" class="suggestions-dropdown"></div>
