@@ -1991,21 +1991,19 @@ async function getAiDefinition() {
     try {
         console.log('🔍 ბოტი იწყებს მუშაობას:', word);
         
-        const res = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyCLDlXXqAgJp5SdE_xefzS1sQ2fHI-l1Tg`,
-            {
-                method: 'POST',
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-            }
-        );
+        // ✅ Vercel-ის დაცული endpoint-ი გამოვიყენოთ (API key server-ზეა)
+        const res = await fetch('/api/gemini', {
+            method: 'POST',
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        });
         
         console.log('📡 Response status:', res.status);
         
         if (!res.ok) {
             const errorData = await res.json();
             console.error('❌ API Error:', errorData);
-            const errorMessage = errorData?.error?.message || 'Unknown error';
+            const errorMessage = errorData?.error?.message || errorData?.error || 'Unknown error';
             throw new Error(`API შეცდომა: ${errorMessage}`);
         }
         
