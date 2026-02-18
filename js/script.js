@@ -1721,6 +1721,14 @@ function openGlossary() {
 
 function closeGlossary() {
     document.getElementById('glossaryView').classList.remove('active');
+    document.getElementById('aiDefinitionSection').style.display = 'none';
+    document.getElementById('aiDefinitionResult').style.display = 'none';
+    // Reset bot mode
+    botModeActive = false;
+    const label = document.getElementById('botModeLabel');
+    const btn = document.getElementById('botModeToggle');
+    if (label) label.innerText = 'გააქტიურე ბოტის რეჟიმი';
+    if (btn) { btn.style.background = 'rgba(167,139,250,0.1)'; btn.style.borderColor = 'rgba(167,139,250,0.3)'; btn.style.color = 'var(--text-dim)'; }
     const addBtn = document.getElementById('glossaryAddBtn');
     if (addBtn) addBtn.style.display = 'none';
     // Restore main FAB if admin is in category view
@@ -2018,6 +2026,9 @@ function aiSearchFromGlossary() {
     const query = document.getElementById('glossarySearchInput').value.trim();
     if (!query) return;
 
+    // Show AI section
+    document.getElementById("aiDefinitionSection").style.display = "block";
+
     // Hide dropdown
     document.getElementById('suggestionDropdown').classList.remove('active');
 
@@ -2031,4 +2042,32 @@ function aiSearchFromGlossary() {
     }
 
     getAiDefinition();
+}
+
+// ===== BOT MODE TOGGLE =====
+let botModeActive = false;
+
+function toggleBotMode() {
+    botModeActive = !botModeActive;
+    const btn = document.getElementById('botModeToggle');
+    const label = document.getElementById('botModeLabel');
+    const aiSection = document.getElementById('aiDefinitionSection');
+
+    if (botModeActive) {
+        // ON state
+        label.innerText = 'ბოტის რეჟიმი ჩართულია';
+        btn.style.background = 'rgba(167,139,250,0.25)';
+        btn.style.borderColor = 'var(--accent)';
+        btn.style.color = 'var(--accent)';
+        aiSection.style.display = 'block';
+        document.getElementById('aiDefinitionInput').focus();
+    } else {
+        // OFF state
+        label.innerText = 'გააქტიურე ბოტის რეჟიმი';
+        btn.style.background = 'rgba(167,139,250,0.1)';
+        btn.style.borderColor = 'rgba(167,139,250,0.3)';
+        btn.style.color = 'var(--text-dim)';
+        aiSection.style.display = 'none';
+        document.getElementById('aiDefinitionResult').style.display = 'none';
+    }
 }
