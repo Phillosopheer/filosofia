@@ -1969,7 +1969,20 @@ function toggleArticleBot() {
     chevron.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
 
     if (!isOpen) {
-        setTimeout(() => document.getElementById('articleBotInput').focus(), 100);
+        // check block on open
+        const localBlock = parseInt(localStorage.getItem('botBlockedUntil') || '0');
+        if (localBlock && Date.now() < localBlock) {
+            const resultEl = document.getElementById('articleBotResult');
+            resultEl.style.display = 'block';
+            showBotCountdown(resultEl, localBlock);
+            document.getElementById('articleBotInput').disabled = true;
+            document.getElementById('articleBotSendBtn').disabled = true;
+        } else {
+            localStorage.removeItem('botBlockedUntil');
+            document.getElementById('articleBotInput').disabled = false;
+            document.getElementById('articleBotSendBtn').disabled = false;
+            setTimeout(() => document.getElementById('articleBotInput').focus(), 100);
+        }
     }
 }
 
@@ -2085,21 +2098,27 @@ async function askArticleBot() {
 
 // ===== BOT COUNTDOWN TIMER =====
 function showBotCountdown(el, blockedUntil) {
+    const input = document.getElementById('articleBotInput');
+    const btn = document.getElementById('articleBotSendBtn');
+    if (input) input.disabled = true;
+    if (btn) btn.disabled = true;
+
     function update() {
         const remaining = blockedUntil - Date.now();
         if (remaining <= 0) {
             localStorage.removeItem('botBlockedUntil');
-            el.innerHTML = `<div class="article-bot-a bot-warning">✅ ბლოკი მოიხსნა! შეგიძლია კვლავ გამოიყენო ბოტი.</div>`;
+            el.innerHTML = '<div class="article-bot-a bot-warning">✅ ბლოკი მოიხსნა! შეგიძლია კვლავ გამოიყენო ბოტი.</div>';
+            if (input) input.disabled = false;
+            if (btn) btn.disabled = false;
             return;
         }
         const h = Math.floor(remaining / 3600000);
         const m = Math.floor((remaining % 3600000) / 60000);
         const s = Math.floor((remaining % 60000) / 1000);
-        el.innerHTML = `<div class="article-bot-a bot-blocked">
-            🚫 დაბლოკილი ხარ სარგებლობის წესების დარღვევის გამო<br>
-            <span class="bot-countdown">${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}</span>
-            <br><small>დარჩენილი დრო განბლოკვამდე</small>
-        </div>`;
+        const hh = String(h).padStart(2,'0');
+        const mm = String(m).padStart(2,'0');
+        const ss = String(s).padStart(2,'0');
+        el.innerHTML = '<div class="article-bot-a bot-blocked">🚫 დაბლოკილი ხარ სარგებლობის წესების დარღვევის გამო<br><span class="bot-countdown">' + hh + ':' + mm + ':' + ss + '</span><br><small>დარჩენილი დრო განბლოკვამდე</small></div>';
         setTimeout(update, 1000);
     }
     update();
