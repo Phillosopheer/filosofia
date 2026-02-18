@@ -1970,8 +1970,7 @@ async function fetchGeminiDefinition(word) {
         loading.style.display = 'block';
         dropdown.classList.remove('active');
 
-        const prompt = `განმარტე ეს სიტყვა ან ტერმინი ქართულად, მოკლედ და გასაგებად (მაქსიმუმ 4 წინადადება): "${word}". 
-თუ ფილოსოფიური ტერმინია — მიუთითე საიდან მოდის. პასუხი მხოლოდ ქართულად.`;
+        const prompt = `დაწერე მოკლე ლექსიკონური განმარტება ტერმინისთვის: "${word}". მაქსიმუმ 2 წინადადება, ლექსიკონის სტილში, ზედმეტი შესავლის გარეშე. პასუხი მხოლოდ ქართულად.`;
 
         let success = false;
         let attempts = 0;
@@ -1980,7 +1979,7 @@ async function fetchGeminiDefinition(word) {
             const key = GEMINI_KEYS[geminiKeyIndex % GEMINI_KEYS.length];
             try {
                 const res = await fetch(
-                    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${key}`,
+                    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`,
                     {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
@@ -2040,7 +2039,7 @@ async function getAiDefinition() {
     loading.style.display = 'flex';
     result.style.display = 'none';
 
-    const prompt = `განმარტე ეს სიტყვა ან ტერმინი ქართულად, მოკლედ და გასაგებად (მაქსიმუმ 4 წინადადება): "${word}". თუ ფილოსოფიური ტერმინია — მიუთითე საიდან მოდის. პასუხი მხოლოდ ქართულად.`;
+    const prompt = `დაწერე მოკლე ლექსიკონური განმარტება ტერმინისთვის: "${word}". მაქსიმუმ 2 წინადადება, ლექსიკონის სტილში, ზედმეტი შესავლის გარეშე. პასუხი მხოლოდ ქართულად.`;
 
     let success = false;
     let attempts = 0;
@@ -2049,7 +2048,7 @@ async function getAiDefinition() {
         const key = GEMINI_KEYS[geminiKeyIndex % GEMINI_KEYS.length];
         try {
             const res = await fetch(
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${key}`,
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`,
                 {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
