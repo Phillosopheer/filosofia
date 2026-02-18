@@ -1979,7 +1979,7 @@ async function fetchGeminiDefinition(word) {
             const key = "";
             try {
                 const res = await fetch(
-                    `https://filosofia.vercel.app/api/gemini`,
+                    `https://filosofia-xi.vercel.app/api/gemini`,
                     {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
@@ -2048,7 +2048,7 @@ async function getAiDefinition() {
         const key = "";
         try {
             const res = await fetch(
-                `https://filosofia.vercel.app/api/gemini`,
+                `https://filosofia-xi.vercel.app/api/gemini`,
                 {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
