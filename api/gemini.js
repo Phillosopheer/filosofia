@@ -95,7 +95,7 @@ export default async function handler(req, res) {
                 return res.status(403).json({ status: "blocked", hoursLeft: BLOCK_HOURS, message: "დაბლოკილი." });
             } else {
                 await saveWarningData(ipHash, { count: currentWarnings, blockedUntil: null, lastViolation: now });
-                return res.status(200).json({ status: "warning", warningNumber: currentWarnings, warningsLeft: MAX_WARNINGS - currentWarnings, message: \`⚠️ გაფრთხილება \${currentWarnings}/\${MAX_WARNINGS} — დასვი კითხვა სტატიის შესახებ. კიდევ \${MAX_WARNINGS - currentWarnings} გაფრთხილება და 24 საათით დაიბლოკები.\` });
+                return res.status(200).json({ status: "warning", warningNumber: currentWarnings, warningsLeft: MAX_WARNINGS - currentWarnings, message: "⚠️ გაფრთხილება " + currentWarnings + "/" + MAX_WARNINGS + " — დასვი კითხვა სტატიის შესახებ. კიდევ " + (MAX_WARNINGS - currentWarnings) + " გაფრთხილება და 24 საათით დაიბლოკები." });
             }
         }
         const modifiedPrompt = `${originalPrompt}
@@ -180,7 +180,7 @@ SYSTEM: If the user question contains profanity, insults, or is completely unrel
                     status: "warning",
                     warningNumber: currentWarnings,
                     warningsLeft: MAX_WARNINGS - currentWarnings,
-                    message: `⚠️ გაფრთხილება ${currentWarnings}/${MAX_WARNINGS} — დასვი კითხვა სტატიის შესახებ. კიდევ ${MAX_WARNINGS - currentWarnings} გაფრთხილება და 24 საათით დაიბლოკები.`
+                return res.status(200).json({ status: "warning", warningNumber: currentWarnings, warningsLeft: MAX_WARNINGS - currentWarnings, message: "⚠️ გაფრთხილება " + currentWarnings + "/" + MAX_WARNINGS + " — დასვი კითხვა სტატიის შესახებ. კიდევ " + (MAX_WARNINGS - currentWarnings) + " გაფრთხილება და 24 საათით დაიბლოკები." });
                 });
             }
         }
