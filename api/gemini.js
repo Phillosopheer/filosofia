@@ -1,5 +1,4 @@
-// ===== ᲐᲚᲢᲔᲠᲜᲐᲢᲘᲕᲐ 1: gemini-pro (რეკომენდებული) =====
-// ეს არის stable მოდელი რომელიც 100% მუშაობს
+// ===== gemma-3-27b-it (14,400 მოთხოვნა/დღეში) =====
 
 export default async function handler(req, res) {
     res.setHeader("Access-Control-Allow-Origin", "*");
@@ -33,9 +32,8 @@ export default async function handler(req, res) {
         
         for (const key of apiKeys) {
             try {
-                // ✅ gemini-pro - სტაბილური მოდელი
                 const geminiRes = await fetch(
-                    `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${key}`,
+                    `https://generativelanguage.googleapis.com/v1beta/models/gemma-3-27b-it:generateContent?key=${key}`,
                     {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
