@@ -1950,3 +1950,54 @@ async function deleteGlossaryTerm() {
 }
 
 init();
+
+// ===== AI DEFINITION FUNCTION =====
+async function getAiDefinition() {
+    const input = document.getElementById('aiDefinitionInput');
+    const word = input.value.trim();
+    if (!word) return;
+
+    const btn = document.getElementById('aiSearchBtn');
+    const loading = document.getElementById('aiDefinitionLoading');
+    const result = document.getElementById('aiDefinitionResult');
+    const resultText = document.getElementById('aiDefinitionText');
+
+    btn.disabled = true;
+    loading.style.display = 'flex';
+    result.style.display = 'none';
+
+    try {
+        const response = await fetch("https://api.anthropic.com/v1/messages", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                model: "claude-sonnet-4-20250514",
+                max_tokens: 1000,
+                system: `შენ ხარ ფილოსოფიის ექსპერტი. მომხმარებელი გამოგიგზავნის სიტყვას ან ტერმინს.
+გასცე მოკლე, ნათელი განმარტება ქართულად. ფორმატი:
+- პირველ სტრიქონზე: სიტყვა გამუქებული სახით (**სიტყვა**)
+- შემდეგ 2-4 წინადადებით განმარტება
+- თუ ფილოსოფიური ტერმინია, მიუთითე საიდან მოდის ან ვინ გამოიყენებდა
+იყავი მოკლე და გასაგები.`,
+                messages: [{ role: "user", content: `განმარტე: ${word}` }]
+            })
+        });
+
+        const data = await response.json();
+        let text = data.content[0].text;
+
+        // Convert **bold** to HTML
+        text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        text = text.replace(/\n/g, '<br>');
+
+        resultText.innerHTML = text;
+        result.style.display = 'block';
+
+    } catch (err) {
+        resultText.innerHTML = '❌ განმარტება ვერ მოიძებნა. სცადე თავიდან.';
+        result.style.display = 'block';
+    }
+
+    btn.disabled = false;
+    loading.style.display = 'none';
+}
