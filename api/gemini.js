@@ -4,6 +4,8 @@
 const FIREBASE_DB = "https://gen-lang-client-0339684222-default-rtdb.firebaseio.com";
 const BLOCK_HOURS = 24;
 const MAX_WARNINGS = 3;
+const RATE_LIMIT_WINDOW = 60 * 1000; // 60 წამი
+const RATE_LIMIT_MAX = 3;            // მაქსიმუმ 3 კითხვა/წუთში
 
 // IP-ს ჰეშავს — პირდაპირ არ ვინახავთ Firebase-ში
 async function hashIP(ip) {
@@ -14,7 +16,7 @@ async function hashIP(ip) {
     return hashArray.map(b => b.toString(16).padStart(2, "0")).join("").substring(0, 32);
 }
 
-// Firebase-დან warning სტატუსის წამოღება
+// Firebase-ში warning სტატუსის წამოღება
 async function getWarningData(ipHash) {
     try {
         const res = await fetch(`${FIREBASE_DB}/bot-blocks/${ipHash}.json`);
@@ -39,6 +41,27 @@ async function saveWarningData(ipHash, data) {
     }
 }
 
+// Rate limit: ბოლო მოთხოვნების timestamp-ები
+async function getRateLimitData(hash) {
+    try {
+        const res = await fetch(`${FIREBASE_DB}/bot-ratelimit/${hash}.json`);
+        if (!res.ok) return null;
+        return await res.json();
+    } catch { return null; }
+}
+
+async function saveRateLimitData(hash, data) {
+    try {
+        await fetch(`${FIREBASE_DB}/bot-ratelimit/${hash}.json`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+    } catch (e) {
+        console.error("Rate limit save error:", e.message);
+    }
+}
+
 export default async function handler(req, res) {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -48,7 +71,6 @@ export default async function handler(req, res) {
     if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
     try {
-        // IP-ს მიღება
         const ip = req.headers["x-forwarded-for"]?.split(",")[0]?.trim()
             || req.headers["x-real-ip"]
             || req.socket?.remoteAddress
@@ -71,6 +93,45 @@ export default async function handler(req, res) {
 
         const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
 
+        // Fingerprint ამოვიღოთ body-დან (Gemini API-ს არ სჭირდება)
+        const fp = body.fp || null;
+        delete body.fp;
+
+        // Fingerprint-ით ბლოკის შემოწმება (VPN bypass-ის თავიდან აცილება)
+        let fpHash = null;
+        let fpWarningData = null;
+        if (fp) {
+            fpHash = await hashIP(fp + "_fp");
+            fpWarningData = await getWarningData(fpHash);
+            if (fpWarningData?.blockedUntil && now < fpWarningData.blockedUntil) {
+                const hoursLeft = Math.ceil((fpWarningData.blockedUntil - now) / 1000 / 60 / 60);
+                return res.status(403).json({
+                    status: "blocked",
+                    hoursLeft,
+                    message: `შენ დაბლოკილი ხარ ${hoursLeft} საათით.`
+                });
+            }
+        }
+
+        // ===== RATE LIMITING =====
+        const rlData = await getRateLimitData(ipHash);
+        const windowStart = now - RATE_LIMIT_WINDOW;
+        const recentTimestamps = (rlData?.timestamps || []).filter(t => t > windowStart);
+
+        if (recentTimestamps.length >= RATE_LIMIT_MAX) {
+            const oldestInWindow = Math.min(...recentTimestamps);
+            const retryAfterMs = oldestInWindow + RATE_LIMIT_WINDOW - now;
+            const retryAfterSec = Math.ceil(retryAfterMs / 1000);
+            return res.status(429).json({
+                status: "ratelimited",
+                retryAfterSeconds: retryAfterSec,
+                message: `ძალიან ბევრი კითხვა! დაელოდე ${retryAfterSec} წამს.`
+            });
+        }
+
+        // ახალი timestamp-ის დამატება (async, არ ველოდებით)
+        saveRateLimitData(ipHash, { timestamps: [...recentTimestamps, now] });
+
         // ქართული გინებისა და off-topic keyword სია
         const VIOLATION_KEYWORDS = [
             "ყლე","მუდე","პიდარ","გათხოვდი","შენი დედა","შენი დედის",
@@ -91,10 +152,14 @@ export default async function handler(req, res) {
         if (hasKeyword || isInternalViolation) {
             const currentWarnings = (warningData?.count || 0) + 1;
             if (currentWarnings >= MAX_WARNINGS) {
-                await saveWarningData(ipHash, { count: currentWarnings, blockedUntil: now + BLOCK_HOURS * 60 * 60 * 1000, lastViolation: now });
+                const blockData = { count: currentWarnings, blockedUntil: now + BLOCK_HOURS * 60 * 60 * 1000, lastViolation: now };
+                await saveWarningData(ipHash, blockData);
+                if (fpHash) await saveWarningData(fpHash, blockData); // FP-საც ვბლოკავთ!
                 return res.status(403).json({ status: "blocked", hoursLeft: BLOCK_HOURS, message: "დაბლოკილი." });
             } else {
-                await saveWarningData(ipHash, { count: currentWarnings, blockedUntil: null, lastViolation: now });
+                const warnData = { count: currentWarnings, blockedUntil: null, lastViolation: now };
+                await saveWarningData(ipHash, warnData);
+                if (fpHash) await saveWarningData(fpHash, warnData);
                 return res.status(200).json({ status: "warning", warningNumber: currentWarnings, warningsLeft: MAX_WARNINGS - currentWarnings, message: "⚠️ გაფრთხილება " + currentWarnings + "/" + MAX_WARNINGS + " — დასვი კითხვა სტატიის შესახებ. კიდევ " + (MAX_WARNINGS - currentWarnings) + " გაფრთხილება და 24 საათით დაიბლოკები." });
             }
         }
@@ -157,11 +222,13 @@ SYSTEM: If the user question contains profanity, insults, or is completely unrel
 
             if (currentWarnings >= MAX_WARNINGS) {
                 // დავბლოკოთ 24 საათით
-                await saveWarningData(ipHash, {
+                const blockData = {
                     count: currentWarnings,
                     blockedUntil: now + BLOCK_HOURS * 60 * 60 * 1000,
                     lastViolation: now
-                });
+                };
+                await saveWarningData(ipHash, blockData);
+                if (fpHash) await saveWarningData(fpHash, blockData); // FP-საც ვბლოკავთ!
 
                 return res.status(403).json({
                     status: "blocked",
@@ -170,11 +237,13 @@ SYSTEM: If the user question contains profanity, insults, or is completely unrel
                 });
             } else {
                 // გავაფრთხილოთ
-                await saveWarningData(ipHash, {
+                const warnData = {
                     count: currentWarnings,
                     blockedUntil: null,
                     lastViolation: now
-                });
+                };
+                await saveWarningData(ipHash, warnData);
+                if (fpHash) await saveWarningData(fpHash, warnData);
 
                 return res.status(200).json({
                     status: "warning",
