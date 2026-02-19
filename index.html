@@ -223,6 +223,10 @@
                         <button class="article-bot-send" id="articleBotSendBtn" onclick="askArticleBot()">↑</button>
                     </div>
                     <p style="font-size:0.75rem; color:var(--text-dim); margin-top:10px; opacity:0.7;">ბოტი პასუხობს მხოლოდ ამ სტატიის მიხედვით</p>
+                    <!-- ადმინ განბლოკვის ღილაკი — მხოლოდ შესვლის შემდეგ -->
+                    <div id="botAdminUnblock" style="display:none; margin-top:12px;">
+                        <button onclick="adminUnblockBot()" style="padding:6px 14px; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); border-radius:8px; color:#22c55e; cursor:pointer; font-size:0.8rem; font-weight:600;">🔓 ბლოკის მოხსნა (ადმინი)</button>
+                    </div>
                 </div>
             </div>
         </div>
