@@ -1960,6 +1960,48 @@ async function deleteGlossaryTerm() {
 init();
 
 
+// ===== ADMIN BOT UNBLOCK =====
+async function adminUnblockBot() {
+    if (!idToken) return;
+
+    const btn = document.querySelector('#botAdminUnblock button');
+    btn.disabled = true;
+    btn.innerText = '⏳ იხსნება...';
+
+    try {
+        // 1. localStorage გასუფთავება
+        localStorage.removeItem('botBlockedUntil');
+
+        // 2. Firebase bot-blocks მთლიანად წაშლა
+        await fetch('https://gen-lang-client-0339684222-default-rtdb.firebaseio.com/bot-blocks.json', {
+            method: 'DELETE'
+        });
+
+        // 3. Firebase bot-ratelimit მთლიანად წაშლა
+        await fetch('https://gen-lang-client-0339684222-default-rtdb.firebaseio.com/bot-ratelimit.json', {
+            method: 'DELETE'
+        });
+
+        // 4. UI განახლება
+        const resultEl = document.getElementById('articleBotResult');
+        resultEl.innerHTML = '<div class="article-bot-a bot-warning">✅ ყველა ბლოკი მოიხსნა!</div>';
+        resultEl.style.display = 'block';
+        document.getElementById('articleBotInput').disabled = false;
+        document.getElementById('articleBotSendBtn').disabled = false;
+
+        btn.innerText = '✅ მოიხსნა!';
+        setTimeout(() => {
+            btn.disabled = false;
+            btn.innerText = '🔓 ბლოკის მოხსნა (ადმინი)';
+        }, 2000);
+
+    } catch (err) {
+        btn.disabled = false;
+        btn.innerText = '🔓 ბლოკის მოხსნა (ადმინი)';
+        alert('შეცდომა: ' + err.message);
+    }
+}
+
 // ===== ARTICLE BOT =====
 
 // Browser Fingerprint — VPN bypass-ის თავიდან ასაცილებლად
@@ -1993,6 +2035,10 @@ function toggleArticleBot() {
 
     panel.style.display = isOpen ? 'none' : 'block';
     chevron.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+
+    // ადმინ განბლოკვის ღილაკი
+    const unblockBtn = document.getElementById('botAdminUnblock');
+    if (unblockBtn) unblockBtn.style.display = (!isOpen && idToken) ? 'block' : 'none';
 
     if (!isOpen) {
         // check block on open
