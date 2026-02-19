@@ -129,8 +129,8 @@ export default async function handler(req, res) {
             });
         }
 
-        // ახალი timestamp-ის დამატება (async, არ ველოდებით)
-        saveRateLimitData(ipHash, { timestamps: [...recentTimestamps, now] });
+        // ახალი timestamp-ის დამატება — await-ით, რომ დარწმუნდეთ შენახვაში
+        await saveRateLimitData(ipHash, { timestamps: [...recentTimestamps, now] });
 
         // ქართული გინებისა და off-topic keyword სია
         const VIOLATION_KEYWORDS = [
