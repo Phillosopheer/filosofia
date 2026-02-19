@@ -2160,8 +2160,24 @@ async function askArticleBot() {
 
         const answer = data?.candidates?.[0]?.content?.parts?.[0]?.text || 'პასუხი ვერ მოიძებნა';
 
-        // სპამ detection — იგივე კითხვა განმეორებით
-        if (question.trim().toLowerCase() === botLastQuestion) {
+        // სიმილარობის შემოწმება სპამ detection-ისთვის
+        const similarity = question.trim().toLowerCase() === botLastQuestion
+            ? 1.0
+            : (() => {
+                const a = question.trim().toLowerCase().replace(/\s+/g, '');
+                const b = botLastQuestion.replace(/\s+/g, '');
+                if (!a || !b) return 0;
+                if (a === b) return 1.0;
+                const longer = a.length > b.length ? a : b;
+                const shorter = a.length > b.length ? b : a;
+                let matches = 0;
+                for (let i = 0; i < shorter.length; i++) {
+                    if (longer.includes(shorter[i])) matches++;
+                }
+                return matches / longer.length;
+            })();
+
+        if (similarity >= 0.8) {
             botSameCount++;
         } else {
             botLastQuestion = question.trim().toLowerCase();
