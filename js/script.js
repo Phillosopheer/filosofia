@@ -1962,6 +1962,30 @@ init();
 
 // ===== ARTICLE BOT =====
 
+// Browser Fingerprint — VPN bypass-ის თავიდან ასაცილებლად
+function generateFingerprint() {
+    const components = [
+        navigator.userAgent,
+        navigator.language,
+        navigator.languages ? navigator.languages.join(',') : '',
+        screen.width + 'x' + screen.height,
+        screen.colorDepth,
+        new Date().getTimezoneOffset(),
+        navigator.hardwareConcurrency || 0,
+        navigator.platform || '',
+        navigator.maxTouchPoints || 0,
+        Intl.DateTimeFormat().resolvedOptions().timeZone || ''
+    ];
+    const str = components.join('|');
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // 32-bit integer
+    }
+    return Math.abs(hash).toString(36);
+}
+
 function toggleArticleBot() {
     const panel = document.getElementById('articleBotPanel');
     const chevron = document.getElementById('articleBotChevron');
@@ -2055,11 +2079,20 @@ async function askArticleBot() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
+                fp: generateFingerprint(),
                 contents: [{ parts: [{ text: prompt }] }]
             })
         });
 
         const data = await res.json();
+
+        // Rate limited?
+        if (res.status === 429 || data.status === 'ratelimited') {
+            const secs = data.retryAfterSeconds || 30;
+            showBotRateLimit(resultEl, secs);
+            resultEl.style.display = 'block';
+            return;
+        }
 
         // დაბლოკილია? (403 ან status=blocked)
         if (data.status === 'blocked') {
@@ -2094,7 +2127,7 @@ async function askArticleBot() {
             const spamRes = await fetch('https://filosofia-xi.vercel.app/api/gemini', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents: [{ parts: [{ text: '__SPAM_VIOLATION__' }] }] })
+                body: JSON.stringify({ fp: generateFingerprint(), contents: [{ parts: [{ text: '__SPAM_VIOLATION__' }] }] })
             });
             const spamData = await spamRes.json();
             if (spamData.status === 'blocked') {
@@ -2118,7 +2151,7 @@ async function askArticleBot() {
             const otRes = await fetch('https://filosofia-xi.vercel.app/api/gemini', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents: [{ parts: [{ text: '__OFFTOPIC_VIOLATION__' }] }] })
+                body: JSON.stringify({ fp: generateFingerprint(), contents: [{ parts: [{ text: '__OFFTOPIC_VIOLATION__' }] }] })
             });
             const otData = await otRes.json();
             if (otData.status === 'blocked') {
@@ -2150,7 +2183,29 @@ async function askArticleBot() {
     }
 }
 
-// ===== BOT COUNTDOWN TIMER =====
+// ===== BOT RATE LIMIT TIMER =====
+function showBotRateLimit(el, retryAfterSeconds) {
+    const input = document.getElementById('articleBotInput');
+    const btn = document.getElementById('articleBotSendBtn');
+    if (input) input.disabled = true;
+    if (btn) btn.disabled = true;
+
+    let remaining = retryAfterSeconds;
+
+    function update() {
+        if (remaining <= 0) {
+            el.innerHTML = '<div class="article-bot-a bot-warning">✅ შეგიძლია კვლავ დასვა კითხვა!</div>';
+            if (input) input.disabled = false;
+            if (btn) btn.disabled = false;
+            return;
+        }
+        el.innerHTML = '<div class="article-bot-a bot-blocked" style="text-align:center;">⏳ ძალიან ბევრი კითხვა!<br><span class="bot-countdown" style="font-size:2.5rem;">' + remaining + '</span><br><small>წამი დარჩენილია</small></div>';
+        el.style.display = 'block';
+        remaining--;
+        setTimeout(update, 1000);
+    }
+    update();
+}
 function showBotCountdown(el, blockedUntil) {
     const input = document.getElementById('articleBotInput');
     const btn = document.getElementById('articleBotSendBtn');
