@@ -119,13 +119,10 @@ export default async function handler(req, res) {
         const recentTimestamps = (rlData?.timestamps || []).filter(t => t > windowStart);
 
         if (recentTimestamps.length >= RATE_LIMIT_MAX) {
-            const oldestInWindow = Math.min(...recentTimestamps);
-            const retryAfterMs = oldestInWindow + RATE_LIMIT_WINDOW - now;
-            const retryAfterSec = Math.ceil(retryAfterMs / 1000);
             return res.status(429).json({
                 status: "ratelimited",
-                retryAfterSeconds: retryAfterSec,
-                message: `ძალიან ბევრი კითხვა! დაელოდე ${retryAfterSec} წამს.`
+                retryAfterSeconds: 30,
+                message: "ძალიან ბევრი კითხვა! დაელოდე 30 წამს."
             });
         }
 
