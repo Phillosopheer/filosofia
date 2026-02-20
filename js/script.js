@@ -10,6 +10,11 @@ appId: "1:339684222:web:YOUR_APP_ID"
 if (!firebase.apps.length) {
 firebase.initializeApp(firebaseConfig);
 }
+// Firebase App Check (reCAPTCHA v3) — monitoring mode
+firebase.appCheck().activate(
+  new firebase.appCheck.ReCaptchaV3Provider('6LdepXIsAAAAAGPzEX8XfPPh1mMSeT8ZUod1Z5CC'),
+  true
+);
 const FIREBASE_DB   = "https://gen-lang-client-0339684222-default-rtdb.firebaseio.com";
 const FIREBASE_AUTH = "https://identitytoolkit.googleapis.com/v1/accounts";
 const API_KEY       = "AIzaSyCLDlXXqAgJp5SdE_xefzS1sQ2fHI-l1Tg";
