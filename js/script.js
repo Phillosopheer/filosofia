@@ -638,6 +638,10 @@ function buildCatList() {
 async function fetchNotes() {
     const grid = document.getElementById('notesGrid');
     grid.innerHTML = '<div class="spinner"></div>';
+
+    // კატეგორიები hardcoded-ია — ყოველთვის გამოიძახება fetch-ის გარეშე
+    buildCatList();
+
     try {
         const res  = await fetch(`${FIREBASE_DB}/notes.json`);
         if (!res.ok) throw new Error('ჩატვირთვა ვერ მოხერხდა');
@@ -645,7 +649,7 @@ async function fetchNotes() {
         notes = data
             ? Object.entries(data).map(([k, v]) => ({ ...v, fbId: k }))
             : [];
-        buildCatList();
+        buildCatList(); // განახლება note count-ებით
         
         // Check localStorage FIRST before making any navigation decisions
         const lastCatId = localStorage.getItem('lastCategoryId');
