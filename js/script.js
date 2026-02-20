@@ -16,7 +16,9 @@ const FIREBASE_DB   = "https://gen-lang-client-0339684222-default-rtdb.firebasei
 // Firebase REST API wrapper — adds App Check token to every Firebase DB request
 async function fbFetch(url, options = {}) {
   try {
-    const { token } = await firebase.appCheck().getToken();
+    const tokenPromise = firebase.appCheck().getToken();
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject('timeout'), 2000));
+    const { token } = await Promise.race([tokenPromise, timeoutPromise]);
     options.headers = Object.assign({}, options.headers, { 'X-Firebase-AppCheck': token });
   } catch (e) { /* monitoring mode — continue without token */ }
   return fetch(url, options);
