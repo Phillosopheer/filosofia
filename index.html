@@ -10,7 +10,7 @@
     <link rel="icon" type="image/png" href="philosopher-bg.webp">
 
     <!-- Security Headers -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://www.gstatic.com https://*.googleapis.com; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://filosofia-xi.vercel.app https://*.firebaseio.com https://*.googleapis.com https://*.firebaseapp.com; img-src 'self' data: https:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://www.gstatic.com https://*.googleapis.com https://www.google.com; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://filosofia-xi.vercel.app https://*.firebaseio.com https://*.googleapis.com https://*.firebaseapp.com https://www.google.com; img-src 'self' data: https:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';">
     <meta name="referrer" content="strict-origin-when-cross-origin">
 
     <title>ფილოსოფია - ქართული ფილოსოფიური პლატფორმა</title>
@@ -81,6 +81,8 @@
     
     <!-- Firebase App (the core Firebase SDK) -->
     <script src="js/firebase-app-compat.js" integrity="sha384-ViccRjS0k/lvYsrtaKXk+ES61/4PAZlFI/mPHmLC1YWzK0AIbXbI5ZXDzcm3F8gH" crossorigin="anonymous" defer></script>
+    <!-- Firebase App Check (reCAPTCHA v3) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-check-compat.js" defer></script>
     
     <!-- CSS ფაილის დაკავშირება -->
     <link rel="stylesheet" href="css/style.css">
