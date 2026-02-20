@@ -13,6 +13,14 @@ firebase.initializeApp(firebaseConfig);
 // Firebase App Check (reCAPTCHA v3) — monitoring mode
 firebase.appCheck().activate('6LdepXIsAAAAAGPzEX8XfPPh1mMSeT8ZUod1Z5CC', true);
 const FIREBASE_DB   = "https://gen-lang-client-0339684222-default-rtdb.firebaseio.com";
+// Firebase REST API wrapper — adds App Check token to every Firebase DB request
+async function fbFetch(url, options = {}) {
+  try {
+    const { token } = await firebase.appCheck().getToken();
+    options.headers = Object.assign({}, options.headers, { 'X-Firebase-AppCheck': token });
+  } catch (e) { /* monitoring mode — continue without token */ }
+  return fetch(url, options);
+}
 const FIREBASE_AUTH = "https://identitytoolkit.googleapis.com/v1/accounts";
 const API_KEY       = "AIzaSyCLDlXXqAgJp5SdE_xefzS1sQ2fHI-l1Tg";
 let idToken    = null;
@@ -193,7 +201,7 @@ pending: true,
 submittedDate: Date.now()
 };
 if (author) submission.author = author;
-const res = await fetch(`${FIREBASE_DB}/pending-notes.json`, {
+const res = await fbFetch(`${FIREBASE_DB}/pending-notes.json`, {
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
 body: JSON.stringify(submission)
@@ -221,7 +229,7 @@ return;
 }
 try {
 console.log('Fetching pending notes...');
-const res = await fetch(`${FIREBASE_DB}/pending-notes.json?auth=${idToken}`);
+const res = await fbFetch(`${FIREBASE_DB}/pending-notes.json?auth=${idToken}`);
 if (!res.ok) {
 console.error('Fetch pending notes failed:', res.status);
 return;
@@ -319,13 +327,13 @@ delete approved.pending;
 delete approved.submittedDate;
 delete approved.fbId;
 approved.date = Date.now();
-const addRes = await fetch(`${FIREBASE_DB}/notes.json?auth=${idToken}`, {
+const addRes = await fbFetch(`${FIREBASE_DB}/notes.json?auth=${idToken}`, {
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
 body: JSON.stringify(approved)
 });
 if (!addRes.ok) throw new Error('დადასტურება ვერ მოხერხდა');
-const delRes = await fetch(`${FIREBASE_DB}/pending-notes/${noteId}.json?auth=${idToken}`, {
+const delRes = await fbFetch(`${FIREBASE_DB}/pending-notes/${noteId}.json?auth=${idToken}`, {
 method: 'DELETE'
 });
 if (!delRes.ok) throw new Error('წაშლა pending-დან ვერ მოხერხდა');
@@ -340,7 +348,7 @@ async function rejectPendingNote(noteId) {
 if (!idToken) return;
 if (!confirm('უარყო ეს სტატია? ის სამუდამოდ წაიშლება.')) return;
 try {
-const res = await fetch(`${FIREBASE_DB}/pending-notes/${noteId}.json?auth=${idToken}`, {
+const res = await fbFetch(`${FIREBASE_DB}/pending-notes/${noteId}.json?auth=${idToken}`, {
 method: 'DELETE'
 });
 if (!res.ok) throw new Error('წაშლა ვერ მოხერხდა');
@@ -495,7 +503,7 @@ const grid = document.getElementById('notesGrid');
 grid.innerHTML = '<div class="spinner"></div>';
 buildCatList();
 try {
-const res  = await fetch(`${FIREBASE_DB}/notes.json`);
+const res  = await fbFetch(`${FIREBASE_DB}/notes.json`);
 if (!res.ok) throw new Error('ჩატვირთვა ვერ მოხერხდა');
 const data = await res.json();
 notes = data
@@ -648,7 +656,7 @@ async function deleteCurrentNote() {
 if (!currentNote || !idToken) return;
 if (!confirm(`წაიშალოს "${currentNote.title}"?`)) return;
 try {
-const res = await fetch(`${FIREBASE_DB}/notes/${currentNote.fbId}.json?auth=${idToken}`, {
+const res = await fbFetch(`${FIREBASE_DB}/notes/${currentNote.fbId}.json?auth=${idToken}`, {
 method: 'DELETE'
 });
 if (!res.ok) throw new Error('წაშლა ვერ მოხერხდა');
@@ -890,7 +898,7 @@ coverUrl = coverUrlInput;
 const note = { title, cat, content, date: Date.now() };
 if (coverUrl) note.coverUrl = coverUrl;
 if (author) note.author = author;
-const res = await fetch(`${FIREBASE_DB}/notes.json?auth=${idToken}`, {
+const res = await fbFetch(`${FIREBASE_DB}/notes.json?auth=${idToken}`, {
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
 body: JSON.stringify(note)
@@ -1222,7 +1230,7 @@ delete updated.fbId;
 const endpoint = currentNote.pending
 ? `${FIREBASE_DB}/pending-notes/${currentNote.fbId}.json?auth=${idToken}`
 : `${FIREBASE_DB}/notes/${currentNote.fbId}.json?auth=${idToken}`;
-const res = await fetch(endpoint, {
+const res = await fbFetch(endpoint, {
 method: 'PUT',
 headers: { 'Content-Type': 'application/json' },
 body: JSON.stringify(updated)
@@ -1300,7 +1308,7 @@ showMsg(errEl, '✅ განბლოკილია! სცადე თავ
 });
 async function fetchGlossary() {
 try {
-const res = await fetch(`${FIREBASE_DB}/glossary.json`);
+const res = await fbFetch(`${FIREBASE_DB}/glossary.json`);
 if (!res.ok) throw new Error('Failed to fetch glossary');
 const data = await res.json();
 allGlossaryTerms = data ? Object.keys(data).map(key => ({
@@ -1414,7 +1422,7 @@ definition,
 category: category || null,
 timestamp: Date.now()
 };
-const res = await fetch(`${FIREBASE_DB}/glossary.json?auth=${idToken}`, {
+const res = await fbFetch(`${FIREBASE_DB}/glossary.json?auth=${idToken}`, {
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
 body: JSON.stringify(newTerm)
@@ -1464,7 +1472,7 @@ definition,
 category: category || null,
 timestamp: currentGlossaryTerm.timestamp
 };
-const res = await fetch(`${FIREBASE_DB}/glossary/${currentGlossaryTerm.fbId}.json?auth=${idToken}`, {
+const res = await fbFetch(`${FIREBASE_DB}/glossary/${currentGlossaryTerm.fbId}.json?auth=${idToken}`, {
 method: 'PUT',
 headers: { 'Content-Type': 'application/json' },
 body: JSON.stringify(updated)
@@ -1497,7 +1505,7 @@ if (!confirm(`დარწმუნებული ხართ, რომ გ�
 return;
 }
 try {
-const res = await fetch(`${FIREBASE_DB}/glossary/${currentGlossaryTerm.fbId}.json?auth=${idToken}`, {
+const res = await fbFetch(`${FIREBASE_DB}/glossary/${currentGlossaryTerm.fbId}.json?auth=${idToken}`, {
 method: 'DELETE'
 });
 if (!res.ok) throw new Error('Firebase error');
@@ -1516,10 +1524,10 @@ btn.disabled = true;
 btn.innerText = '⏳ იხსნება...';
 try {
 localStorage.removeItem('botBlockedUntil');
-await fetch('https://gen-lang-client-0339684222-default-rtdb.firebaseio.com/bot-blocks.json', {
+await fbFetch('https://gen-lang-client-0339684222-default-rtdb.firebaseio.com/bot-blocks.json', {
 method: 'DELETE'
 });
-await fetch('https://gen-lang-client-0339684222-default-rtdb.firebaseio.com/bot-ratelimit.json', {
+await fbFetch('https://gen-lang-client-0339684222-default-rtdb.firebaseio.com/bot-ratelimit.json', {
 method: 'DELETE'
 });
 const resultEl = document.getElementById('articleBotResult');
