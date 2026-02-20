@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- 🛡️ Security Headers - Mozilla Observatory A+ Rating -->
+    <!-- Content Security Policy (CSP) - კონტროლს უწევს საიდან შეიძლება რესურსების ჩატვირთვა -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.firebaseio.com https://*.googleapis.com https://www.gstatic.com; connect-src 'self' https://filosofia-xi.vercel.app https://*.firebaseio.com https://*.googleapis.com https://*.firebaseapp.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; object-src 'none'; frame-ancestors 'none';">
+    
+    <!-- Clickjacking დაცვა - კრძალავს საიტის ჩასმას iframe-ში -->
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    
+    <!-- MIME Type Sniffing დაცვა -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    
+    <!-- Referrer Policy -->
+    <meta name="Referrer-Policy" content="no-referrer-when-downgrade">
+    
+    <!-- Permissions Policy - კონტროლს უწევს ბრაუზერის API-ებს -->
+    <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), interest-cohort=()">
+    
+    <title>ფილოსოფია - ქართული ფილოსოფიური პლატფორმა</title>
+    
+    <!-- Primary Meta Tags -->
+    <meta name="title" content="ფილოსოფია - ქართული ფილოსოფიური პლატფორმა">
+    <meta name="description" content="ფილოსოფიური პლატფორმა კრიტიკული აზროვნებისა და ინტელექტუალური ძიებისთვის. მეტაფიზიკა, ეპისტემოლოგია, ეთიკა, პოლიტიკური ფილოსოფია და მრავალი სხვა.">
+    <meta name="keywords" content="ფილოსოფია, მეტაფიზიკა, ეპისტემოლოგია, ეთიკა, ლოგიკა, ონტოლოგია, ესთეტიკა, ეგზისტენციალიზმი, ფილოსოფიური სტატიები, ქართული ფილოსოფია">
+    <meta name="author" content="ფილოსოფია">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="Georgian">
+    
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#8B7AC7">
+    <meta name="msapplication-TileColor" content="#8B7AC7">
+    
+    <!-- Open Graph / Facebook / WhatsApp / LinkedIn -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://phillosopheer.github.io/filosofia/">
+    <meta property="og:title" content="ფილოსოფია - ქართული ფილოსოფიური პლატფორმა">
+    <meta property="og:description" content="ფილოსოფიური პლატფორმა კრიტიკული აზროვნებისა და ინტელექტუალური ძიებისთვის. მეტაფიზიკა, ეპისტემოლოგია, ეთიკა და მრავალი სხვა.">
+    <meta property="og:image" content="https://phillosopheer.github.io/filosofia/philosopher-bg.jpg">
+    <meta property="og:image:secure_url" content="https://phillosopheer.github.io/filosofia/philosopher-bg.jpg">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="ფილოსოფიური პლატფორმა - ფილოსოფოსის სქულპტურა">
+    <meta property="og:site_name" content="ფილოსოფია">
+    <meta property="og:locale" content="ka_GE">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://phillosopheer.github.io/filosofia/">
+    <meta name="twitter:title" content="ფილოსოფია - ქართული ფილოსოფიური პლატფორმა">
+    <meta name="twitter:description" content="ფილოსოფიური პლატფორმა კრიტიკული აზროვნებისა და ინტელექტუალური ძიებისთვის. მეტაფიზიკა, ეპისტემოლოგია, ეთიკა და მრავალი სხვა.">
+    <meta name="twitter:image" content="https://phillosopheer.github.io/filosofia/philosopher-bg.jpg">
+    <meta name="twitter:image:alt" content="ფილოსოფიური პლატფორმა - ფილოსოფოსის სქულპტურა">
+    
+    <!-- Telegram -->
+    <meta property="telegram:card" content="summary_large_image">
+    <meta property="telegram:title" content="ფილოსოფია - ქართული ფილოსოფიური პლატფორმა">
+    <meta property="telegram:description" content="ფილოსოფიური პლატფორმა კრიტიკული აზროვნებისა და ინტელექტუალური ძიებისთვის.">
+    <meta property="telegram:image" content="https://phillosopheer.github.io/filosofia/philosopher-bg.jpg">
+    
+    <!-- VK (VKontakte) -->
+    <meta property="vk:image" content="https://phillosopheer.github.io/filosofia/philosopher-bg.jpg">
+    
+    <!-- Pinterest -->
+    <meta name="pinterest-rich-pin" content="true">
+    <meta property="og:see_also" content="https://phillosopheer.github.io/filosofia/">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://phillosopheer.github.io/filosofia/">
+    
+    <!-- Apple Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ფილოსოფია">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    
+    <!-- CSS ფაილის დაკავშირება -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="header">
+        <button class="menu-btn" onclick="toggleMenu()">☰</button>
+        <div class="logo" onclick="goHome()" style="cursor:pointer; display: flex; align-items: center; gap: 10px;">
+            <span style="background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 50%, #e0d7ff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 700; font-size: 1.75rem; letter-spacing: 2px;">ფილოსოფია</span>
+        </div>
+        <div style="display:flex; gap:12px; align-items:center;">
+            <span class="user-badge" id="userBadge"></span>
+            <!-- Public Submission Button -->
+            <button class="header-btn" id="submitBtn" onclick="openPublicSubmission()" title="სტატიის გაგზავნა" style="color: var(--accent);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+            </button>
+            <!-- Admin Pending Button -->
+            <button class="header-btn" id="pendingBtn" onclick="openPendingPanel()" title="მოლოდინში" style="display:none; position:relative;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                </svg>
+                <span id="pendingBadge" style="position:absolute; top:-4px; right:-4px; background:#ef4444; color:white; font-size:0.65rem; font-weight:700; padding:2px 5px; border-radius:10px; display:none; min-width:18px; text-align:center;"></span>
+            </button>
+            <button class="header-btn" id="logoutBtn" onclick="doLogout()" title="გამოსვლა">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                    <polyline points="16 17 21 12 16 7"/>
+                    <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+            </button>
+            <button class="header-btn" id="lockBtn" onclick="handleAuthBtn()" title="შესვლა">
+                <svg id="lockIcon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Sidebar Overlay -->
+    <div class="overlay" id="sidebarOverlay" onclick="toggleMenu()"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:40px;">
+            <h2>კატეგორიები</h2>
+            <button onclick="toggleMenu()" style="background:none; border:none; font-size:1.5rem; color:var(--text); cursor:pointer;">✕</button>
+        </div>
+        
+        <!-- Glossary Button -->
+        <div class="glossary-btn" onclick="openGlossary()">
+            📚 ლექსიკონი
+        </div>
+        
+        <div id="catList"></div>
+    </aside>
+
+    <!-- Hero -->
+    <section class="hero">
+        <h1 id="pageTitle" class="shimmer">ჩვენ გვიყვარს ფილოსოფია</h1>
+        <div id="heroBook" style="display: none;"></div>
+        <p id="pageSubtitle" style="max-width: 700px; margin: 0 auto 30px; line-height: 2;"></p>
+        <div class="welcome-text" style="display: block;">
+            <p>კეთილი იყოს თქვენი მობრძანება ფილოსოფიურ პლატფორმაზე</p>
+            <p>წინამდებარე რესურსი წარმოადგენს სივრცეს კრიტიკული აზროვნებისა და ინტელექტუალური ძიებისთვის. ჩვენი მიზანია, მკითხველს მივაწოდოთ სიღრმისეული ანალიზი ფილოსოფიის სხვადასხვა ქვედარგის შესახებ - მეტაფიზიკიდან და ეპისტემოლოგიიდან დაწყებული, ეთიკითა და პოლიტიკური ფილოსოფიით დასრულებული.</p>
+        </div>
+        
+        <!-- Random Nietzsche Quote -->
+        <div id="quoteSection" style="display: block; margin-top: 40px; padding: 30px 40px; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; max-width: 800px; margin-left: auto; margin-right: auto; position: relative; overflow: hidden;">
+            <div style="position: absolute; top: 15px; left: 25px; font-size: 4rem; opacity: 0.1; color: var(--accent); font-family: Georgia, serif; line-height: 1;">"</div>
+            <p id="quoteText" style="font-family: 'Cormorant Garamond', serif; font-size: 1.25rem; line-height: 1.9; font-style: italic; color: var(--text); margin: 0 0 15px 0; position: relative; z-index: 1;"></p>
+            <p id="quoteAuthor" style="text-align: right; color: var(--accent); font-size: 0.95rem; font-weight: 600; letter-spacing: 1px; margin: 0;">— ფრიდრიხ ნიცშე</p>
+        </div>
+    </section>
+
+    <!-- Search Bar -->
+    <div id="searchBar" style="display:none; padding: 0 5% 30px; max-width:1400px; margin:0 auto;">
+        <div style="position:relative;">
+            <span style="position:absolute; left:18px; top:50%; transform:translateY(-50%); font-size:1.1rem; color:var(--text-dim);">🔍</span>
+            <input
+                type="text"
+                id="searchInput"
+                placeholder="სტატიის ძებნა..."
+                oninput="filterNotes()"
+                style="width:100%; padding:14px 18px 14px 48px; border-radius:14px; border:1px solid var(--border);
+                       background:var(--surface); color:var(--text); font-size:1rem; font-family:'Inter',sans-serif;
+                       outline:none; transition:0.3s;"
+                onfocus="this.style.borderColor='var(--accent)'; this.style.boxShadow='0 0 0 3px rgba(59,130,246,0.15)'"
+                onblur="this.style.borderColor='var(--border)'; this.style.boxShadow='none'"
+            />
+        </div>
+    </div>
+
+    <!-- Notes Grid -->
+    <main class="grid" id="notesGrid"></main>
+
+    <!-- Home Welcome Section -->
+    <section id="homeSection" style="display:none; max-width:900px; margin:0 auto; padding:20px 5% 80px;">
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:24px; padding:55px 50px; text-align:center; position:relative; overflow:hidden;">
+            <div style="position:absolute; top:-80px; right:-80px; width:250px; height:250px; background:radial-gradient(circle, rgba(167,139,250,0.1), transparent); border-radius:50%; pointer-events:none;"></div>
+            <div style="position:absolute; bottom:-60px; left:-60px; width:200px; height:200px; background:radial-gradient(circle, rgba(129,140,248,0.07), transparent); border-radius:50%; pointer-events:none;"></div>
+            <!-- Featured Articles Carousel -->
+            <div style="margin-top:45px; padding-top:35px; border-top:1px solid var(--border);">
+                <h3 style="font-family:'Cormorant Garamond', serif; font-size:1.5rem; font-weight:600; color:var(--text); margin-bottom:30px; letter-spacing:1px;">შემოთავაზებული სტატიები</h3>
+                <div id="featuredCarousel" style="overflow:hidden; position:relative; border-radius:16px;">
+                    <div id="carouselTrack" style="display:flex; transition:transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); gap:20px;">
+                        <!-- Cards will be inserted here by JavaScript -->
+                    </div>
+                    <!-- Navigation Dots -->
+                    <div id="carouselDots" style="display:flex; justify-content:center; gap:8px; margin-top:25px;"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Reader -->
+    <div id="reader" class="reader">
+        <button class="close-btn" onclick="closeReader()">✕</button>
+        <div class="reader-inner">
+            <p id="readCat" style="color:var(--accent); font-size:0.72rem; font-weight:600; letter-spacing:3px; text-transform:uppercase; margin-bottom:18px; opacity:0.8;"></p>
+            <h1 id="readTitle" style="font-family:'Cormorant Garamond', serif; font-size:3rem; font-weight:700; margin-bottom:14px; line-height:1.2; letter-spacing:0.3px;"></h1>
+            <p id="readDate" style="color:var(--text-dim); font-size:0.78rem; letter-spacing:1px; margin-bottom:12px; font-weight:500;"></p>
+            <p id="readAuthor" style="color:var(--accent); font-size:0.85rem; font-weight:600; margin-bottom:35px; padding-bottom:25px; border-bottom:1px solid var(--border); letter-spacing:0.5px;"></p>
+            <div id="readCover" style="margin-bottom:30px;"></div>
+            <div id="readBody" style="font-size:1.1rem; line-height:2; color:var(--text); font-weight:300; font-family:'Cormorant Garamond', serif;"></div>
+            <div id="adminControls" style="display:none; margin-top:40px; padding-top:30px; border-top:1px solid var(--border);">
+                <button class="btn btn-secondary" style="width:auto; padding:10px 25px; margin-right:10px;" onclick="copyNote(this)">📋 კოპირება</button>
+                <button class="btn btn-secondary" style="width:auto; padding:10px 25px; margin-right:10px;" onclick="openEditModal()">✏️ რედაქტირება</button>
+                <button class="btn btn-danger" style="width:auto; padding:10px 25px;" onclick="deleteCurrentNote()">🗑 წაშლა</button>
+            </div>
+
+            <!-- ===== ARTICLE BOT ===== -->
+            <div id="articleBotSection" style="margin-top:40px; padding-top:30px; border-top:1px solid var(--border);">
+                <button class="article-bot-toggle" id="articleBotToggle" onclick="toggleArticleBot()">
+                    <span>🤖</span> სტატიის ასისტენტი
+                    <span id="articleBotChevron" style="margin-left:auto; transition:transform 0.3s;">▾</span>
+                </button>
+                <div id="articleBotPanel" style="display:none; margin-top:20px;">
+                    <div id="articleBotResult" class="article-bot-result" style="display:none;"></div>
+                    <div id="articleBotLoading" class="article-bot-loading" style="display:none;">
+                        <span></span><span></span><span></span>
+                    </div>
+                    <div class="article-bot-input-row">
+                        <input
+                            type="text"
+                            id="articleBotInput"
+                            class="article-bot-input"
+                            placeholder="დასვი კითხვა ამ სტატიის შესახებ..."
+                            onkeydown="if(event.key==='Enter') askArticleBot()"
+                        />
+                        <button class="article-bot-send" id="articleBotSendBtn" onclick="askArticleBot()">↑</button>
+                    </div>
+                    <p style="font-size:0.75rem; color:var(--text-dim); margin-top:10px; opacity:0.7;">ბოტი პასუხობს მხოლოდ ამ სტატიის მიხედვით</p>
+                    <!-- ადმინ განბლოკვის ღილაკი — მხოლოდ შესვლის შემდეგ -->
+                    <div id="botAdminUnblock" style="display:none; margin-top:12px;">
+                        <button onclick="adminUnblockBot()" style="padding:6px 14px; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); border-radius:8px; color:#22c55e; cursor:pointer; font-size:0.8rem; font-weight:600;">🔓 ბლოკის მოხსნა (ადმინი)</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAB -->
+    <button class="fab" id="fabBtn" onclick="openEditor()">+</button>
+
+    <!-- ===== GLOSSARY VIEW ===== -->
+    <div id="glossaryView" class="glossary-view">
+        <button class="close-glossary-btn" onclick="closeGlossary()">✕</button>
+        
+        <div class="glossary-header">
+            <h1>ლექსიკონი</h1>
+            <p style="color: var(--text-dim); font-size: 1.05rem; margin-bottom: 10px;">
+                აქ იპოვით სიტყვების განმარტებებს
+            </p>
+            
+            <div class="glossary-search-container">
+                <span class="search-icon">🔍</span>
+                <input
+                    type="text"
+                    id="glossarySearchInput"
+                    class="glossary-search-input"
+                    placeholder="მოძებნე ტერმინი..."
+                    oninput="searchGlossary()"
+                    autocomplete="off"
+                />
+                <div id="suggestionDropdown" class="suggestions-dropdown"></div>
+            </div>
+            <div style="margin-top:18px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+                <p style="color:var(--text-dim); font-size:0.9rem; letter-spacing:1px; margin:0;">
+                    📚 ლექსიკონი შეიცავს <strong id="glossaryCount" style="color:var(--accent);">0</strong> სიტყვას
+                </p>
+            </div>
+        </div>
+
+
+
+
+        <div id="termDisplay" class="term-display" style="display: none;">
+            <div class="back-to-search" onclick="backToGlossarySearch()">
+                ← უკან ძებნაზე
+            </div>
+            <div class="term-card">
+                <div id="termCategory" class="term-category"></div>
+                <h2 id="termTitle" class="term-title"></h2>
+                <div id="termDefinition" class="term-definition"></div>
+                
+                <div id="glossaryAdminControls" class="glossary-admin-controls">
+                    <button class="btn btn-secondary" style="margin-right: 10px;" onclick="editGlossaryTerm()">✏️ რედაქტირება</button>
+                    <button class="btn btn-danger" onclick="deleteGlossaryTerm()">🗑 წაშლა</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="glossaryInitialView" style="display:none;"></div>
+    </div>
+
+    <!-- ===== LOGIN MODAL ===== -->
+    <div class="modal" id="loginModal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeModal('loginModal')">✕</button>
+            <h2>შესვლა</h2>
+            <div class="msg error" id="loginError"></div>
+            <div class="form-group">
+                <label>ელ. ფოსტა</label>
+                <input type="email" id="loginEmail" placeholder="you@example.com" />
+            </div>
+            <div class="form-group">
+                <label>პაროლი</label>
+                <input type="password" id="loginPassword" placeholder="••••••••" onkeydown="if(event.key==='Enter') doLogin()" />
+            </div>
+            <button class="btn btn-primary" id="loginBtn" onclick="doLogin()">შესვლა</button>
+        </div>
+    </div>
+
+    <!-- ===== EDITOR MODAL ===== -->
+    <div class="modal" id="editorModal">
+        <div class="modal-box wide">
+            <button class="modal-close" onclick="closeModal('editorModal')">✕</button>
+            <h2>ახალი ჩანაწერი</h2>
+            <div class="msg error" id="editorError"></div>
+            <div class="msg success" id="editorSuccess"></div>
+            <div class="form-group">
+                <label>სათაური</label>
+                <input type="text" id="editorTitle" placeholder="ჩანაწერის სათაური..." />
+            </div>
+            <div class="form-group">
+                <label>Cover სურათი (არასავალდებულო)</label>
+                <input type="text" id="coverUrl" placeholder="https://example.com/image.jpg" onchange="previewCoverUrl(this.value, 'coverPreview')" style="width:100%; padding:12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text);" />
+                <div id="coverPreview" style="margin-top:10px;"></div>
+            </div>
+            <div class="form-group">
+                <label>კატეგორია</label>
+                <select id="editorCat">
+                    <option value="epist">ეპისტემოლოგია</option>
+                    <option value="ethics">ეთიკა</option>
+                    <option value="logic">ლოგიკა</option>
+                    <option value="meta">მეტაფიზიკა</option>
+                    <option value="lang">ენის ფილოსოფია</option>
+                    <option value="anthro">ანთროპოლოგიური ფილოსოფია</option>
+                    <option value="aesthetics">ესთეტიკა</option>
+                    <option value="exist">ეგზისტენციალიზმი</option>
+                    <option value="onto">ონტოლოგია</option>
+                    <option value="axio">ობიექტური აქსიოლოგია</option>
+                    <option value="histphil">ფილოსოფიის ისტორია</option>
+                    <option value="relphil">რელიგიის ფილოსოფია</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>ავტორი (არასავალდებულო)</label>
+                <input type="text" id="editorAuthor" placeholder="მაგ: ნ. ქებაძე" style="width:100%; padding:12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text);" />
+            </div>
+            <div class="form-group">
+                <label>შინაარსი</label>
+                <div class="editor-toolbar" id="toolbar">
+                    <button class="tb-btn" onclick="fmt('bold')" title="მუქი"><b>B</b></button>
+                    <button class="tb-btn" onclick="fmt('italic')" title="დახრილი"><i>I</i></button>
+                    <button class="tb-btn" onclick="fmt('underline')" title="ხაზგასმული"><u>U</u></button>
+                    <button class="tb-btn" onclick="fmt('strikeThrough')" title="გადახაზული"><s>S</s></button>
+                    <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
+                    <label class="tb-btn color-picker-btn" title="ტექსტის ფერი" onclick="this.querySelector('input').click()">
+                        <span style="border-bottom:3px solid var(--accent);">A</span>
+                        <input type="color" onchange="changeTextColor(this.value)" style="display:none;">
+                    </label>
+                    <label class="tb-btn color-picker-btn" title="ფონის ფერი" onclick="this.querySelector('input').click()">
+                        <span style="background:var(--accent); padding:2px 6px; border-radius:3px;">◼</span>
+                        <input type="color" onchange="changeBackColor(this.value)" style="display:none;">
+                    </label>
+                    <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
+                    <button class="tb-btn" onclick="formatHeading('h1')" title="სათაური 1">H1</button>
+                    <button class="tb-btn" onclick="formatHeading('h2')" title="სათაური 2">H2</button>
+                    <button class="tb-btn" onclick="formatHeading('h3')" title="სათაური 3">H3</button>
+                    <button class="tb-btn" onclick="formatHeading('p')" title="ჩვეულებრივი ტექსტი">P</button>
+                    <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
+                    <select class="tb-btn" onchange="changeFontSize(this.value)" style="padding:4px 8px; cursor:pointer;" title="შრიფტის ზომა">
+                        <option value="">ზომა</option>
+                        <option value="1">პატარა</option>
+                        <option value="3">ჩვეულებრივი</option>
+                        <option value="5">დიდი</option>
+                        <option value="7">ძალიან დიდი</option>
+                    </select>
+                    <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
+                    <button class="tb-btn" onclick="fmt('justifyLeft')" title="მარცხნივ">⬅</button>
+                    <button class="tb-btn" onclick="fmt('justifyCenter')" title="ცენტრში">↔</button>
+                    <button class="tb-btn" onclick="fmt('justifyRight')" title="მარjvნივ">➡</button>
+                    <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
+                    <button class="tb-btn" onclick="fmt('insertOrderedList')" title="დანომრილი სია">1.</button>
+                    <button class="tb-btn" onclick="fmt('insertUnorderedList')" title="ჩამონათვალი">•</button>
+                    <button class="tb-btn" onclick="insertBlockquote()" title="ციტატა">❝</button>
+                    <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
+                    <button class="tb-btn" onclick="insertLink()" title="ლინკი">🔗</button>
+                    <button class="tb-btn" onclick="insertHR()" title="გამყოფი ხაზი">―</button>
+                    <button class="tb-btn" onclick="fmt('removeFormat')" title="ფორმატის გასუფთავება">✗</button>
+                </div>
+                <div
+                    class="editor-area"
+                    id="editorArea"
+                    contenteditable="true"
+                    data-placeholder="დაიწყე წერა..."
+                ></div>
+            </div>
+            <button class="btn btn-primary" id="saveBtn" onclick="saveNote()">შენახვა</button>
+            <button class="btn btn-secondary" onclick="closeModal('editorModal')">გაუქმება</button>
+        </div>
+    </div>
+
+    <!-- ===== EDIT MODAL ===== -->
+    <div class="modal" id="editModal">
+        <div class="modal-box wide">
+            <button class="modal-close" onclick="closeModal('editModal')">✕</button>
+            <h2>რედაქტირება</h2>
+            <div class="msg error" id="editError"></div>
+            <div class="msg success" id="editSuccess"></div>
+            <div class="form-group">
+                <label>სათაური</label>
+                <input type="text" id="editTitle" placeholder="ჩანაწერის სათაური..." />
+            </div>
+            <div class="form-group">
+                <label>Cover სურათი (არასავალდებულო)</label>
+                <div style="display:flex; gap:12px; margin-bottom:12px;">
+                    <input type="text" id="editCoverUrl" placeholder="https://example.com/image.jpg" onchange="previewCoverUrl(this.value, 'editCoverPreview')" style="flex:1; padding:12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text);" />
+                    <button type="button" onclick="removeCoverImage()" style="padding:6px 14px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); border-radius:8px; color:#ef4444; font-size:0.85rem; cursor:pointer; transition:0.3s;" onmouseover="this.style.background='rgba(239,68,68,0.2)'" onmouseout="this.style.background='rgba(239,68,68,0.1)'">🗑 წაშლა</button>
+                </div>
+                <div id="editCoverPreview" style="margin-top:10px;"></div>
+            </div>
+            <div class="form-group">
+                <label>კატეგორია</label>
+                <select id="editCat">
+                    <option value="epist">ეპისტემოლოგია</option>
+                    <option value="ethics">ეთიკა</option>
+                    <option value="logic">ლოგიკა</option>
+                    <option value="meta">მეტაფიზიკა</option>
+                    <option value="lang">ენის ფილოსოფია</option>
+                    <option value="anthro">ანთროპოლოგიური ფილოსოფია</option>
+                    <option value="aesthetics">ესთეტიკა</option>
+                    <option value="exist">ეგზისტენციალიზმი</option>
+                    <option value="onto">ონტოლოგია</option>
+                    <option value="axio">ობიექტური აქსიოლოგია</option>
+                    <option value="histphil">ფილოსოფიის ისტორია</option>
+                    <option value="relphil">რელიგიის ფილოსოფია</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>ავტორი (არასავალდებულო)</label>
+                <input type="text" id="editAuthor" placeholder="მაგ: ნ. ქებაძე" style="width:100%; padding:12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text);" />
+            </div>
+            <div class="form-group">
+                <label>შინაარსი</label>
+                <div class="editor-toolbar">
+                    <button class="tb-btn" onclick="fmtE('bold')" title="მუქი"><b>B</b></button>
+                    <button class="tb-btn" onclick="fmtE('italic')" title="დახრილი"><i>I</i></button>
+                    <button class="tb-btn" onclick="fmtE('underline')" title="ხაზგასმული"><u>U</u></button>
+                    <button class="tb-btn" onclick="fmtE('strikeThrough')" title="გადახაზული"><s>S</s></button>
+                    <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
+                    <label class="tb-btn color-picker-btn" title="ტექსტის ფერი" onclick="this.querySelector('input').click()">
+                        <span style="border-bottom:3px solid var(--accent);">A</span>
+                        <input type="color" onchange="changeTextColorE(this.value)" style="display:none;">
+                    </label>
+                    <label class="tb-btn color-picker-btn" title="ფონის ფერი" onclick="this.querySelector('input').click()">
+                        <span style="background:var(--accent); padding:2px 6px; border-radius:3px;">◼</span>
+                        <input type="color" onchange="changeBackColorE(this.value)" style="display:none;">
+                    </label>
+                    <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
+                    <button class="tb-btn" onclick="fmtEH('h1')" title="სათაური 1">H1</button>
+                    <button class="tb-btn" onclick="fmtEH('h2')" title="სათაური 2">H2</button>
+                    <button class="tb-btn" onclick="fmtEH('h3')" title="სათაური 3">H3</button>
+                    <button class="tb-btn" onclick="fmtEH('p')" title="ჩვეულებრივი ტექსტი">P</button>
+                    <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
+                    <select class="tb-btn" onchange="changeFontSizeE(this.value)" style="padding:4px 8px; cursor:pointer;" title="შრიფტის ზომა">
+                        <option value="">ზომა</option>
+                        <option value="1">პატარა</option>
+                        <option value="3">ჩვეულებრივი</option>
+                        <option value="5">დიდი</option>
+                        <option value="7">ძალიან დიდი</option>
+                    </select>
+                    <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
+                    <button class="tb-btn" onclick="fmtE('justifyLeft')" title="მარცხნივ">⬅</button>
+                    <button class="tb-btn" onclick="fmtE('justifyCenter')" title="ცენტრში">↔</button>
+                    <button class="tb-btn" onclick="fmtE('justifyRight')" title="მარjvნივ">➡</button>
+                    <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
+                    <button class="tb-btn" onclick="fmtE('insertOrderedList')" title="დანომრილი სია">1.</button>
+                    <button class="tb-btn" onclick="fmtE('insertUnorderedList')" title="ჩამონათვალი">•</button>
+                    <button class="tb-btn" onclick="insertBlockquoteE()" title="ციტატა">❝</button>
+                    <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
+                    <button class="tb-btn" onclick="insertLinkE()" title="ლინკი">🔗</button>
+                    <button class="tb-btn" onclick="insertHRE()" title="გამყოფი ხაზი">―</button>
+                    <button class="tb-btn" onclick="fmtE('removeFormat')" title="ფორმატის გასუფთავება">✗</button>
+                </div>
+                <div class="editor-area" id="editArea" contenteditable="true" data-placeholder="შინაარსი..."></div>
+            </div>
+            <button class="btn btn-primary" id="updateBtn" onclick="updateNote()">განახლება</button>
+            <button class="btn btn-secondary" onclick="closeModal('editModal')">გაუქმება</button>
+        </div>
+    </div>
+
+    <!-- ===== PUBLIC SUBMISSION MODAL ===== -->
+    <div class="modal" id="publicSubmissionModal">
+        <div class="modal-box wide">
+            <button class="modal-close" onclick="closeModal('publicSubmissionModal')">✕</button>
+            <h2>სტატიის გაგზავნა</h2>
+            <p style="color:var(--text-dim); font-size:0.9rem; margin-bottom:20px; line-height:1.6;">თქვენი სტატია გაიგზავნება ადმინისტრატორთან. დადასტურების შემდეგ ის გამოქვეყნდება საიტზე.</p>
+            <div class="msg error" id="submissionError"></div>
+            <div class="msg success" id="submissionSuccess"></div>
+            <div class="form-group">
+                <label>სათაური</label>
+                <input type="text" id="submissionTitle" placeholder="სტატიის სათაური..." />
+            </div>
+            <div class="form-group">
+                <label>თქვენი სახელი (არასავალდებულო)</label>
+                <input type="text" id="submissionAuthor" placeholder="მაგ: ნ. ქებაძე" style="width:100%; padding:12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text);" />
+            </div>
+            <div class="form-group">
+                <label>კატეგორია</label>
+                <select id="submissionCat">
+                    <option value="epist">ეპისტემოლოგია</option>
+                    <option value="ethics">ეთიკა</option>
+                    <option value="logic">ლოგიკა</option>
+                    <option value="meta">მეტაფიზიკა</option>
+                    <option value="lang">ენის ფილოსოფია</option>
+                    <option value="anthro">ანთროპოლოგიური ფილოსოფია</option>
+                    <option value="aesthetics">ესთეტიკა</option>
+                    <option value="exist">ეგზისტენციალიზმი</option>
+                    <option value="onto">ონტოლოგია</option>
+                    <option value="axio">ობიექტური აქსიოლოგია</option>
+                    <option value="histphil">ფილოსოფიის ისტორია</option>
+                    <option value="relphil">რელიგიის ფილოსოფია</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>შინაარსი</label>
+                <div class="editor-toolbar">
+                    <button class="tb-btn" onclick="fmtS('bold')" title="მუქი"><b>B</b></button>
+                    <button class="tb-btn" onclick="fmtS('italic')" title="დახრილი"><i>I</i></button>
+                    <button class="tb-btn" onclick="fmtS('underline')" title="ხაზგასმული"><u>U</u></button>
+                    <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
+                    <button class="tb-btn" onclick="formatHeadingS('h1')" title="სათაური 1">H1</button>
+                    <button class="tb-btn" onclick="formatHeadingS('h2')" title="სათაური 2">H2</button>
+                    <button class="tb-btn" onclick="formatHeadingS('h3')" title="სათაური 3">H3</button>
+                    <button class="tb-btn" onclick="formatHeadingS('p')" title="ჩვეულებრივი ტექსტი">P</button>
+                    <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
+                    <button class="tb-btn" onclick="fmtS('insertOrderedList')" title="დანომრილი სია">1.</button>
+                    <button class="tb-btn" onclick="fmtS('insertUnorderedList')" title="ჩამონათვალი">•</button>
+                    <button class="tb-btn" onclick="insertBlockquoteS()" title="ციტატა">❝</button>
+                </div>
+                <div class="editor-area" id="submissionArea" contenteditable="true" data-placeholder="დაიწყე წერა..."></div>
+            </div>
+            <button class="btn btn-primary" id="submitArticleBtn" onclick="submitArticle()">გაგზავნა</button>
+            <button class="btn btn-secondary" onclick="closeModal('publicSubmissionModal')">გაუქმება</button>
+        </div>
+    </div>
+
+    <!-- ===== PENDING PANEL MODAL ===== -->
+    <div class="modal" id="pendingModal">
+        <div class="modal-box" style="max-width:1000px; max-height:85vh; overflow-y:auto;">
+            <button class="modal-close" onclick="closeModal('pendingModal')">✕</button>
+            <h2>მოლოდინში მყოფი სტატიები</h2>
+            <div id="pendingList" style="margin-top:25px;"></div>
+        </div>
+    </div>
+
+    <!-- ===== ADD GLOSSARY TERM MODAL ===== -->
+    <div class="modal" id="addGlossaryModal">
+        <div class="modal-box wide">
+            <button class="modal-close" onclick="closeModal('addGlossaryModal')">✕</button>
+            <h2>ახალი ტერმინის დამატება</h2>
+            <div class="msg error" id="addGlossaryError"></div>
+            <div class="msg success" id="addGlossarySuccess"></div>
+            
+            <div class="form-group">
+                <label>ტერმინი</label>
+                <input type="text" id="newTermName" placeholder="მაგ: ონტოლოგია" />
+            </div>
+            
+            <div class="form-group">
+                <label>კატეგორია (არასავალდებულო)</label>
+                <input type="text" id="newTermCategory" placeholder="მაგ: მეტაფიზიკა" />
+            </div>
+            
+            <div class="form-group">
+                <label>განმარტება</label>
+                <textarea id="newTermDefinition" placeholder="ტერმინის სრული განმარტება..." rows="6"></textarea>
+            </div>
+            
+            <button class="btn btn-primary" style="width:100%;" id="addTermBtn" onclick="addGlossaryTerm()">დამატება</button>
+        </div>
+    </div>
+
+    <!-- ===== EDIT GLOSSARY TERM MODAL ===== -->
+    <div class="modal" id="editGlossaryModal">
+        <div class="modal-box wide">
+            <button class="modal-close" onclick="closeModal('editGlossaryModal')">✕</button>
+            <h2>ტერმინის რედაქტირება</h2>
+            <div class="msg error" id="editGlossaryError"></div>
+            <div class="msg success" id="editGlossarySuccess"></div>
+            
+            <div class="form-group">
+                <label>ტერმინი</label>
+                <input type="text" id="editTermName" />
+            </div>
+            
+            <div class="form-group">
+                <label>კატეგორია</label>
+                <input type="text" id="editTermCategory" />
+            </div>
+            
+            <div class="form-group">
+                <label>განმარტება</label>
+                <textarea id="editTermDefinition" rows="6"></textarea>
+            </div>
+            
+            <button class="btn btn-primary" style="width:100%;" id="updateTermBtn" onclick="updateGlossaryTerm()">განახლება</button>
+        </div>
+    </div>
+
+    <!-- Glossary Add Button (admin only) -->
+    <button id="glossaryAddBtn" onclick="openModal('addGlossaryModal')" style="display:none; position:fixed; bottom:32px; right:32px; width:60px; height:60px; background:linear-gradient(135deg, var(--accent), var(--accent2)); color:#0a1929; border-radius:50%; border:none; font-size:26px; cursor:pointer; font-weight:700; box-shadow:0 10px 35px rgba(167,139,250,0.5); align-items:center; justify-content:center; z-index:3000; transition:0.3s;">+</button>
+
+
+    <!-- ===== SOCIAL FOOTER ===== -->
+    <footer class="social-footer">
+        <a href="https://www.facebook.com/profile.php?id=61583986255288" target="_blank" rel="noopener noreferrer" class="fb-admin-link" title="ადმინისტრატორი">
+            <img src="https://i.imgur.com/9LnEwW7.png" alt="ადმინისტრატორი" class="fb-admin-img" />
+        </a>
+    </footer>
+
+    <!-- ===== SCRIPTS ===== -->
+
+    <!-- JavaScript ფაილის დაკავშირება -->
+    <script src="js/script.js"></script>
+</body>
+</html>
