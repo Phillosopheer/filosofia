@@ -19,7 +19,7 @@ setTimeout(async () => {
   document.body.appendChild(el);
   try {
     el.textContent = 'App Check: ველოდები...';
-    const result = await firebase.appCheck().getToken(true);
+    const result = await firebase.appCheck().getToken();
     el.style.background = '#1a3a1a';
     el.textContent = 'App Check OK: ' + result.token.substring(0, 50) + '...';
   } catch(e) {
