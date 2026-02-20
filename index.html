@@ -89,24 +89,24 @@
     <!-- Header -->
     <header class="header">
         <button class="menu-btn" id="menuBtn">☰</button>
-        <div class="logo" id="logoBtn" style="cursor:pointer; display: flex; align-items: center; gap: 10px;">
-            <span style="background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 50%, #e0d7ff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 700; font-size: 1.75rem; letter-spacing: 2px;">ფილოსოფია</span>
+        <div class="logo" id="logoBtn">
+            <span class="logo-title">ფილოსოფია</span>
         </div>
-        <div style="display:flex; gap:12px; align-items:center;">
+        <div class="header-actions">
             <span class="user-badge" id="userBadge"></span>
             <!-- Public Submission Button -->
-            <button class="header-btn" id="submitBtn" title="სტატიის გაგზავნა" style="color: var(--accent);">
+            <button class="header-btn" id="submitBtn" title="სტატიის გაგზავნა">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                 </svg>
             </button>
             <!-- Admin Pending Button -->
-            <button class="header-btn" id="pendingBtn" title="მოლოდინში" style="display:none; position:relative;">
+            <button class="header-btn" id="pendingBtn" title="მოლოდინში">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
                 </svg>
-                <span id="pendingBadge" style="position:absolute; top:-4px; right:-4px; background:#ef4444; color:white; font-size:0.65rem; font-weight:700; padding:2px 5px; border-radius:10px; display:none; min-width:18px; text-align:center;"></span>
+                <span id="pendingBadge"></span>
             </button>
             <button class="header-btn" id="logoutBtn" title="გამოსვლა">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -129,9 +129,9 @@
 
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:40px;">
+        <div class="sidebar-header">
             <h2>კატეგორიები</h2>
-            <button id="sidebarCloseBtn" style="background:none; border:none; font-size:1.5rem; color:var(--text); cursor:pointer;">✕</button>
+            <button id="sidebarCloseBtn">✕</button>
         </div>
         
         <!-- Glossary Button -->
@@ -145,33 +145,31 @@
     <!-- Hero -->
     <section class="hero">
         <h1 id="pageTitle" class="shimmer">ჩვენ გვიყვარს ფილოსოფია</h1>
-        <div id="heroBook" style="display: none;"></div>
-        <p id="pageSubtitle" style="max-width: 700px; margin: 0 auto 30px; line-height: 2;"></p>
-        <div class="welcome-text" style="display: block;">
+        <div id="heroBook"></div>
+        <p id="pageSubtitle"></p>
+        <div class="welcome-text">
             <p>კეთილი იყოს თქვენი მობრძანება ფილოსოფიურ პლატფორმაზე</p>
             <p>წინამდებარე რესურსი წარმოადგენს სივრცეს კრიტიკული აზროვნებისა და ინტელექტუალური ძიებისთვის. ჩვენი მიზანია, მკითხველს მივაწოდოთ სიღრმისეული ანალიზი ფილოსოფიის სხვადასხვა ქვედარგის შესახებ - მეტაფიზიკიდან და ეპისტემოლოგიიდან დაწყებული, ეთიკითა და პოლიტიკური ფილოსოფიით დასრულებული.</p>
         </div>
         
         <!-- Random Nietzsche Quote -->
-        <div id="quoteSection" style="display: block; margin-top: 40px; padding: 30px 40px; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; max-width: 800px; margin-left: auto; margin-right: auto; position: relative; overflow: hidden;">
-            <div style="position: absolute; top: 15px; left: 25px; font-size: 4rem; opacity: 0.1; color: var(--accent); font-family: Georgia, serif; line-height: 1;">"</div>
-            <p id="quoteText" style="font-family: 'Cormorant Garamond', serif; font-size: 1.25rem; line-height: 1.9; font-style: italic; color: var(--text); margin: 0 0 15px 0; position: relative; z-index: 1;"></p>
-            <p id="quoteAuthor" style="text-align: right; color: var(--accent); font-size: 0.95rem; font-weight: 600; letter-spacing: 1px; margin: 0;">— ფრიდრიხ ნიცშე</p>
+        <div id="quoteSection">
+            <div class="quote-mark">"</div>
+            <p id="quoteText"></p>
+            <p id="quoteAuthor">— ფრიდრიხ ნიცშე</p>
         </div>
     </section>
 
     <!-- Search Bar -->
-    <div id="searchBar" style="display:none; padding: 0 5% 30px; max-width:1400px; margin:0 auto;">
-        <div style="position:relative;">
-            <span style="position:absolute; left:18px; top:50%; transform:translateY(-50%); font-size:1.1rem; color:var(--text-dim);">🔍</span>
+    <div id="searchBar">
+        <div class="search-wrapper">
+            <span class="search-icon-inline">🔍</span>
             <input
                 type="text"
                 id="searchInput"
                 placeholder="სტატიის ძებნა..."
                 aria-label="სტატიის ძებნა"
-                style="width:100%; padding:14px 18px 14px 48px; border-radius:14px; border:1px solid var(--border);
-                       background:var(--surface); color:var(--text); font-size:1rem; font-family:'Inter',sans-serif;
-                       outline:none; transition:0.3s;"
+
             />
         </div>
     </div>
@@ -180,19 +178,19 @@
     <main class="grid" id="notesGrid"></main>
 
     <!-- Home Welcome Section -->
-    <section id="homeSection" style="display:none; max-width:900px; margin:0 auto; padding:20px 5% 80px;">
-        <div style="background:var(--surface); border:1px solid var(--border); border-radius:24px; padding:55px 50px; text-align:center; position:relative; overflow:hidden;">
-            <div style="position:absolute; top:-80px; right:-80px; width:250px; height:250px; background:radial-gradient(circle, rgba(167,139,250,0.1), transparent); border-radius:50%; pointer-events:none;"></div>
-            <div style="position:absolute; bottom:-60px; left:-60px; width:200px; height:200px; background:radial-gradient(circle, rgba(129,140,248,0.07), transparent); border-radius:50%; pointer-events:none;"></div>
+    <section id="homeSection">
+        <div class="home-card">
+            <div class="home-deco-tr"></div>
+            <div class="home-deco-bl"></div>
             <!-- Featured Articles Carousel -->
-            <div style="margin-top:45px; padding-top:35px; border-top:1px solid var(--border);">
-                <h3 style="font-family:'Cormorant Garamond', serif; font-size:1.5rem; font-weight:600; color:var(--text); margin-bottom:30px; letter-spacing:1px;">შემოთავაზებული სტატიები</h3>
-                <div id="featuredCarousel" style="overflow:hidden; position:relative; border-radius:16px;">
-                    <div id="carouselTrack" style="display:flex; transition:transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); gap:20px;">
+            <div class="carousel-section">
+                <h3 class="carousel-title">შემოთავაზებული სტატიები</h3>
+                <div id="featuredCarousel">
+                    <div id="carouselTrack">
                         <!-- Cards will be inserted here by JavaScript -->
                     </div>
                     <!-- Navigation Dots -->
-                    <div id="carouselDots" style="display:flex; justify-content:center; gap:8px; margin-top:25px;"></div>
+                    <div id="carouselDots"></div>
                 </div>
             </div>
         </div>
@@ -202,27 +200,27 @@
     <div id="reader" class="reader">
         <button class="close-btn" id="closeReaderBtn">✕</button>
         <div class="reader-inner">
-            <p id="readCat" style="color:var(--accent); font-size:0.72rem; font-weight:600; letter-spacing:3px; text-transform:uppercase; margin-bottom:18px; opacity:0.8;"></p>
-            <h2 id="readTitle" aria-live="polite" style="font-family:'Cormorant Garamond', serif; font-size:3rem; font-weight:700; margin-bottom:14px; line-height:1.2; letter-spacing:0.3px;"></h2>
-            <p id="readDate" style="color:var(--text-dim); font-size:0.78rem; letter-spacing:1px; margin-bottom:12px; font-weight:500;"></p>
-            <p id="readAuthor" style="color:var(--accent); font-size:0.85rem; font-weight:600; margin-bottom:35px; padding-bottom:25px; border-bottom:1px solid var(--border); letter-spacing:0.5px;"></p>
-            <div id="readCover" style="margin-bottom:30px;"></div>
-            <div id="readBody" style="font-size:1.1rem; line-height:2; color:var(--text); font-weight:300; font-family:'Cormorant Garamond', serif;"></div>
-            <div id="adminControls" style="display:none; margin-top:40px; padding-top:30px; border-top:1px solid var(--border);">
-                <button class="btn btn-secondary" id="copyNoteBtn" style="width:auto; padding:10px 25px; margin-right:10px;">📋 კოპირება</button>
-                <button class="btn btn-secondary" id="openEditModalBtn" style="width:auto; padding:10px 25px; margin-right:10px;">✏️ რედაქტირება</button>
-                <button class="btn btn-danger" id="deleteCurrentNoteBtn" style="width:auto; padding:10px 25px;">🗑 წაშლა</button>
+            <p id="readCat"></p>
+            <h2 id="readTitle" aria-live="polite"></h2>
+            <p id="readDate"></p>
+            <p id="readAuthor"></p>
+            <div id="readCover"></div>
+            <div id="readBody"></div>
+            <div id="adminControls">
+                <button class="btn btn-secondary" id="copyNoteBtn">📋 კოპირება</button>
+                <button class="btn btn-secondary" id="openEditModalBtn">✏️ რედაქტირება</button>
+                <button class="btn btn-danger" id="deleteCurrentNoteBtn">🗑 წაშლა</button>
             </div>
 
             <!-- ===== ARTICLE BOT ===== -->
-            <div id="articleBotSection" style="margin-top:40px; padding-top:30px; border-top:1px solid var(--border);">
+            <div id="articleBotSection">
                 <button class="article-bot-toggle" id="articleBotToggle">
                     <span>🤖</span> სტატიის ასისტენტი
-                    <span id="articleBotChevron" style="margin-left:auto; transition:transform 0.3s;">▾</span>
+                    <span id="articleBotChevron">▾</span>
                 </button>
-                <div id="articleBotPanel" style="display:none; margin-top:20px;">
-                    <div id="articleBotResult" class="article-bot-result" style="display:none;"></div>
-                    <div id="articleBotLoading" class="article-bot-loading" style="display:none;">
+                <div id="articleBotPanel">
+                    <div id="articleBotResult" class="article-bot-result"></div>
+                    <div id="articleBotLoading" class="article-bot-loading">
                         <span></span><span></span><span></span>
                     </div>
                     <div class="article-bot-input-row">
@@ -235,10 +233,10 @@
                         />
                         <button class="article-bot-send" id="articleBotSendBtn" aria-label="კითხვის გაგზავნა">↑</button>
                     </div>
-                    <p style="font-size:0.75rem; color:var(--text-dim); margin-top:10px; opacity:0.7;">ბოტი პასუხობს მხოლოდ ამ სტატიის მიხედვით</p>
+                    <p class="bot-hint">ბოტი პასუხობს მხოლოდ ამ სტატიის მიხედვით</p>
                     <!-- ადმინ განბლოკვის ღილაკი — მხოლოდ შესვლის შემდეგ -->
-                    <div id="botAdminUnblock" style="display:none; margin-top:12px;">
-                        <button id="adminUnblockBotBtn" style="padding:6px 14px; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); border-radius:8px; color:#22c55e; cursor:pointer; font-size:0.8rem; font-weight:600;">🔓 ბლოკის მოხსნა (ადმინი)</button>
+                    <div id="botAdminUnblock">
+                        <button id="adminUnblockBotBtn">🔓 ბლოკის მოხსნა (ადმინი)</button>
                     </div>
                 </div>
             </div>
@@ -254,7 +252,7 @@
         
         <div class="glossary-header">
             <h2>ლექსიკონი</h2>
-            <p style="color: var(--text-dim); font-size: 1.05rem; margin-bottom: 10px;">
+            <p class="glossary-modal-desc">
                 აქ იპოვით სიტყვების განმარტებებს
             </p>
             
@@ -270,9 +268,9 @@
                 />
                 <div id="suggestionDropdown" class="suggestions-dropdown"></div>
             </div>
-            <div style="margin-top:18px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
-                <p style="color:var(--text-dim); font-size:0.9rem; letter-spacing:1px; margin:0;">
-                    📚 ლექსიკონი შეიცავს <strong id="glossaryCount" style="color:var(--accent);">0</strong> სიტყვას
+            <div class="glossary-stats-row">
+                <p class="glossary-stats-text">
+                    📚 ლექსიკონი შეიცავს <strong id="glossaryCount">0</strong> სიტყვას
                 </p>
             </div>
         </div>
@@ -280,7 +278,7 @@
 
 
 
-        <div id="termDisplay" class="term-display" style="display: none;">
+        <div id="termDisplay" class="term-display">
             <div class="back-to-search" id="backToSearchBtn">
                 ← უკან ძებნაზე
             </div>
@@ -290,13 +288,13 @@
                 <div id="termDefinition" class="term-definition"></div>
                 
                 <div id="glossaryAdminControls" class="glossary-admin-controls">
-                    <button class="btn btn-secondary" id="editGlossaryTermBtn" style="margin-right: 10px;">✏️ რედაქტირება</button>
+                    <button class="btn btn-secondary" id="editGlossaryTermBtn">✏️ რედაქტირება</button>
                     <button class="btn btn-danger" id="deleteGlossaryTermBtn">🗑 წაშლა</button>
                 </div>
             </div>
         </div>
 
-        <div id="glossaryInitialView" style="display:none;"></div>
+        <div id="glossaryInitialView"></div>
     </div>
 
     <!-- ===== LOGIN MODAL ===== -->
@@ -330,8 +328,8 @@
             </div>
             <div class="form-group">
                 <label>Cover სურათი (არასავალდებულო)</label>
-                <input type="text" id="coverUrl" placeholder="https://example.com/image.jpg" aria-label="სქავნის URL" style="width:100%; padding:12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text);" />
-                <div id="coverPreview" style="margin-top:10px;"></div>
+                <input type="text" id="coverUrl" placeholder="https://example.com/image.jpg" aria-label="სქავნის URL" class="form-input-full" />
+                <div id="coverPreview"></div>
             </div>
             <div class="form-group">
                 <label>კატეგორია</label>
@@ -352,7 +350,7 @@
             </div>
             <div class="form-group">
                 <label>ავტორი (არასავალდებულო)</label>
-                <input type="text" id="editorAuthor" placeholder="მაგ: ნ. ქებაძე" aria-label="ავტორი" style="width:100%; padding:12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text);" />
+                <input type="text" id="editorAuthor" placeholder="მაგ: ნ. ქებაძე" aria-label="ავტორი" class="form-input-full" />
             </div>
             <div class="form-group">
                 <label>შინაარსი</label>
@@ -361,37 +359,37 @@
                     <button class="tb-btn" data-cmd="italic" title="დახრილი"><i>I</i></button>
                     <button class="tb-btn" data-cmd="underline" title="ხაზგასმული"><u>U</u></button>
                     <button class="tb-btn" data-cmd="strikeThrough" title="გადახაზული"><s>S</s></button>
-                    <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
+                    <span class="tb-separator"></span>
                     <label class="tb-btn color-picker-btn" title="ტექსტის ფერი">
-                        <span style="border-bottom:3px solid var(--accent);">A</span>
-                        <input type="color" id="textColorPicker" style="display:none;">
+                        <span class="tb-color-text">A</span>
+                        <input type="color" id="textColorPicker">
                     </label>
                     <label class="tb-btn color-picker-btn" title="ფონის ფერი">
-                        <span style="background:var(--accent); padding:2px 6px; border-radius:3px;">◼</span>
-                        <input type="color" id="bgColorPicker" style="display:none;">
+                        <span class="tb-color-bg">◼</span>
+                        <input type="color" id="bgColorPicker">
                     </label>
-                    <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
+                    <span class="tb-separator"></span>
                     <button class="tb-btn" data-cmd="h1" data-type="heading" title="სათაური 1">H1</button>
                     <button class="tb-btn" data-cmd="h2" data-type="heading" title="სათაური 2">H2</button>
                     <button class="tb-btn" data-cmd="h3" data-type="heading" title="სათაური 3">H3</button>
                     <button class="tb-btn" data-cmd="p" data-type="heading" title="ჩვეულებრივი ტექსტი">P</button>
-                    <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
-                    <select class="tb-btn" id="fontSizeSelect" aria-label="შრიფტის ზომა" style="padding:4px 8px; cursor:pointer;" title="შრიფტის ზომა">
+                    <span class="tb-separator"></span>
+                    <select class="tb-btn" id="fontSizeSelect" aria-label="შრიფტის ზომა" title="შრიფტის ზომა">
                         <option value="">ზომა</option>
                         <option value="1">პატარა</option>
                         <option value="3">ჩვეულებრივი</option>
                         <option value="5">დიდი</option>
                         <option value="7">ძალიან დიდი</option>
                     </select>
-                    <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
+                    <span class="tb-separator"></span>
                     <button class="tb-btn" data-cmd="justifyLeft" title="მარცხნივ">⬅</button>
                     <button class="tb-btn" data-cmd="justifyCenter" title="ცენტრში">↔</button>
                     <button class="tb-btn" data-cmd="justifyRight" title="მარjvნივ">➡</button>
-                    <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
+                    <span class="tb-separator"></span>
                     <button class="tb-btn" data-cmd="insertOrderedList" title="დანომრილი სია">1.</button>
                     <button class="tb-btn" data-cmd="insertUnorderedList" title="ჩამონათვალი">•</button>
                     <button class="tb-btn" data-cmd="blockquote" data-type="special" title="ციტატა">❝</button>
-                    <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
+                    <span class="tb-separator"></span>
                     <button class="tb-btn" data-cmd="link" data-type="special" title="ლინკი">🔗</button>
                     <button class="tb-btn" data-cmd="hr" data-type="special" title="გამყოფი ხაზი">―</button>
                     <button class="tb-btn" data-cmd="removeFormat" title="ფორმატის გასუფთავება">✗</button>
@@ -421,11 +419,11 @@
             </div>
             <div class="form-group">
                 <label>Cover სურათი (არასავალდებულო)</label>
-                <div style="display:flex; gap:12px; margin-bottom:12px;">
-                    <input type="text" id="editCoverUrl" placeholder="https://example.com/image.jpg" aria-label="სქავნის URL" style="flex:1; padding:12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text);" />
-                    <button type="button" id="removeCoverImageBtn" style="padding:6px 14px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); border-radius:8px; color:#ef4444; font-size:0.85rem; cursor:pointer; transition:0.3s;">🗑 წაშლა</button>
+                <div class="edit-cover-row">
+                    <input type="text" id="editCoverUrl" placeholder="https://example.com/image.jpg" aria-label="სქავნის URL" class="edit-cover-input" />
+                    <button type="button" id="removeCoverImageBtn">🗑 წაშლა</button>
                 </div>
-                <div id="editCoverPreview" style="margin-top:10px;"></div>
+                <div id="editCoverPreview"></div>
             </div>
             <div class="form-group">
                 <label>კატეგორია</label>
@@ -446,7 +444,7 @@
             </div>
             <div class="form-group">
                 <label>ავტორი (არასავალდებულო)</label>
-                <input type="text" id="editAuthor" placeholder="მაგ: ნ. ქებაძე" aria-label="ავტორი" style="width:100%; padding:12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text);" />
+                <input type="text" id="editAuthor" placeholder="მაგ: ნ. ქებაძე" aria-label="ავტორი" class="form-input-full" />
             </div>
             <div class="form-group">
                 <label>შინაარსი</label>
@@ -455,37 +453,37 @@
                     <button class="tb-btn" data-cmd="italic" data-target="edit" title="დახრილი"><i>I</i></button>
                     <button class="tb-btn" data-cmd="underline" data-target="edit" title="ხაზგასმული"><u>U</u></button>
                     <button class="tb-btn" data-cmd="strikeThrough" data-target="edit" title="გადახაზული"><s>S</s></button>
-                    <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
+                    <span class="tb-separator"></span>
                     <label class="tb-btn color-picker-btn" title="ტექსტის ფერი">
-                        <span style="border-bottom:3px solid var(--accent);">A</span>
-                        <input type="color" id="textColorPickerE" style="display:none;">
+                        <span class="tb-color-text">A</span>
+                        <input type="color" id="textColorPickerE">
                     </label>
                     <label class="tb-btn color-picker-btn" title="ფონის ფერი">
-                        <span style="background:var(--accent); padding:2px 6px; border-radius:3px;">◼</span>
-                        <input type="color" id="bgColorPickerE" style="display:none;">
+                        <span class="tb-color-bg">◼</span>
+                        <input type="color" id="bgColorPickerE">
                     </label>
-                    <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
+                    <span class="tb-separator"></span>
                     <button class="tb-btn" data-cmd="h1" data-type="heading" data-target="edit" title="სათაური 1">H1</button>
                     <button class="tb-btn" data-cmd="h2" data-type="heading" data-target="edit" title="სათაური 2">H2</button>
                     <button class="tb-btn" data-cmd="h3" data-type="heading" data-target="edit" title="სათაური 3">H3</button>
                     <button class="tb-btn" data-cmd="p" data-type="heading" data-target="edit" title="ჩვეულებრივი ტექსტი">P</button>
-                    <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
-                    <select class="tb-btn" id="fontSizeSelectE" aria-label="შრიფტის ზომა" style="padding:4px 8px; cursor:pointer;" title="შრიფტის ზომა">
+                    <span class="tb-separator"></span>
+                    <select class="tb-btn" id="fontSizeSelectE" aria-label="შრიფტის ზომა" title="შრიფტის ზომა">
                         <option value="">ზომა</option>
                         <option value="1">პატარა</option>
                         <option value="3">ჩვეულებრივი</option>
                         <option value="5">დიდი</option>
                         <option value="7">ძალიან დიდი</option>
                     </select>
-                    <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
+                    <span class="tb-separator"></span>
                     <button class="tb-btn" data-cmd="justifyLeft" data-target="edit" title="მარცხნივ">⬅</button>
                     <button class="tb-btn" data-cmd="justifyCenter" data-target="edit" title="ცენტრში">↔</button>
                     <button class="tb-btn" data-cmd="justifyRight" data-target="edit" title="მარjvნივ">➡</button>
-                    <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
+                    <span class="tb-separator"></span>
                     <button class="tb-btn" data-cmd="insertOrderedList" data-target="edit" title="დანომრილი სია">1.</button>
                     <button class="tb-btn" data-cmd="insertUnorderedList" data-target="edit" title="ჩამონათვალი">•</button>
                     <button class="tb-btn" data-cmd="blockquote" data-type="special" data-target="edit" title="ციტატა">❝</button>
-                    <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
+                    <span class="tb-separator"></span>
                     <button class="tb-btn" data-cmd="link" data-type="special" data-target="edit" title="ლინკი">🔗</button>
                     <button class="tb-btn" data-cmd="hr" data-type="special" data-target="edit" title="გამყოფი ხაზი">―</button>
                     <button class="tb-btn" data-cmd="removeFormat" data-target="edit" title="ფორმატის გასუფთავება">✗</button>
@@ -502,7 +500,7 @@
         <div class="modal-box wide">
             <button class="modal-close" id="closeSubmissionModalBtn">✕</button>
             <h2>სტატიის გაგზავნა</h2>
-            <p style="color:var(--text-dim); font-size:0.9rem; margin-bottom:20px; line-height:1.6;">თქვენი სტატია გაიგზავნება ადმინისტრატორთან. დადასტურების შემდეგ ის გამოქვეყნდება საიტზე.</p>
+            <p class="submission-desc">თქვენი სტატია გაიგზავნება ადმინისტრატორთან. დადასტურების შემდეგ ის გამოქვეყნდება საიტზე.</p>
             <div class="msg error" id="submissionError"></div>
             <div class="msg success" id="submissionSuccess"></div>
             <div class="form-group">
@@ -511,7 +509,7 @@
             </div>
             <div class="form-group">
                 <label>თქვენი სახელი (არასავალდებულო)</label>
-                <input type="text" id="submissionAuthor" placeholder="მაგ: ნ. ქებაძე" style="width:100%; padding:12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text);" />
+                <input type="text" id="submissionAuthor" class="form-input-full" placeholder="მაგ: ნ. ქებაძე" />
             </div>
             <div class="form-group">
                 <label>კატეგორია</label>
@@ -536,12 +534,12 @@
                     <button class="tb-btn" data-cmd="bold" data-target="sub" title="მუქი"><b>B</b></button>
                     <button class="tb-btn" data-cmd="italic" data-target="sub" title="დახრილი"><i>I</i></button>
                     <button class="tb-btn" data-cmd="underline" data-target="sub" title="ხაზგასმული"><u>U</u></button>
-                    <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
+                    <span class="tb-separator"></span>
                     <button class="tb-btn" data-cmd="h1" data-type="heading" data-target="sub" title="სათაური 1">H1</button>
                     <button class="tb-btn" data-cmd="h2" data-type="heading" data-target="sub" title="სათაური 2">H2</button>
                     <button class="tb-btn" data-cmd="h3" data-type="heading" data-target="sub" title="სათაური 3">H3</button>
                     <button class="tb-btn" data-cmd="p" data-type="heading" data-target="sub" title="ჩვეულებრივი ტექსტი">P</button>
-                    <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
+                    <span class="tb-separator"></span>
                     <button class="tb-btn" data-cmd="insertOrderedList" data-target="sub" title="დანომრილი სია">1.</button>
                     <button class="tb-btn" data-cmd="insertUnorderedList" data-target="sub" title="ჩამონათვალი">•</button>
                     <button class="tb-btn" data-cmd="blockquote" data-type="special" data-target="sub" title="ციტატა">❝</button>
@@ -555,10 +553,10 @@
 
     <!-- ===== PENDING PANEL MODAL ===== -->
     <div class="modal" id="pendingModal">
-        <div class="modal-box" style="max-width:1000px; max-height:85vh; overflow-y:auto;">
+        <div class="modal-box pending-modal-box">
             <button class="modal-close" id="closePendingModalBtn">✕</button>
             <h2>მოლოდინში მყოფი სტატიები</h2>
-            <div id="pendingList" style="margin-top:25px;"></div>
+            <div id="pendingList"></div>
         </div>
     </div>
 
@@ -585,7 +583,7 @@
                 <textarea id="newTermDefinition" placeholder="ტერმინის სრული განმარტება..." rows="6"></textarea>
             </div>
             
-            <button class="btn btn-primary" style="width:100%;" id="addTermBtn">დამატება</button>
+            <button class="btn btn-primary" id="addTermBtn">დამატება</button>
         </div>
     </div>
 
@@ -612,12 +610,12 @@
                 <textarea id="editTermDefinition" rows="6"></textarea>
             </div>
             
-            <button class="btn btn-primary" style="width:100%;" id="updateTermBtn">განახლება</button>
+            <button class="btn btn-primary" id="updateTermBtn">განახლება</button>
         </div>
     </div>
 
     <!-- Glossary Add Button (admin only) -->
-    <button id="glossaryAddBtn" style="display:none; position:fixed; bottom:32px; right:32px; width:60px; height:60px; background:linear-gradient(135deg, var(--accent), var(--accent2)); color:#0a1929; border-radius:50%; border:none; font-size:26px; cursor:pointer; font-weight:700; box-shadow:0 10px 35px rgba(167,139,250,0.5); align-items:center; justify-content:center; z-index:3000; transition:0.3s;">+</button>
+    <button id="glossaryAddBtn">+</button>
 
 
     <!-- ===== SOCIAL FOOTER ===== -->
