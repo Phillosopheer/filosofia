@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Security Headers -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://*.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://filosofia-xi.vercel.app https://*.firebaseio.com https://*.googleapis.com https://*.firebaseapp.com; img-src 'self' data: https:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com https://*.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://filosofia-xi.vercel.app https://*.firebaseio.com https://*.googleapis.com https://*.firebaseapp.com; img-src 'self' data: https:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';">
     <meta name="referrer" content="strict-origin-when-cross-origin">
 
     <title>ფილოსოფია - ქართული ფილოსოფიური პლატფორმა</title>
@@ -78,34 +78,34 @@
 
     <!-- Header -->
     <header class="header">
-        <button class="menu-btn" onclick="toggleMenu()">☰</button>
-        <div class="logo" onclick="goHome()" style="cursor:pointer; display: flex; align-items: center; gap: 10px;">
+        <button class="menu-btn" id="menuBtn">☰</button>
+        <div class="logo" id="logoBtn" style="cursor:pointer; display: flex; align-items: center; gap: 10px;">
             <span style="background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 50%, #e0d7ff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 700; font-size: 1.75rem; letter-spacing: 2px;">ფილოსოფია</span>
         </div>
         <div style="display:flex; gap:12px; align-items:center;">
             <span class="user-badge" id="userBadge"></span>
             <!-- Public Submission Button -->
-            <button class="header-btn" id="submitBtn" onclick="openPublicSubmission()" title="სტატიის გაგზავნა" style="color: var(--accent);">
+            <button class="header-btn" id="submitBtn" title="სტატიის გაგზავნა" style="color: var(--accent);">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                 </svg>
             </button>
             <!-- Admin Pending Button -->
-            <button class="header-btn" id="pendingBtn" onclick="openPendingPanel()" title="მოლოდინში" style="display:none; position:relative;">
+            <button class="header-btn" id="pendingBtn" title="მოლოდინში" style="display:none; position:relative;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
                 </svg>
                 <span id="pendingBadge" style="position:absolute; top:-4px; right:-4px; background:#ef4444; color:white; font-size:0.65rem; font-weight:700; padding:2px 5px; border-radius:10px; display:none; min-width:18px; text-align:center;"></span>
             </button>
-            <button class="header-btn" id="logoutBtn" onclick="doLogout()" title="გამოსვლა">
+            <button class="header-btn" id="logoutBtn" title="გამოსვლა">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
                     <polyline points="16 17 21 12 16 7"/>
                     <line x1="21" y1="12" x2="9" y2="12"/>
                 </svg>
             </button>
-            <button class="header-btn" id="lockBtn" onclick="handleAuthBtn()" title="შესვლა">
+            <button class="header-btn" id="lockBtn" title="შესვლა">
                 <svg id="lockIcon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                     <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
@@ -115,17 +115,17 @@
     </header>
 
     <!-- Sidebar Overlay -->
-    <div class="overlay" id="sidebarOverlay" onclick="toggleMenu()"></div>
+    <div class="overlay" id="sidebarOverlay"></div>
 
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:40px;">
             <h2>კატეგორიები</h2>
-            <button onclick="toggleMenu()" style="background:none; border:none; font-size:1.5rem; color:var(--text); cursor:pointer;">✕</button>
+            <button id="sidebarCloseBtn" style="background:none; border:none; font-size:1.5rem; color:var(--text); cursor:pointer;">✕</button>
         </div>
         
         <!-- Glossary Button -->
-        <div class="glossary-btn" onclick="openGlossary()">
+        <div class="glossary-btn" id="glossaryOpenBtn">
             📚 ლექსიკონი
         </div>
         
@@ -158,12 +158,9 @@
                 type="text"
                 id="searchInput"
                 placeholder="სტატიის ძებნა..."
-                oninput="filterNotes()"
                 style="width:100%; padding:14px 18px 14px 48px; border-radius:14px; border:1px solid var(--border);
                        background:var(--surface); color:var(--text); font-size:1rem; font-family:'Inter',sans-serif;
                        outline:none; transition:0.3s;"
-                onfocus="this.style.borderColor='var(--accent)'; this.style.boxShadow='0 0 0 3px rgba(59,130,246,0.15)'"
-                onblur="this.style.borderColor='var(--border)'; this.style.boxShadow='none'"
             />
         </div>
     </div>
@@ -192,7 +189,7 @@
 
     <!-- Reader -->
     <div id="reader" class="reader">
-        <button class="close-btn" onclick="closeReader()">✕</button>
+        <button class="close-btn" id="closeReaderBtn">✕</button>
         <div class="reader-inner">
             <p id="readCat" style="color:var(--accent); font-size:0.72rem; font-weight:600; letter-spacing:3px; text-transform:uppercase; margin-bottom:18px; opacity:0.8;"></p>
             <h1 id="readTitle" style="font-family:'Cormorant Garamond', serif; font-size:3rem; font-weight:700; margin-bottom:14px; line-height:1.2; letter-spacing:0.3px;"></h1>
@@ -201,14 +198,14 @@
             <div id="readCover" style="margin-bottom:30px;"></div>
             <div id="readBody" style="font-size:1.1rem; line-height:2; color:var(--text); font-weight:300; font-family:'Cormorant Garamond', serif;"></div>
             <div id="adminControls" style="display:none; margin-top:40px; padding-top:30px; border-top:1px solid var(--border);">
-                <button class="btn btn-secondary" style="width:auto; padding:10px 25px; margin-right:10px;" onclick="copyNote(this)">📋 კოპირება</button>
-                <button class="btn btn-secondary" style="width:auto; padding:10px 25px; margin-right:10px;" onclick="openEditModal()">✏️ რედაქტირება</button>
-                <button class="btn btn-danger" style="width:auto; padding:10px 25px;" onclick="deleteCurrentNote()">🗑 წაშლა</button>
+                <button class="btn btn-secondary" id="copyNoteBtn" style="width:auto; padding:10px 25px; margin-right:10px;">📋 კოპირება</button>
+                <button class="btn btn-secondary" id="openEditModalBtn" style="width:auto; padding:10px 25px; margin-right:10px;">✏️ რედაქტირება</button>
+                <button class="btn btn-danger" id="deleteCurrentNoteBtn" style="width:auto; padding:10px 25px;">🗑 წაშლა</button>
             </div>
 
             <!-- ===== ARTICLE BOT ===== -->
             <div id="articleBotSection" style="margin-top:40px; padding-top:30px; border-top:1px solid var(--border);">
-                <button class="article-bot-toggle" id="articleBotToggle" onclick="toggleArticleBot()">
+                <button class="article-bot-toggle" id="articleBotToggle">
                     <span>🤖</span> სტატიის ასისტენტი
                     <span id="articleBotChevron" style="margin-left:auto; transition:transform 0.3s;">▾</span>
                 </button>
@@ -223,14 +220,14 @@
                             id="articleBotInput"
                             class="article-bot-input"
                             placeholder="დასვი კითხვა ამ სტატიის შესახებ..."
-                            onkeydown="if(event.key==='Enter') askArticleBot()"
+    
                         />
-                        <button class="article-bot-send" id="articleBotSendBtn" onclick="askArticleBot()">↑</button>
+                        <button class="article-bot-send" id="articleBotSendBtn">↑</button>
                     </div>
                     <p style="font-size:0.75rem; color:var(--text-dim); margin-top:10px; opacity:0.7;">ბოტი პასუხობს მხოლოდ ამ სტატიის მიხედვით</p>
                     <!-- ადმინ განბლოკვის ღილაკი — მხოლოდ შესვლის შემდეგ -->
                     <div id="botAdminUnblock" style="display:none; margin-top:12px;">
-                        <button onclick="adminUnblockBot()" style="padding:6px 14px; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); border-radius:8px; color:#22c55e; cursor:pointer; font-size:0.8rem; font-weight:600;">🔓 ბლოკის მოხსნა (ადმინი)</button>
+                        <button id="adminUnblockBotBtn" style="padding:6px 14px; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); border-radius:8px; color:#22c55e; cursor:pointer; font-size:0.8rem; font-weight:600;">🔓 ბლოკის მოხსნა (ადმინი)</button>
                     </div>
                 </div>
             </div>
@@ -238,11 +235,11 @@
     </div>
 
     <!-- FAB -->
-    <button class="fab" id="fabBtn" onclick="openEditor()">+</button>
+    <button class="fab" id="fabBtn">+</button>
 
     <!-- ===== GLOSSARY VIEW ===== -->
     <div id="glossaryView" class="glossary-view">
-        <button class="close-glossary-btn" onclick="closeGlossary()">✕</button>
+        <button class="close-glossary-btn" id="closeGlossaryBtn">✕</button>
         
         <div class="glossary-header">
             <h1>ლექსიკონი</h1>
@@ -257,7 +254,7 @@
                     id="glossarySearchInput"
                     class="glossary-search-input"
                     placeholder="მოძებნე ტერმინი..."
-                    oninput="searchGlossary()"
+
                     autocomplete="off"
                 />
                 <div id="suggestionDropdown" class="suggestions-dropdown"></div>
@@ -273,7 +270,7 @@
 
 
         <div id="termDisplay" class="term-display" style="display: none;">
-            <div class="back-to-search" onclick="backToGlossarySearch()">
+            <div class="back-to-search" id="backToSearchBtn">
                 ← უკან ძებნაზე
             </div>
             <div class="term-card">
@@ -282,8 +279,8 @@
                 <div id="termDefinition" class="term-definition"></div>
                 
                 <div id="glossaryAdminControls" class="glossary-admin-controls">
-                    <button class="btn btn-secondary" style="margin-right: 10px;" onclick="editGlossaryTerm()">✏️ რედაქტირება</button>
-                    <button class="btn btn-danger" onclick="deleteGlossaryTerm()">🗑 წაშლა</button>
+                    <button class="btn btn-secondary" id="editGlossaryTermBtn" style="margin-right: 10px;">✏️ რედაქტირება</button>
+                    <button class="btn btn-danger" id="deleteGlossaryTermBtn">🗑 წაშლა</button>
                 </div>
             </div>
         </div>
@@ -294,7 +291,7 @@
     <!-- ===== LOGIN MODAL ===== -->
     <div class="modal" id="loginModal">
         <div class="modal-box">
-            <button class="modal-close" onclick="closeModal('loginModal')">✕</button>
+            <button class="modal-close" id="closeLoginModalBtn">✕</button>
             <h2>შესვლა</h2>
             <div class="msg error" id="loginError"></div>
             <div class="form-group">
@@ -303,16 +300,16 @@
             </div>
             <div class="form-group">
                 <label>პაროლი</label>
-                <input type="password" id="loginPassword" placeholder="••••••••" onkeydown="if(event.key==='Enter') doLogin()" />
+                <input type="password" id="loginPassword" placeholder="••••••••" />
             </div>
-            <button class="btn btn-primary" id="loginBtn" onclick="doLogin()">შესვლა</button>
+            <button class="btn btn-primary" id="loginBtn">შესვლა</button>
         </div>
     </div>
 
     <!-- ===== EDITOR MODAL ===== -->
     <div class="modal" id="editorModal">
         <div class="modal-box wide">
-            <button class="modal-close" onclick="closeModal('editorModal')">✕</button>
+            <button class="modal-close" id="closeEditorModalBtn">✕</button>
             <h2>ახალი ჩანაწერი</h2>
             <div class="msg error" id="editorError"></div>
             <div class="msg success" id="editorSuccess"></div>
@@ -322,7 +319,7 @@
             </div>
             <div class="form-group">
                 <label>Cover სურათი (არასავალდებულო)</label>
-                <input type="text" id="coverUrl" placeholder="https://example.com/image.jpg" onchange="previewCoverUrl(this.value, 'coverPreview')" style="width:100%; padding:12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text);" />
+                <input type="text" id="coverUrl" placeholder="https://example.com/image.jpg" style="width:100%; padding:12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text);" />
                 <div id="coverPreview" style="margin-top:10px;"></div>
             </div>
             <div class="form-group">
@@ -349,26 +346,26 @@
             <div class="form-group">
                 <label>შინაარსი</label>
                 <div class="editor-toolbar" id="toolbar">
-                    <button class="tb-btn" onclick="fmt('bold')" title="მუქი"><b>B</b></button>
-                    <button class="tb-btn" onclick="fmt('italic')" title="დახრილი"><i>I</i></button>
-                    <button class="tb-btn" onclick="fmt('underline')" title="ხაზგასმული"><u>U</u></button>
-                    <button class="tb-btn" onclick="fmt('strikeThrough')" title="გადახაზული"><s>S</s></button>
+                    <button class="tb-btn" data-cmd="bold" title="მუქი"><b>B</b></button>
+                    <button class="tb-btn" data-cmd="italic" title="დახრილი"><i>I</i></button>
+                    <button class="tb-btn" data-cmd="underline" title="ხაზგასმული"><u>U</u></button>
+                    <button class="tb-btn" data-cmd="strikeThrough" title="გადახაზული"><s>S</s></button>
                     <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
-                    <label class="tb-btn color-picker-btn" title="ტექსტის ფერი" onclick="this.querySelector('input').click()">
+                    <label class="tb-btn color-picker-btn" title="ტექსტის ფერი">
                         <span style="border-bottom:3px solid var(--accent);">A</span>
-                        <input type="color" onchange="changeTextColor(this.value)" style="display:none;">
+                        <input type="color" id="textColorPicker" style="display:none;">
                     </label>
-                    <label class="tb-btn color-picker-btn" title="ფონის ფერი" onclick="this.querySelector('input').click()">
+                    <label class="tb-btn color-picker-btn" title="ფონის ფერი">
                         <span style="background:var(--accent); padding:2px 6px; border-radius:3px;">◼</span>
-                        <input type="color" onchange="changeBackColor(this.value)" style="display:none;">
+                        <input type="color" id="bgColorPicker" style="display:none;">
                     </label>
                     <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
-                    <button class="tb-btn" onclick="formatHeading('h1')" title="სათაური 1">H1</button>
-                    <button class="tb-btn" onclick="formatHeading('h2')" title="სათაური 2">H2</button>
-                    <button class="tb-btn" onclick="formatHeading('h3')" title="სათაური 3">H3</button>
-                    <button class="tb-btn" onclick="formatHeading('p')" title="ჩვეულებრივი ტექსტი">P</button>
+                    <button class="tb-btn" data-cmd="h1" data-type="heading" title="სათაური 1">H1</button>
+                    <button class="tb-btn" data-cmd="h2" data-type="heading" title="სათაური 2">H2</button>
+                    <button class="tb-btn" data-cmd="h3" data-type="heading" title="სათაური 3">H3</button>
+                    <button class="tb-btn" data-cmd="p" data-type="heading" title="ჩვეულებრივი ტექსტი">P</button>
                     <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
-                    <select class="tb-btn" onchange="changeFontSize(this.value)" style="padding:4px 8px; cursor:pointer;" title="შრიფტის ზომა">
+                    <select class="tb-btn" id="fontSizeSelect" style="padding:4px 8px; cursor:pointer;" title="შრიფტის ზომა">
                         <option value="">ზომა</option>
                         <option value="1">პატარა</option>
                         <option value="3">ჩვეულებრივი</option>
@@ -376,17 +373,17 @@
                         <option value="7">ძალიან დიდი</option>
                     </select>
                     <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
-                    <button class="tb-btn" onclick="fmt('justifyLeft')" title="მარცხნივ">⬅</button>
-                    <button class="tb-btn" onclick="fmt('justifyCenter')" title="ცენტრში">↔</button>
-                    <button class="tb-btn" onclick="fmt('justifyRight')" title="მარjvნივ">➡</button>
+                    <button class="tb-btn" data-cmd="justifyLeft" title="მარცხნივ">⬅</button>
+                    <button class="tb-btn" data-cmd="justifyCenter" title="ცენტრში">↔</button>
+                    <button class="tb-btn" data-cmd="justifyRight" title="მარjvნივ">➡</button>
                     <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
-                    <button class="tb-btn" onclick="fmt('insertOrderedList')" title="დანომრილი სია">1.</button>
-                    <button class="tb-btn" onclick="fmt('insertUnorderedList')" title="ჩამონათვალი">•</button>
-                    <button class="tb-btn" onclick="insertBlockquote()" title="ციტატა">❝</button>
+                    <button class="tb-btn" data-cmd="insertOrderedList" title="დანომრილი სია">1.</button>
+                    <button class="tb-btn" data-cmd="insertUnorderedList" title="ჩამონათვალი">•</button>
+                    <button class="tb-btn" data-cmd="blockquote" data-type="special" title="ციტატა">❝</button>
                     <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
-                    <button class="tb-btn" onclick="insertLink()" title="ლინკი">🔗</button>
-                    <button class="tb-btn" onclick="insertHR()" title="გამყოფი ხაზი">―</button>
-                    <button class="tb-btn" onclick="fmt('removeFormat')" title="ფორმატის გასუფთავება">✗</button>
+                    <button class="tb-btn" data-cmd="link" data-type="special" title="ლინკი">🔗</button>
+                    <button class="tb-btn" data-cmd="hr" data-type="special" title="გამყოფი ხაზი">―</button>
+                    <button class="tb-btn" data-cmd="removeFormat" title="ფორმატის გასუფთავება">✗</button>
                 </div>
                 <div
                     class="editor-area"
@@ -395,15 +392,15 @@
                     data-placeholder="დაიწყე წერა..."
                 ></div>
             </div>
-            <button class="btn btn-primary" id="saveBtn" onclick="saveNote()">შენახვა</button>
-            <button class="btn btn-secondary" onclick="closeModal('editorModal')">გაუქმება</button>
+            <button class="btn btn-primary" id="saveBtn">შენახვა</button>
+            <button class="btn btn-secondary" id="cancelEditorBtn">გაუქმება</button>
         </div>
     </div>
 
     <!-- ===== EDIT MODAL ===== -->
     <div class="modal" id="editModal">
         <div class="modal-box wide">
-            <button class="modal-close" onclick="closeModal('editModal')">✕</button>
+            <button class="modal-close" id="closeEditModalBtn">✕</button>
             <h2>რედაქტირება</h2>
             <div class="msg error" id="editError"></div>
             <div class="msg success" id="editSuccess"></div>
@@ -414,8 +411,8 @@
             <div class="form-group">
                 <label>Cover სურათი (არასავალდებულო)</label>
                 <div style="display:flex; gap:12px; margin-bottom:12px;">
-                    <input type="text" id="editCoverUrl" placeholder="https://example.com/image.jpg" onchange="previewCoverUrl(this.value, 'editCoverPreview')" style="flex:1; padding:12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text);" />
-                    <button type="button" onclick="removeCoverImage()" style="padding:6px 14px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); border-radius:8px; color:#ef4444; font-size:0.85rem; cursor:pointer; transition:0.3s;" onmouseover="this.style.background='rgba(239,68,68,0.2)'" onmouseout="this.style.background='rgba(239,68,68,0.1)'">🗑 წაშლა</button>
+                    <input type="text" id="editCoverUrl" placeholder="https://example.com/image.jpg" style="flex:1; padding:12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text);" />
+                    <button type="button" id="removeCoverImageBtn" style="padding:6px 14px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); border-radius:8px; color:#ef4444; font-size:0.85rem; cursor:pointer; transition:0.3s;">🗑 წაშლა</button>
                 </div>
                 <div id="editCoverPreview" style="margin-top:10px;"></div>
             </div>
@@ -443,26 +440,26 @@
             <div class="form-group">
                 <label>შინაარსი</label>
                 <div class="editor-toolbar">
-                    <button class="tb-btn" onclick="fmtE('bold')" title="მუქი"><b>B</b></button>
-                    <button class="tb-btn" onclick="fmtE('italic')" title="დახრილი"><i>I</i></button>
-                    <button class="tb-btn" onclick="fmtE('underline')" title="ხაზგასმული"><u>U</u></button>
-                    <button class="tb-btn" onclick="fmtE('strikeThrough')" title="გადახაზული"><s>S</s></button>
+                    <button class="tb-btn" data-cmd="bold" data-target="edit" title="მუქი"><b>B</b></button>
+                    <button class="tb-btn" data-cmd="italic" data-target="edit" title="დახრილი"><i>I</i></button>
+                    <button class="tb-btn" data-cmd="underline" data-target="edit" title="ხაზგასმული"><u>U</u></button>
+                    <button class="tb-btn" data-cmd="strikeThrough" data-target="edit" title="გადახაზული"><s>S</s></button>
                     <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
-                    <label class="tb-btn color-picker-btn" title="ტექსტის ფერი" onclick="this.querySelector('input').click()">
+                    <label class="tb-btn color-picker-btn" title="ტექსტის ფერი">
                         <span style="border-bottom:3px solid var(--accent);">A</span>
-                        <input type="color" onchange="changeTextColorE(this.value)" style="display:none;">
+                        <input type="color" id="textColorPickerE" style="display:none;">
                     </label>
-                    <label class="tb-btn color-picker-btn" title="ფონის ფერი" onclick="this.querySelector('input').click()">
+                    <label class="tb-btn color-picker-btn" title="ფონის ფერი">
                         <span style="background:var(--accent); padding:2px 6px; border-radius:3px;">◼</span>
-                        <input type="color" onchange="changeBackColorE(this.value)" style="display:none;">
+                        <input type="color" id="bgColorPickerE" style="display:none;">
                     </label>
                     <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
-                    <button class="tb-btn" onclick="fmtEH('h1')" title="სათაური 1">H1</button>
-                    <button class="tb-btn" onclick="fmtEH('h2')" title="სათაური 2">H2</button>
-                    <button class="tb-btn" onclick="fmtEH('h3')" title="სათაური 3">H3</button>
-                    <button class="tb-btn" onclick="fmtEH('p')" title="ჩვეულებრივი ტექსტი">P</button>
+                    <button class="tb-btn" data-cmd="h1" data-type="heading" data-target="edit" title="სათაური 1">H1</button>
+                    <button class="tb-btn" data-cmd="h2" data-type="heading" data-target="edit" title="სათაური 2">H2</button>
+                    <button class="tb-btn" data-cmd="h3" data-type="heading" data-target="edit" title="სათაური 3">H3</button>
+                    <button class="tb-btn" data-cmd="p" data-type="heading" data-target="edit" title="ჩვეულებრივი ტექსტი">P</button>
                     <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
-                    <select class="tb-btn" onchange="changeFontSizeE(this.value)" style="padding:4px 8px; cursor:pointer;" title="შრიფტის ზომა">
+                    <select class="tb-btn" id="fontSizeSelectE" style="padding:4px 8px; cursor:pointer;" title="შრიფტის ზომა">
                         <option value="">ზომა</option>
                         <option value="1">პატარა</option>
                         <option value="3">ჩვეულებრივი</option>
@@ -470,29 +467,29 @@
                         <option value="7">ძალიან დიდი</option>
                     </select>
                     <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
-                    <button class="tb-btn" onclick="fmtE('justifyLeft')" title="მარცხნივ">⬅</button>
-                    <button class="tb-btn" onclick="fmtE('justifyCenter')" title="ცენტრში">↔</button>
-                    <button class="tb-btn" onclick="fmtE('justifyRight')" title="მარjvნივ">➡</button>
+                    <button class="tb-btn" data-cmd="justifyLeft" data-target="edit" title="მარცხნივ">⬅</button>
+                    <button class="tb-btn" data-cmd="justifyCenter" data-target="edit" title="ცენტრში">↔</button>
+                    <button class="tb-btn" data-cmd="justifyRight" data-target="edit" title="მარjvნივ">➡</button>
                     <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
-                    <button class="tb-btn" onclick="fmtE('insertOrderedList')" title="დანომრილი სია">1.</button>
-                    <button class="tb-btn" onclick="fmtE('insertUnorderedList')" title="ჩამონათვალი">•</button>
-                    <button class="tb-btn" onclick="insertBlockquoteE()" title="ციტატა">❝</button>
+                    <button class="tb-btn" data-cmd="insertOrderedList" data-target="edit" title="დანომრილი სია">1.</button>
+                    <button class="tb-btn" data-cmd="insertUnorderedList" data-target="edit" title="ჩამონათვალი">•</button>
+                    <button class="tb-btn" data-cmd="blockquote" data-type="special" data-target="edit" title="ციტატა">❝</button>
                     <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
-                    <button class="tb-btn" onclick="insertLinkE()" title="ლინკი">🔗</button>
-                    <button class="tb-btn" onclick="insertHRE()" title="გამყოფი ხაზი">―</button>
-                    <button class="tb-btn" onclick="fmtE('removeFormat')" title="ფორმატის გასუფთავება">✗</button>
+                    <button class="tb-btn" data-cmd="link" data-type="special" data-target="edit" title="ლინკი">🔗</button>
+                    <button class="tb-btn" data-cmd="hr" data-type="special" data-target="edit" title="გამყოფი ხაზი">―</button>
+                    <button class="tb-btn" data-cmd="removeFormat" data-target="edit" title="ფორმატის გასუფთავება">✗</button>
                 </div>
                 <div class="editor-area" id="editArea" contenteditable="true" data-placeholder="შინაარსი..."></div>
             </div>
-            <button class="btn btn-primary" id="updateBtn" onclick="updateNote()">განახლება</button>
-            <button class="btn btn-secondary" onclick="closeModal('editModal')">გაუქმება</button>
+            <button class="btn btn-primary" id="updateBtn">განახლება</button>
+            <button class="btn btn-secondary" id="cancelEditBtn">გაუქმება</button>
         </div>
     </div>
 
     <!-- ===== PUBLIC SUBMISSION MODAL ===== -->
     <div class="modal" id="publicSubmissionModal">
         <div class="modal-box wide">
-            <button class="modal-close" onclick="closeModal('publicSubmissionModal')">✕</button>
+            <button class="modal-close" id="closeSubmissionModalBtn">✕</button>
             <h2>სტატიის გაგზავნა</h2>
             <p style="color:var(--text-dim); font-size:0.9rem; margin-bottom:20px; line-height:1.6;">თქვენი სტატია გაიგზავნება ადმინისტრატორთან. დადასტურების შემდეგ ის გამოქვეყნდება საიტზე.</p>
             <div class="msg error" id="submissionError"></div>
@@ -525,30 +522,30 @@
             <div class="form-group">
                 <label>შინაარსი</label>
                 <div class="editor-toolbar">
-                    <button class="tb-btn" onclick="fmtS('bold')" title="მუქი"><b>B</b></button>
-                    <button class="tb-btn" onclick="fmtS('italic')" title="დახრილი"><i>I</i></button>
-                    <button class="tb-btn" onclick="fmtS('underline')" title="ხაზგასმული"><u>U</u></button>
+                    <button class="tb-btn" data-cmd="bold" data-target="sub" title="მუქი"><b>B</b></button>
+                    <button class="tb-btn" data-cmd="italic" data-target="sub" title="დახრილი"><i>I</i></button>
+                    <button class="tb-btn" data-cmd="underline" data-target="sub" title="ხაზგასმული"><u>U</u></button>
                     <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
-                    <button class="tb-btn" onclick="formatHeadingS('h1')" title="სათაური 1">H1</button>
-                    <button class="tb-btn" onclick="formatHeadingS('h2')" title="სათაური 2">H2</button>
-                    <button class="tb-btn" onclick="formatHeadingS('h3')" title="სათაური 3">H3</button>
-                    <button class="tb-btn" onclick="formatHeadingS('p')" title="ჩვეულებრივი ტექსტი">P</button>
+                    <button class="tb-btn" data-cmd="h1" data-type="heading" data-target="sub" title="სათაური 1">H1</button>
+                    <button class="tb-btn" data-cmd="h2" data-type="heading" data-target="sub" title="სათაური 2">H2</button>
+                    <button class="tb-btn" data-cmd="h3" data-type="heading" data-target="sub" title="სათაური 3">H3</button>
+                    <button class="tb-btn" data-cmd="p" data-type="heading" data-target="sub" title="ჩვეულებრივი ტექსტი">P</button>
                     <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
-                    <button class="tb-btn" onclick="fmtS('insertOrderedList')" title="დანომრილი სია">1.</button>
-                    <button class="tb-btn" onclick="fmtS('insertUnorderedList')" title="ჩამონათვალი">•</button>
-                    <button class="tb-btn" onclick="insertBlockquoteS()" title="ციტატა">❝</button>
+                    <button class="tb-btn" data-cmd="insertOrderedList" data-target="sub" title="დანომრილი სია">1.</button>
+                    <button class="tb-btn" data-cmd="insertUnorderedList" data-target="sub" title="ჩამონათვალი">•</button>
+                    <button class="tb-btn" data-cmd="blockquote" data-type="special" data-target="sub" title="ციტატა">❝</button>
                 </div>
                 <div class="editor-area" id="submissionArea" contenteditable="true" data-placeholder="დაიწყე წერა..."></div>
             </div>
-            <button class="btn btn-primary" id="submitArticleBtn" onclick="submitArticle()">გაგზავნა</button>
-            <button class="btn btn-secondary" onclick="closeModal('publicSubmissionModal')">გაუქმება</button>
+            <button class="btn btn-primary" id="submitArticleBtn">გაგზავნა</button>
+            <button class="btn btn-secondary" id="cancelSubmissionBtn">გაუქმება</button>
         </div>
     </div>
 
     <!-- ===== PENDING PANEL MODAL ===== -->
     <div class="modal" id="pendingModal">
         <div class="modal-box" style="max-width:1000px; max-height:85vh; overflow-y:auto;">
-            <button class="modal-close" onclick="closeModal('pendingModal')">✕</button>
+            <button class="modal-close" id="closePendingModalBtn">✕</button>
             <h2>მოლოდინში მყოფი სტატიები</h2>
             <div id="pendingList" style="margin-top:25px;"></div>
         </div>
@@ -557,7 +554,7 @@
     <!-- ===== ADD GLOSSARY TERM MODAL ===== -->
     <div class="modal" id="addGlossaryModal">
         <div class="modal-box wide">
-            <button class="modal-close" onclick="closeModal('addGlossaryModal')">✕</button>
+            <button class="modal-close" id="closeAddGlossaryModalBtn">✕</button>
             <h2>ახალი ტერმინის დამატება</h2>
             <div class="msg error" id="addGlossaryError"></div>
             <div class="msg success" id="addGlossarySuccess"></div>
@@ -577,14 +574,14 @@
                 <textarea id="newTermDefinition" placeholder="ტერმინის სრული განმარტება..." rows="6"></textarea>
             </div>
             
-            <button class="btn btn-primary" style="width:100%;" id="addTermBtn" onclick="addGlossaryTerm()">დამატება</button>
+            <button class="btn btn-primary" style="width:100%;" id="addTermBtn">დამატება</button>
         </div>
     </div>
 
     <!-- ===== EDIT GLOSSARY TERM MODAL ===== -->
     <div class="modal" id="editGlossaryModal">
         <div class="modal-box wide">
-            <button class="modal-close" onclick="closeModal('editGlossaryModal')">✕</button>
+            <button class="modal-close" id="closeEditGlossaryModalBtn">✕</button>
             <h2>ტერმინის რედაქტირება</h2>
             <div class="msg error" id="editGlossaryError"></div>
             <div class="msg success" id="editGlossarySuccess"></div>
@@ -604,12 +601,12 @@
                 <textarea id="editTermDefinition" rows="6"></textarea>
             </div>
             
-            <button class="btn btn-primary" style="width:100%;" id="updateTermBtn" onclick="updateGlossaryTerm()">განახლება</button>
+            <button class="btn btn-primary" style="width:100%;" id="updateTermBtn">განახლება</button>
         </div>
     </div>
 
     <!-- Glossary Add Button (admin only) -->
-    <button id="glossaryAddBtn" onclick="openModal('addGlossaryModal')" style="display:none; position:fixed; bottom:32px; right:32px; width:60px; height:60px; background:linear-gradient(135deg, var(--accent), var(--accent2)); color:#0a1929; border-radius:50%; border:none; font-size:26px; cursor:pointer; font-weight:700; box-shadow:0 10px 35px rgba(167,139,250,0.5); align-items:center; justify-content:center; z-index:3000; transition:0.3s;">+</button>
+    <button id="glossaryAddBtn" style="display:none; position:fixed; bottom:32px; right:32px; width:60px; height:60px; background:linear-gradient(135deg, var(--accent), var(--accent2)); color:#0a1929; border-radius:50%; border:none; font-size:26px; cursor:pointer; font-weight:700; box-shadow:0 10px 35px rgba(167,139,250,0.5); align-items:center; justify-content:center; z-index:3000; transition:0.3s;">+</button>
 
 
     <!-- ===== SOCIAL FOOTER ===== -->
