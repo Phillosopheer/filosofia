@@ -3,9 +3,9 @@ apiKey: "AIzaSyCLDlXXqAgJp5SdE_xefzS1sQ2fHI-l1Tg",
 authDomain: "gen-lang-client-0339684222.firebaseapp.com",
 databaseURL: "https://gen-lang-client-0339684222-default-rtdb.firebaseio.com",
 projectId: "gen-lang-client-0339684222",
-storageBucket: "gen-lang-client-0339684222.appspot.com",
-messagingSenderId: "339684222",
-appId: "1:339684222:web:YOUR_APP_ID"
+storageBucket: "gen-lang-client-0339684222.firebasestorage.app",
+messagingSenderId: "636166502416",
+appId: "1:636166502416:web:78841eec3ba4c658a07295"
 };
 if (!firebase.apps.length) {
 firebase.initializeApp(firebaseConfig);
