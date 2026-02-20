@@ -1961,6 +1961,7 @@ async function deleteGlossaryTerm() {
     }
 }
 
+setupEventListeners();
 init();
 
 
@@ -2297,4 +2298,142 @@ function showBotCountdown(el, blockedUntil) {
         setTimeout(update, 1000);
     }
     update();
+}
+
+// ===== EVENT LISTENERS SETUP =====
+// unsafe-inline CSP-ის ასაცილებლად ყველა onclick script.js-შია
+function setupEventListeners() {
+
+    // --- Header ---
+    document.getElementById('menuBtn').addEventListener('click', toggleMenu);
+    document.getElementById('logoBtn').addEventListener('click', goHome);
+    document.getElementById('submitBtn').addEventListener('click', openPublicSubmission);
+    document.getElementById('pendingBtn').addEventListener('click', openPendingPanel);
+    document.getElementById('logoutBtn').addEventListener('click', doLogout);
+    document.getElementById('lockBtn').addEventListener('click', handleAuthBtn);
+
+    // --- Sidebar ---
+    document.getElementById('sidebarOverlay').addEventListener('click', toggleMenu);
+    document.getElementById('sidebarCloseBtn').addEventListener('click', toggleMenu);
+    document.getElementById('glossaryOpenBtn').addEventListener('click', openGlossary);
+
+    // --- Search input ---
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', filterNotes);
+        searchInput.addEventListener('focus', () => {
+            searchInput.style.borderColor = 'var(--accent)';
+            searchInput.style.boxShadow = '0 0 0 3px rgba(59,130,246,0.15)';
+        });
+        searchInput.addEventListener('blur', () => {
+            searchInput.style.borderColor = 'var(--border)';
+            searchInput.style.boxShadow = 'none';
+        });
+    }
+
+    // --- Reader ---
+    document.getElementById('closeReaderBtn').addEventListener('click', closeReader);
+    document.getElementById('copyNoteBtn').addEventListener('click', function() { copyNote(this); });
+    document.getElementById('openEditModalBtn').addEventListener('click', openEditModal);
+    document.getElementById('deleteCurrentNoteBtn').addEventListener('click', deleteCurrentNote);
+
+    // --- Article Bot ---
+    document.getElementById('articleBotToggle').addEventListener('click', toggleArticleBot);
+    document.getElementById('articleBotSendBtn').addEventListener('click', askArticleBot);
+    document.getElementById('articleBotInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') askArticleBot();
+    });
+    const adminUnblockBotBtn = document.getElementById('adminUnblockBotBtn');
+    if (adminUnblockBotBtn) adminUnblockBotBtn.addEventListener('click', adminUnblockBot);
+
+    // --- FAB ---
+    document.getElementById('fabBtn').addEventListener('click', openEditor);
+
+    // --- Glossary ---
+    document.getElementById('closeGlossaryBtn').addEventListener('click', closeGlossary);
+    document.getElementById('backToSearchBtn').addEventListener('click', backToGlossarySearch);
+    document.getElementById('editGlossaryTermBtn').addEventListener('click', editGlossaryTerm);
+    document.getElementById('deleteGlossaryTermBtn').addEventListener('click', deleteGlossaryTerm);
+    document.getElementById('glossaryAddBtn').addEventListener('click', () => openModal('addGlossaryModal'));
+    const glossarySearch = document.getElementById('glossarySearchInput');
+    if (glossarySearch) glossarySearch.addEventListener('input', searchGlossary);
+
+    // --- Login modal ---
+    document.getElementById('closeLoginModalBtn').addEventListener('click', () => closeModal('loginModal'));
+    document.getElementById('loginBtn').addEventListener('click', doLogin);
+    document.getElementById('loginPassword').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') doLogin();
+    });
+
+    // --- Editor modal ---
+    document.getElementById('closeEditorModalBtn').addEventListener('click', () => closeModal('editorModal'));
+    document.getElementById('cancelEditorBtn').addEventListener('click', () => closeModal('editorModal'));
+    document.getElementById('saveBtn').addEventListener('click', saveNote);
+    document.getElementById('coverUrl').addEventListener('change', (e) => previewCoverUrl(e.target.value, 'coverPreview'));
+    document.getElementById('textColorPicker').addEventListener('change', (e) => changeTextColor(e.target.value));
+    document.getElementById('bgColorPicker').addEventListener('change', (e) => changeBackColor(e.target.value));
+    document.getElementById('fontSizeSelect').addEventListener('change', (e) => changeFontSize(e.target.value));
+
+    // Editor toolbar buttons
+    document.querySelectorAll('#toolbar .tb-btn[data-cmd]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const cmd = btn.dataset.cmd;
+            const type = btn.dataset.type;
+            if (type === 'heading') formatHeading(cmd);
+            else if (cmd === 'blockquote') insertBlockquote();
+            else if (cmd === 'link') insertLink();
+            else if (cmd === 'hr') insertHR();
+            else fmt(cmd);
+        });
+    });
+
+    // --- Edit modal ---
+    document.getElementById('closeEditModalBtn').addEventListener('click', () => closeModal('editModal'));
+    document.getElementById('cancelEditBtn').addEventListener('click', () => closeModal('editModal'));
+    document.getElementById('updateBtn').addEventListener('click', updateNote);
+    document.getElementById('editCoverUrl').addEventListener('change', (e) => previewCoverUrl(e.target.value, 'editCoverPreview'));
+    document.getElementById('removeCoverImageBtn').addEventListener('click', removeCoverImage);
+    document.getElementById('removeCoverImageBtn').addEventListener('mouseover', function() { this.style.background = 'rgba(239,68,68,0.2)'; });
+    document.getElementById('removeCoverImageBtn').addEventListener('mouseout', function() { this.style.background = 'rgba(239,68,68,0.1)'; });
+    document.getElementById('textColorPickerE').addEventListener('change', (e) => changeTextColorE(e.target.value));
+    document.getElementById('bgColorPickerE').addEventListener('change', (e) => changeBackColorE(e.target.value));
+    document.getElementById('fontSizeSelectE').addEventListener('change', (e) => changeFontSizeE(e.target.value));
+
+    // Edit toolbar buttons
+    document.querySelectorAll('.tb-btn[data-target="edit"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const cmd = btn.dataset.cmd;
+            const type = btn.dataset.type;
+            if (type === 'heading') fmtEH(cmd);
+            else if (cmd === 'blockquote') insertBlockquoteE();
+            else if (cmd === 'link') insertLinkE();
+            else if (cmd === 'hr') insertHRE();
+            else fmtE(cmd);
+        });
+    });
+
+    // --- Submission modal ---
+    document.getElementById('closeSubmissionModalBtn').addEventListener('click', () => closeModal('publicSubmissionModal'));
+    document.getElementById('cancelSubmissionBtn').addEventListener('click', () => closeModal('publicSubmissionModal'));
+    document.getElementById('submitArticleBtn').addEventListener('click', submitArticle);
+
+    // Submission toolbar buttons
+    document.querySelectorAll('.tb-btn[data-target="sub"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const cmd = btn.dataset.cmd;
+            const type = btn.dataset.type;
+            if (type === 'heading') formatHeadingS(cmd);
+            else if (cmd === 'blockquote') insertBlockquoteS();
+            else fmtS(cmd);
+        });
+    });
+
+    // --- Pending modal ---
+    document.getElementById('closePendingModalBtn').addEventListener('click', () => closeModal('pendingModal'));
+
+    // --- Glossary modals ---
+    document.getElementById('closeAddGlossaryModalBtn').addEventListener('click', () => closeModal('addGlossaryModal'));
+    document.getElementById('addTermBtn').addEventListener('click', addGlossaryTerm);
+    document.getElementById('closeEditGlossaryModalBtn').addEventListener('click', () => closeModal('editGlossaryModal'));
+    document.getElementById('updateTermBtn').addEventListener('click', updateGlossaryTerm);
 }
