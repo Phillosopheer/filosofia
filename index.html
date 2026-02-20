@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📖</text></svg>">
+    <link rel="icon" type="image/png" href="philosopher-bg.webp">
+
     <!-- Security Headers -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com https://*.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://filosofia-xi.vercel.app https://*.firebaseio.com https://*.googleapis.com https://*.firebaseapp.com; img-src 'self' data: https:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';">
     <meta name="referrer" content="strict-origin-when-cross-origin">
@@ -163,6 +167,7 @@
                 type="text"
                 id="searchInput"
                 placeholder="სტატიის ძებნა..."
+                aria-label="სტატიის ძებნა"
                 style="width:100%; padding:14px 18px 14px 48px; border-radius:14px; border:1px solid var(--border);
                        background:var(--surface); color:var(--text); font-size:1rem; font-family:'Inter',sans-serif;
                        outline:none; transition:0.3s;"
@@ -197,7 +202,7 @@
         <button class="close-btn" id="closeReaderBtn">✕</button>
         <div class="reader-inner">
             <p id="readCat" style="color:var(--accent); font-size:0.72rem; font-weight:600; letter-spacing:3px; text-transform:uppercase; margin-bottom:18px; opacity:0.8;"></p>
-            <h1 id="readTitle" style="font-family:'Cormorant Garamond', serif; font-size:3rem; font-weight:700; margin-bottom:14px; line-height:1.2; letter-spacing:0.3px;"></h1>
+            <h2 id="readTitle" aria-live="polite" style="font-family:'Cormorant Garamond', serif; font-size:3rem; font-weight:700; margin-bottom:14px; line-height:1.2; letter-spacing:0.3px;"></h2>
             <p id="readDate" style="color:var(--text-dim); font-size:0.78rem; letter-spacing:1px; margin-bottom:12px; font-weight:500;"></p>
             <p id="readAuthor" style="color:var(--accent); font-size:0.85rem; font-weight:600; margin-bottom:35px; padding-bottom:25px; border-bottom:1px solid var(--border); letter-spacing:0.5px;"></p>
             <div id="readCover" style="margin-bottom:30px;"></div>
@@ -225,9 +230,9 @@
                             id="articleBotInput"
                             class="article-bot-input"
                             placeholder="დასვი კითხვა ამ სტატიის შესახებ..."
-    
+                            aria-label="კითხვა სტატიის ბოტისთვის"
                         />
-                        <button class="article-bot-send" id="articleBotSendBtn">↑</button>
+                        <button class="article-bot-send" id="articleBotSendBtn" aria-label="კითხვის გაგზავნა">↑</button>
                     </div>
                     <p style="font-size:0.75rem; color:var(--text-dim); margin-top:10px; opacity:0.7;">ბოტი პასუხობს მხოლოდ ამ სტატიის მიხედვით</p>
                     <!-- ადმინ განბლოკვის ღილაკი — მხოლოდ შესვლის შემდეგ -->
@@ -247,7 +252,7 @@
         <button class="close-glossary-btn" id="closeGlossaryBtn">✕</button>
         
         <div class="glossary-header">
-            <h1>ლექსიკონი</h1>
+            <h2>ლექსიკონი</h2>
             <p style="color: var(--text-dim); font-size: 1.05rem; margin-bottom: 10px;">
                 აქ იპოვით სიტყვების განმარტებებს
             </p>
@@ -259,7 +264,7 @@
                     id="glossarySearchInput"
                     class="glossary-search-input"
                     placeholder="მოძებნე ტერმინი..."
-
+                    aria-label="ტერმინის ძებნა"
                     autocomplete="off"
                 />
                 <div id="suggestionDropdown" class="suggestions-dropdown"></div>
@@ -280,7 +285,7 @@
             </div>
             <div class="term-card">
                 <div id="termCategory" class="term-category"></div>
-                <h2 id="termTitle" class="term-title"></h2>
+                <h2 id="termTitle" aria-live="polite" class="term-title"></h2>
                 <div id="termDefinition" class="term-definition"></div>
                 
                 <div id="glossaryAdminControls" class="glossary-admin-controls">
@@ -301,11 +306,11 @@
             <div class="msg error" id="loginError"></div>
             <div class="form-group">
                 <label>ელ. ფოსტა</label>
-                <input type="email" id="loginEmail" placeholder="you@example.com" />
+                <input type="email" id="loginEmail" placeholder="you@example.com" aria-label="ელ-ფოსტა" />
             </div>
             <div class="form-group">
                 <label>პაროლი</label>
-                <input type="password" id="loginPassword" placeholder="••••••••" />
+                <input type="password" id="loginPassword" placeholder="••••••••" aria-label="პაროლი" />
             </div>
             <button class="btn btn-primary" id="loginBtn">შესვლა</button>
         </div>
@@ -320,16 +325,16 @@
             <div class="msg success" id="editorSuccess"></div>
             <div class="form-group">
                 <label>სათაური</label>
-                <input type="text" id="editorTitle" placeholder="ჩანაწერის სათაური..." />
+                <input type="text" id="editorTitle" placeholder="ჩანაწერის სათაური..." aria-label="სტატიის სათაური" />
             </div>
             <div class="form-group">
                 <label>Cover სურათი (არასავალდებულო)</label>
-                <input type="text" id="coverUrl" placeholder="https://example.com/image.jpg" style="width:100%; padding:12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text);" />
+                <input type="text" id="coverUrl" placeholder="https://example.com/image.jpg" aria-label="სქავნის URL" style="width:100%; padding:12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text);" />
                 <div id="coverPreview" style="margin-top:10px;"></div>
             </div>
             <div class="form-group">
                 <label>კატეგორია</label>
-                <select id="editorCat">
+                <select id="editorCat" aria-label="კატეგორია">
                     <option value="epist">ეპისტემოლოგია</option>
                     <option value="ethics">ეთიკა</option>
                     <option value="logic">ლოგიკა</option>
@@ -346,7 +351,7 @@
             </div>
             <div class="form-group">
                 <label>ავტორი (არასავალდებულო)</label>
-                <input type="text" id="editorAuthor" placeholder="მაგ: ნ. ქებაძე" style="width:100%; padding:12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text);" />
+                <input type="text" id="editorAuthor" placeholder="მაგ: ნ. ქებაძე" aria-label="ავტორი" style="width:100%; padding:12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text);" />
             </div>
             <div class="form-group">
                 <label>შინაარსი</label>
@@ -370,7 +375,7 @@
                     <button class="tb-btn" data-cmd="h3" data-type="heading" title="სათაური 3">H3</button>
                     <button class="tb-btn" data-cmd="p" data-type="heading" title="ჩვეულებრივი ტექსტი">P</button>
                     <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
-                    <select class="tb-btn" id="fontSizeSelect" style="padding:4px 8px; cursor:pointer;" title="შრიფტის ზომა">
+                    <select class="tb-btn" id="fontSizeSelect" aria-label="შრიფტის ზომა" style="padding:4px 8px; cursor:pointer;" title="შრიფტის ზომა">
                         <option value="">ზომა</option>
                         <option value="1">პატარა</option>
                         <option value="3">ჩვეულებრივი</option>
@@ -411,19 +416,19 @@
             <div class="msg success" id="editSuccess"></div>
             <div class="form-group">
                 <label>სათაური</label>
-                <input type="text" id="editTitle" placeholder="ჩანაწერის სათაური..." />
+                <input type="text" id="editTitle" placeholder="ჩანაწერის სათაური..." aria-label="სტატიის სათაური" />
             </div>
             <div class="form-group">
                 <label>Cover სურათი (არასავალდებულო)</label>
                 <div style="display:flex; gap:12px; margin-bottom:12px;">
-                    <input type="text" id="editCoverUrl" placeholder="https://example.com/image.jpg" style="flex:1; padding:12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text);" />
+                    <input type="text" id="editCoverUrl" placeholder="https://example.com/image.jpg" aria-label="სქავნის URL" style="flex:1; padding:12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text);" />
                     <button type="button" id="removeCoverImageBtn" style="padding:6px 14px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); border-radius:8px; color:#ef4444; font-size:0.85rem; cursor:pointer; transition:0.3s;">🗑 წაშლა</button>
                 </div>
                 <div id="editCoverPreview" style="margin-top:10px;"></div>
             </div>
             <div class="form-group">
                 <label>კატეგორია</label>
-                <select id="editCat">
+                <select id="editCat" aria-label="კატეგორია">
                     <option value="epist">ეპისტემოლოგია</option>
                     <option value="ethics">ეთიკა</option>
                     <option value="logic">ლოგიკა</option>
@@ -440,7 +445,7 @@
             </div>
             <div class="form-group">
                 <label>ავტორი (არასავალდებულო)</label>
-                <input type="text" id="editAuthor" placeholder="მაგ: ნ. ქებაძე" style="width:100%; padding:12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text);" />
+                <input type="text" id="editAuthor" placeholder="მაგ: ნ. ქებაძე" aria-label="ავტორი" style="width:100%; padding:12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text);" />
             </div>
             <div class="form-group">
                 <label>შინაარსი</label>
@@ -464,7 +469,7 @@
                     <button class="tb-btn" data-cmd="h3" data-type="heading" data-target="edit" title="სათაური 3">H3</button>
                     <button class="tb-btn" data-cmd="p" data-type="heading" data-target="edit" title="ჩვეულებრივი ტექსტი">P</button>
                     <span style="border-left:1px solid var(--border); margin:0 6px; height:20px;"></span>
-                    <select class="tb-btn" id="fontSizeSelectE" style="padding:4px 8px; cursor:pointer;" title="შრიფტის ზომა">
+                    <select class="tb-btn" id="fontSizeSelectE" aria-label="შრიფტის ზომა" style="padding:4px 8px; cursor:pointer;" title="შრიფტის ზომა">
                         <option value="">ზომა</option>
                         <option value="1">პატარა</option>
                         <option value="3">ჩვეულებრივი</option>
