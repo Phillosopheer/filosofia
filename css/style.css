@@ -152,10 +152,7 @@ body::before {
 .hero {
   padding: 120px 6% 60px; text-align: center;
   position: relative; z-index: 1;
-  background:
-    linear-gradient(180deg, rgba(14,12,10,0.88) 0%, rgba(14,12,10,0.72) 50%, rgba(14,12,10,0.95) 100%),
-    url('../philosopher-bg.webp');
-  background-size: cover; background-position: center; background-attachment: fixed;
+  background: var(--bg);
   border-bottom: 1px solid var(--border);
   min-height: 420px;
 }
