@@ -26,8 +26,8 @@
     <meta name="google-site-verification" content="tKojl7vVlSTIQVz9avkOUWeJWCSwzY0tNDG1MKjO0fo" />
     
     <!-- Theme Color -->
-    <meta name="theme-color" content="#8B7AC7">
-    <meta name="msapplication-TileColor" content="#8B7AC7">
+    <meta name="theme-color" content="#c9a84c">
+    <meta name="msapplication-TileColor" content="#c9a84c">
     
     <!-- Open Graph / Facebook / WhatsApp / LinkedIn -->
     <meta property="og:type" content="website">
@@ -78,7 +78,7 @@
     <!-- Fonts (non-blocking) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600&display=optional" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@400;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Noto+Sans+Georgian:wght@300;400;500;600&display=optional" rel="stylesheet">
     
     <!-- Firebase App (the core Firebase SDK) -->
     <script src="https://www.gstatic.com/firebasejs/12.9.0/firebase-app-compat.js" integrity="sha384-3XWNJu2qFQ6l+dVvCdcgpGP7mp9cxB8uT+w78+fV0wyyiD0lYQ2yMt2cFZOlCcFp" crossorigin="anonymous" defer></script>
@@ -89,6 +89,9 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+
+<!-- PARTICLES (ოქროს ნაწილაკები) -->
+<div class="particles" id="particles"></div>
 
     <!-- Header -->
     <header class="header">
@@ -148,20 +151,38 @@
 
     <!-- Hero -->
     <section class="hero">
-        <h1 id="pageTitle" class="shimmer">ჩვენ გვიყვარს ფილოსოფია</h1>
+      <div class="hero-content">
+
+        <p class="hero-eyebrow">ქართული ფილოსოფიური პლატფორმა</p>
+
+        <h1 id="pageTitle">ΦΙΛΟΣΟΦΙΑ</h1>
         <div id="heroBook"></div>
-        <p id="pageSubtitle"></p>
-        <div class="welcome-text">
-            <p>კეთილი იყოს თქვენი მობრძანება ფილოსოფიურ პლატფორმაზე</p>
-            <p>წინამდებარე რესურსი წარმოადგენს სივრცეს კრიტიკული აზროვნებისა და ინტელექტუალური ძიებისთვის. ჩვენი მიზანია, მკითხველს მივაწოდოთ სიღრმისეული ანალიზი ფილოსოფიის სხვადასხვა ქვედარგის შესახებ - მეტაფიზიკიდან და ეპისტემოლოგიიდან დაწყებული, ეთიკითა და პოლიტიკური ფილოსოფიით დასრულებული.</p>
+        <p id="pageSubtitle">სიბრძნის სიყვარული</p>
+
+        <div class="hero-divider">
+          <div class="hero-divider-line"></div>
+          <div class="hero-divider-symbol">✦</div>
+          <div class="hero-divider-line"></div>
         </div>
-        
+
         <!-- Random Nietzsche Quote -->
         <div id="quoteSection">
             <div class="quote-mark">"</div>
             <p id="quoteText"></p>
             <p id="quoteAuthor">— ფრიდრიხ ნიცშე</p>
         </div>
+
+        <div class="hero-cta">
+          <a href="#notesGrid" class="btn-gold">სტატიების კითხვა</a>
+          <a href="#notesGrid" class="btn-outline">კატეგორიები →</a>
+        </div>
+
+        <div class="welcome-text">
+            <p>კეთილი იყოს თქვენი მობრძანება ფილოსოფიურ პლატფორმაზე</p>
+            <p>წინამდებარე რესურსი წარმოადგენს სივრცეს კრიტიკული აზროვნებისა და ინტელექტუალური ძიებისთვის. ჩვენი მიზანია, მკითხველს მივაწოდოთ სიღრმისეული ანალიზი ფილოსოფიის სხვადასხვა ქვედარგის შესახებ - მეტაფიზიკიდან და ეპისტემოლოგიიდან დაწყებული, ეთიკითა და პოლიტიკური ფილოსოფიით დასრულებული.</p>
+        </div>
+
+      </div>
     </section>
 
     <!-- Search Bar -->
@@ -622,12 +643,26 @@
     <button id="glossaryAddBtn">+</button>
 
 
-    <!-- ===== SOCIAL FOOTER ===== -->
-    <footer class="social-footer">
-        <a href="https://www.facebook.com/profile.php?id=61583986255288" target="_blank" rel="noopener noreferrer" class="fb-admin-link" title="ადმინისტრატორი">
-            <img src="https://i.imgur.com/9LnEwW7.png" alt="ადმინისტრატორი" class="fb-admin-img" width="80" height="80" />
-        </a>
+    <!-- ===== SITE FOOTER ===== -->
+    <footer class="site-footer">
+      <div class="greek-key"></div>
+      <div class="footer-brand">ΦΙΛΟΣΟΦΙΑ</div>
+      <div class="footer-tagline">სიბრძნის ძიება — ქართულად</div>
+      <div class="footer-links-row">
+        <a href="#notesGrid" class="footer-link">სტატიები</a>
+        <a href="#" class="footer-link" id="footerGlossaryLink">ლექსიკონი</a>
+        <a href="#" class="footer-link" id="footerCatLink">კატეგორიები</a>
+      </div>
+      <div class="footer-copy">© MMXXVI — ფილოსოფია — ყველა უფლება დაცულია</div>
     </footer>
+
+    <!-- ===== SOCIAL FOOTER (Facebook - ტრიალებს) ===== -->
+    <div class="social-footer">
+        <a href="https://www.facebook.com/profile.php?id=61583986255288" target="_blank" rel="noopener noreferrer" class="fb-admin-link" title="Facebook">
+            <img src="https://i.imgur.com/9LnEwW7.png" alt="ადმინისტრატორი" class="fb-admin-img" width="70" height="70" />
+        </a>
+        <span class="fb-label">Facebook</span>
+    </div>
 
 
     <!-- ===== ERROR MONITOR (admin only) ===== -->
@@ -652,6 +687,9 @@
     </div>
 
     <!-- ===== SCRIPTS ===== -->
+
+    <!-- Particles + Footer wiring (CSP-safe, external) -->
+    <script src="js/extras.js" defer></script>
 
     <!-- JavaScript ფაილის დაკავშირება -->
     <script src="js/script.js" defer></script>
