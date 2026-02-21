@@ -305,3 +305,35 @@
 .hero.no-bg ~ #notesGrid:empty {
   min-height: 600px !important;
 }
+
+/* =============================================
+   Skeleton Cards (Session 9 — CLS Fix)
+   ============================================= */
+.skeleton-card {
+  pointer-events: none;
+  cursor: default !important;
+  min-height: 320px;
+}
+.skeleton-img {
+  width: 120%;
+  height: 250px;
+  margin: -20px -35px 16px -35px;
+  border-radius: 12px 12px 0 0;
+  background: linear-gradient(90deg, var(--surface2) 25%, var(--surface) 50%, var(--surface2) 75%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.5s infinite;
+}
+.skeleton-line {
+  height: 16px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--surface2) 25%, var(--surface) 50%, var(--surface2) 75%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.5s infinite;
+  margin-bottom: 12px;
+}
+.skeleton-line-title { width: 75%; height: 22px; }
+.skeleton-line-short { width: 45%; }
+@keyframes skeletonShimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
