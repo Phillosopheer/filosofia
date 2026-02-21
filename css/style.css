@@ -220,3 +220,7 @@
 /* Session 9 Fix — hero gap on category pages */
 .hero.no-bg { min-height: 0 !important; padding-bottom: 20px !important; }
 #quoteSection { min-height: 0; }
+
+/* Session 9 Fix 2 — remove empty grid min-height on home page */
+#notesGrid:empty { min-height: 0 !important; }
+#notesGrid:has(.spinner) { min-height: 0 !important; }
