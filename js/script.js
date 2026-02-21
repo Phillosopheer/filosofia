@@ -1,5 +1,5 @@
 const firebaseConfig = {
-apiKey: "AIzaSyC1U4PgKx9zIQPQ-awDidGgx6OaEuYrEWA",
+apiKey: "AIzaSyCcTPhEU478qqwbI9KqJ4iOOFBHox-J7Ao",
 authDomain: "gen-lang-client-0339684222.firebaseapp.com",
 databaseURL: "https://gen-lang-client-0339684222-default-rtdb.firebaseio.com",
 projectId: "gen-lang-client-0339684222",
@@ -24,7 +24,7 @@ async function fbFetch(url, options = {}) {
   return fetch(url, options);
 }
 const FIREBASE_AUTH = "https://identitytoolkit.googleapis.com/v1/accounts";
-const API_KEY       = "AIzaSyC1U4PgKx9zIQPQ-awDidGgx6OaEuYrEWA";
+const API_KEY       = "AIzaSyCcTPhEU478qqwbI9KqJ4iOOFBHox-J7Ao";
 let idToken    = null;
 let currentUid = null;
 let notes      = [];
