@@ -135,3 +135,84 @@
 .error-item.warn .error-item-type{color:#eab308;}
 .error-item.info .error-item-type{color:#3b82f6;}
 .error-item-msg{font-size:12px;color:rgba(255,255,255,0.8);word-break:break-all;line-height:1.5;}
+
+/* =============================================
+   CLS Fixes - Session 9
+   ============================================= */
+
+/* 1. Hero min-height — prevents layout shift when JS loads content */
+.hero {
+  min-height: 420px;
+}
+
+/* 2. Neutralize old .card img !important rules — wrapper handles layout now */
+.card img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+}
+
+/* Card image container — reserves space before image loads */
+/* Mobile: full width, no negative margins */
+.card-img-wrapper {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  border-radius: 12px 12px 0 0;
+  background: var(--surface2);
+  margin-bottom: 16px;
+}
+/* Desktop: negative margins like original */
+@media (min-width: 768px) {
+  .card-img-wrapper {
+    width: 120%;
+    height: 250px;
+    margin: -20px -35px 16px -35px;
+  }
+}
+.card-img-wrapper img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  margin: 0 !important;
+  display: block;
+}
+/* Preserve hover effect on wrapper */
+@media (hover: hover) {
+  .card:hover .card-img-wrapper img {
+    transform: scale(1.05);
+    filter: brightness(1.1);
+  }
+}
+
+/* 3. Carousel image wrapper — reserves space */
+.carousel-img-wrapper {
+  width: 100%;
+  height: 300px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  background: var(--surface);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.carousel-img-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* 4. Grid skeleton — min-height before Firebase loads */
+#notesGrid:empty,
+#notesGrid:has(.spinner) {
+  min-height: 400px;
+}
+
+/* 5. Quote section — prevent text shift */
+#quoteSection {
+  min-height: 120px;
+}
