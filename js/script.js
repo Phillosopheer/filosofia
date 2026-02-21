@@ -1988,3 +1988,173 @@ document.getElementById('updateTermBtn').addEventListener('click', updateGlossar
     updateBadge();
   });
 })();
+
+// ===== GEMINI STATUS CHECKER (admin only) =====
+async function checkGeminiStatus() {
+  const result = document.getElementById('geminiStatusResult');
+  const dot = document.getElementById('geminiStatusDot');
+
+  result.innerHTML = `<div style="text-align:center;color:rgba(255,255,255,0.5);font-size:14px;">
+    <div style="font-size:28px;margin-bottom:10px;">⏳</div>
+    შემოწმება მიმდინარეობს...
+  </div>`;
+
+  const startTime = Date.now();
+
+  try {
+    const res = await fetch('https://filosofia-xi.vercel.app/api/gemini', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: 'გამარჯობა. უპასუხე ერთი სიტყვით: "OK"' }] }]
+      })
+    });
+
+    const elapsed = Date.now() - startTime;
+    const data = await res.json().catch(() => ({}));
+
+    if (res.ok && (data.status === 'ok' || data.candidates)) {
+      // ✅ ყველაფერი მუშაობს
+      dot.style.background = '#22c55e';
+      result.innerHTML = `
+        <div style="width:100%;">
+          <div style="text-align:center;margin-bottom:16px;">
+            <div style="font-size:40px;">✅</div>
+            <div style="color:#22c55e;font-weight:700;font-size:18px;margin-top:8px;">Gemini მუშაობს!</div>
+          </div>
+          <div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:12px;padding:14px;">
+            <div style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.8;">
+              ⚡ სიჩქარე: <strong style="color:#22c55e;">${elapsed}ms</strong><br>
+              🔑 გასაღები: <strong style="color:#22c55e;">მუშაობს</strong><br>
+              🌐 სერვერი: <strong style="color:#22c55e;">OK</strong>
+            </div>
+          </div>
+        </div>`;
+
+    } else if (res.status === 503) {
+      // ❌ Google-ის პრობლემა
+      dot.style.background = '#ef4444';
+      result.innerHTML = `
+        <div style="width:100%;">
+          <div style="text-align:center;margin-bottom:16px;">
+            <div style="font-size:40px;">🌐</div>
+            <div style="color:#ef4444;font-weight:700;font-size:16px;margin-top:8px;">Google-ის სერვერის პრობლემა</div>
+          </div>
+          <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:12px;padding:14px;">
+            <div style="color:rgba(255,255,255,0.7);font-size:13px;line-height:1.9;">
+              ❌ <strong>შენი კოდი სწორია</strong><br>
+              ❌ <strong>შენი გასაღებები სწორია</strong><br>
+              ⚠️ Google Gemini API-ს სერვერი არ პასუხობს<br>
+              🕐 დაელოდე და ცადე მოგვიანებით<br>
+              🔗 შეამოწმე: <a href="https://status.cloud.google.com" target="_blank" style="color:#a78bfa;">status.cloud.google.com</a>
+            </div>
+          </div>
+        </div>`;
+
+    } else if (res.status === 500) {
+      // ❌ კოდის/გასაღების პრობლემა
+      dot.style.background = '#ef4444';
+      const errMsg = data.error || 'უცნობი შეცდომა';
+      const isNoKeys = errMsg.includes('No API keys');
+      result.innerHTML = `
+        <div style="width:100%;">
+          <div style="text-align:center;margin-bottom:16px;">
+            <div style="font-size:40px;">${isNoKeys ? '🔑' : '⚙️'}</div>
+            <div style="color:#ef4444;font-weight:700;font-size:16px;margin-top:8px;">${isNoKeys ? 'Vercel-ში გასაღები არ არის' : 'gemini.js-ის შეცდომა'}</div>
+          </div>
+          <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:12px;padding:14px;">
+            <div style="color:rgba(255,255,255,0.7);font-size:13px;line-height:1.9;">
+              ${isNoKeys
+                ? '🔑 Vercel → Settings → Environment Variables<br>✏️ GEMINI_KEY_1 და GEMINI_KEY_2 დაამატე<br>🔄 Redeploy გააკეთე'
+                : `⚠️ შეცდომა: <strong style="color:#fca5a5;">${errMsg}</strong><br>👀 Vercel Logs-ში დეტალები ნახე`
+              }
+            </div>
+          </div>
+        </div>`;
+
+    } else if (res.status === 429) {
+      // ❌ Rate limit / Quota
+      dot.style.background = '#eab308';
+      result.innerHTML = `
+        <div style="width:100%;">
+          <div style="text-align:center;margin-bottom:16px;">
+            <div style="font-size:40px;">⏱️</div>
+            <div style="color:#eab308;font-weight:700;font-size:16px;margin-top:8px;">დღიური ლიმიტი ამოიწურა</div>
+          </div>
+          <div style="background:rgba(234,179,8,0.08);border:1px solid rgba(234,179,8,0.2);border-radius:12px;padding:14px;">
+            <div style="color:rgba(255,255,255,0.7);font-size:13px;line-height:1.9;">
+              ⚠️ Gemini-ს უფასო ლიმიტი ამოიწურა<br>
+              🕐 ხვალ განახლდება (UTC 00:00)<br>
+              💡 გამოსავალი: Google AI Studio-ში ახალი გასაღები ააღე და Vercel-ში დაამატე
+            </div>
+          </div>
+        </div>`;
+
+    } else {
+      // ❌ სხვა უცნობი შეცდომა
+      dot.style.background = '#ef4444';
+      result.innerHTML = `
+        <div style="width:100%;">
+          <div style="text-align:center;margin-bottom:16px;">
+            <div style="font-size:40px;">❓</div>
+            <div style="color:#ef4444;font-weight:700;font-size:16px;margin-top:8px;">უცნობი შეცდომა</div>
+          </div>
+          <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:12px;padding:14px;">
+            <div style="color:rgba(255,255,255,0.7);font-size:13px;line-height:1.9;">
+              📊 სტატუს კოდი: <strong style="color:#fca5a5;">${res.status}</strong><br>
+              📝 შეცდომა: <strong style="color:#fca5a5;">${data.error || JSON.stringify(data).substring(0,80)}</strong><br>
+              👀 Vercel Logs-ში ნახე დეტალები
+            </div>
+          </div>
+        </div>`;
+    }
+
+  } catch (err) {
+    // ❌ ქსელის პრობლემა
+    dot.style.background = '#ef4444';
+    result.innerHTML = `
+      <div style="width:100%;">
+        <div style="text-align:center;margin-bottom:16px;">
+          <div style="font-size:40px;">📡</div>
+          <div style="color:#ef4444;font-weight:700;font-size:16px;margin-top:8px;">ქსელის პრობლემა</div>
+        </div>
+        <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:12px;padding:14px;">
+          <div style="color:rgba(255,255,255,0.7);font-size:13px;line-height:1.9;">
+            📡 Vercel სერვერი მიუწვდომელია<br>
+            🌐 შეამოწმე ინტერნეტ კავშირი<br>
+            ⚠️ შეცდომა: <strong style="color:#fca5a5;">${err.message}</strong>
+          </div>
+        </div>
+      </div>`;
+  }
+}
+
+// Gemini status modal ღილაკები
+document.addEventListener('DOMContentLoaded', function() {
+  const geminiBtn = document.getElementById('geminiCheckBtn');
+  const modal = document.getElementById('geminiStatusModal');
+  const closeBtn = document.getElementById('geminiStatusClose');
+  const closeBtn2 = document.getElementById('geminiStatusClose2');
+  const checkBtn = document.getElementById('geminiStatusCheck');
+
+  if (geminiBtn) geminiBtn.addEventListener('click', function() {
+    modal.style.display = 'flex';
+  });
+  if (closeBtn) closeBtn.addEventListener('click', function() {
+    modal.style.display = 'none';
+  });
+  if (closeBtn2) closeBtn2.addEventListener('click', function() {
+    modal.style.display = 'none';
+  });
+  if (checkBtn) checkBtn.addEventListener('click', checkGeminiStatus);
+
+  // admin-mode-ში ვაჩვენოთ ღილაკი
+  const observer = new MutationObserver(function() {
+    if (document.body.classList.contains('admin-mode')) {
+      if (geminiBtn) geminiBtn.style.display = 'flex';
+    } else {
+      if (geminiBtn) geminiBtn.style.display = 'none';
+    }
+  });
+  observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+});
