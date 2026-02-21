@@ -216,3 +216,7 @@
 #quoteSection {
   min-height: 120px;
 }
+
+/* Session 9 Fix — hero gap on category pages */
+.hero.no-bg { min-height: 0 !important; padding-bottom: 20px !important; }
+#quoteSection { min-height: 0; }
