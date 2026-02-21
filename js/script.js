@@ -598,7 +598,7 @@ ripple.remove();
 }
 let cardHTML = '';
 if (n.coverUrl) {
-cardHTML += `<img src="${n.coverUrl}" style="width:120%; height:250px; object-fit:cover; object-position:center; border-radius:12px 12px 0 0; margin:-20px -35px 16px -35px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);" />`;
+cardHTML += `<div class="card-img-wrapper"><img src="${n.coverUrl}" alt="${escapeHtml(n.title || '')}" loading="lazy" decoding="async" /></div>`;
 }
 cardHTML += `
 <h3>${escapeHtml(n.title || 'უსახელო')}</h3>
@@ -633,7 +633,7 @@ authorEl.style.display = 'none';
 }
 const coverContainer = document.getElementById('readCover');
 if (note.coverUrl) {
-coverContainer.innerHTML = `<img src="${note.coverUrl}" style="width:100%; max-height:500px; object-fit:contain; border-radius:16px; margin-bottom:30px;" />`;
+coverContainer.innerHTML = `<img src="${note.coverUrl}" alt="${escapeHtml(note.title || '')}" style="width:100%; max-height:500px; object-fit:contain; border-radius:16px; margin-bottom:30px;" loading="lazy" decoding="async" />`;
 } else {
 coverContainer.innerHTML = '';
 }
@@ -978,7 +978,7 @@ gap: 15px;
 `;
 let coverHTML = '';
 if (note.coverUrl) {
-coverHTML = `<img src="${note.coverUrl}" style="width:100%; height:300px; object-fit:contain; border-radius:12px; margin-bottom:10px; background:var(--surface);" />`;
+coverHTML = `<div class="carousel-img-wrapper"><img src="${note.coverUrl}" alt="${escapeHtml(note.title || '')}" loading="lazy" decoding="async" /></div>`;
 }
 card.innerHTML = `
 ${coverHTML}
