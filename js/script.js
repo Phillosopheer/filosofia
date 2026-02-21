@@ -24,7 +24,7 @@ async function fbFetch(url, options = {}) {
   return fetch(url, options);
 }
 const FIREBASE_AUTH = "https://identitytoolkit.googleapis.com/v1/accounts";
-const API_KEY       = "AIzaSyCLDlXXqAgJp5SdE_xefzS1sQ2fHI-l1Tg";
+const API_KEY       = "AIzaSyC1U4PgKx9zIQPQ-awDidGgx6OaEuYrEWA";
 let idToken    = null;
 let currentUid = null;
 let notes      = [];
