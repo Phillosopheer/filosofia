@@ -431,10 +431,6 @@ displayRandomQuote();
 document.getElementById('notesGrid').innerHTML = '';
 document.getElementById('searchBar').style.display = 'none';
 document.getElementById('homeSection').style.display = 'block';
-const skTrack = document.getElementById('carouselTrack');
-if (skTrack && skTrack.children.length === 0) {
-skTrack.innerHTML = '<div class="carousel-card skeleton-card"><div class="skeleton-img" style="margin:0 0 16px 0;width:100%;border-radius:12px;"></div><div class="skeleton-line skeleton-line-title"></div><div class="skeleton-line skeleton-line-short"></div></div>';
-}
 updateFab();
 renderHomeCats();
 initCarousel();
@@ -506,7 +502,7 @@ list.appendChild(d);
 }
 async function fetchNotes() {
 const grid = document.getElementById('notesGrid');
-grid.innerHTML = Array(6).fill('<div class="card skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line skeleton-line-title"></div><div class="skeleton-line skeleton-line-short"></div></div>').join('');
+grid.innerHTML = '<div class="spinner"></div>';
 buildCatList();
 try {
 const res  = await fbFetch(`${FIREBASE_DB}/notes.json`);
