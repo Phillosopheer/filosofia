@@ -1,5 +1,5 @@
 const firebaseConfig = {
-apiKey: "AIzaSyCLDlXXqAgJp5SdE_xefzS1sQ2fHI-l1Tg",
+apiKey: "AIzaSyC1U4PgKx9zIQPQ-awDidGgx6OaEuYrEWA",
 authDomain: "gen-lang-client-0339684222.firebaseapp.com",
 databaseURL: "https://gen-lang-client-0339684222-default-rtdb.firebaseio.com",
 projectId: "gen-lang-client-0339684222",
