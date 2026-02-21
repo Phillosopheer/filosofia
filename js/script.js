@@ -964,54 +964,28 @@ track.innerHTML = '';
 dotsContainer.innerHTML = '';
 carouselNotes.forEach((note, index) => {
 const card = document.createElement('div');
-card.style.cssText = `
-min-width: 100%;
-background: var(--surface2);
-border: 1px solid var(--border);
-border-radius: 16px;
-padding: 30px;
-cursor: pointer;
-transition: all 0.3s ease;
-display: flex;
-flex-direction: column;
-gap: 15px;
-`;
+card.className = 'carousel-card';
 let coverHTML = '';
 if (note.coverUrl) {
-coverHTML = `<div class="carousel-img-wrapper"><img src="${note.coverUrl}" alt="${escapeHtml(note.title || '')}" loading="lazy" decoding="async" /></div>`;
+coverHTML = `<div class="carousel-img-wrapper"><img src="${note.coverUrl}" alt="${escapeHtml(note.title || '')}" loading="eager" decoding="async" /></div>`;
 }
 card.innerHTML = `
 ${coverHTML}
-<p style="color:var(--accent); font-size:0.7rem; font-weight:600; letter-spacing:2px; text-transform:uppercase;">${getCategoryLabel(note.cat)}</p>
-<h4 style="font-family:'Cormorant Garamond', serif; font-size:1.6rem; font-weight:600; color:var(--text); line-height:1.3;">${note.title}</h4>
-${note.author ? `<p style="color:var(--accent); font-size:0.8rem; font-weight:600; margin-top:-8px;">✍️ ${note.author}</p>` : ''}
-<p style="color:var(--text-dim); font-size:0.85rem; line-height:1.6;">${getExcerpt(note.content)}</p>
-<div style="display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:15px; border-top:1px solid var(--border);">
-<span style="color:var(--text-dim); font-size:0.75rem;">${formatDate(note.date)}</span>
-<span style="color:var(--accent); font-size:0.85rem; font-weight:600;">კითხვა →</span>
+<p class="carousel-card-cat">${getCategoryLabel(note.cat)}</p>
+<h4 class="carousel-card-title">${note.title}</h4>
+${note.author ? `<p class="carousel-card-author">✍️ ${note.author}</p>` : ''}
+<p class="carousel-card-excerpt">${getExcerpt(note.content)}</p>
+<div class="carousel-card-footer">
+<span class="carousel-card-date">${formatDate(note.date)}</span>
+<span class="carousel-card-read">კითხვა →</span>
 </div>
 `;
 card.addEventListener('click', () => openReader(note));
-card.addEventListener('mouseenter', () => {
-card.style.transform = 'translateY(-5px)';
-card.style.borderColor = 'var(--accent)';
-card.style.boxShadow = '0 10px 30px var(--glow)';
-});
-card.addEventListener('mouseleave', () => {
-card.style.transform = 'translateY(0)';
-card.style.borderColor = 'var(--border)';
-card.style.boxShadow = 'none';
-});
+card.addEventListener('mouseenter', () => { card.classList.add('carousel-card-hover'); });
+card.addEventListener('mouseleave', () => { card.classList.remove('carousel-card-hover'); });
 track.appendChild(card);
 const dot = document.createElement('div');
-dot.style.cssText = `
-width: 8px;
-height: 8px;
-border-radius: 50%;
-background: ${index === 0 ? 'var(--accent)' : 'var(--border)'};
-cursor: pointer;
-transition: all 0.3s ease;
-`;
+dot.className = index === 0 ? 'carousel-dot carousel-dot-active' : 'carousel-dot';
 dot.addEventListener('click', () => goToSlide(index));
 dotsContainer.appendChild(dot);
 });
@@ -1061,8 +1035,7 @@ const dots = document.getElementById('carouselDots').children;
 if (!track) return;
 track.style.transform = `translateX(-${currentSlide * 100}%)`;
 Array.from(dots).forEach((dot, index) => {
-dot.style.background = index === currentSlide ? 'var(--accent)' : 'var(--border)';
-dot.style.width = index === currentSlide ? '20px' : '8px';
+dot.className = index === currentSlide ? 'carousel-dot carousel-dot-active' : 'carousel-dot';
 });
 }
 function getExcerpt(html) {
