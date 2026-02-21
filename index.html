@@ -111,7 +111,13 @@
                 </svg>
                 <span id="pendingBadge"></span>
             </button>
-            <button class="header-btn" id="logoutBtn" title="გამოსვლა">
+            <button class="header-btn" id="geminiCheckBtn" title="Gemini სტატუსი" style="display:none;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                </svg>
+                <span id="geminiStatusDot" style="position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;background:#6b7280;"></span>
+            </button>
+                        <button class="header-btn" id="logoutBtn" title="გამოსვლა">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
                     <polyline points="16 17 21 12 16 7"/>
@@ -628,6 +634,23 @@
         </a>
     </footer>
 
+
+    <!-- ===== GEMINI STATUS MODAL (admin only) ===== -->
+    <div id="geminiStatusModal" style="display:none;position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);align-items:center;justify-content:center;">
+        <div style="background:#0d1f33;border:1px solid rgba(167,139,250,0.3);border-radius:20px;padding:28px;width:90%;max-width:440px;box-shadow:0 30px 80px rgba(0,0,0,0.5);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                <h3 style="color:#a78bfa;margin:0;font-size:1.1rem;">🤖 Gemini API სტატუსი</h3>
+                <button id="geminiStatusClose" style="background:transparent;border:none;color:rgba(255,255,255,0.4);font-size:20px;cursor:pointer;">✕</button>
+            </div>
+            <div id="geminiStatusResult" style="min-height:120px;display:flex;align-items:center;justify-content:center;">
+                <div style="color:rgba(255,255,255,0.3);font-size:14px;">დააჭირე "შემოწმება"</div>
+            </div>
+            <div style="margin-top:20px;display:flex;gap:10px;">
+                <button id="geminiStatusCheck" style="flex:1;padding:12px;background:linear-gradient(135deg,#a78bfa,#818cf8);border:none;border-radius:12px;color:#0a1929;font-weight:700;cursor:pointer;font-size:14px;">🔍 შემოწმება</button>
+                <button id="geminiStatusClose2" style="padding:12px 20px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:rgba(255,255,255,0.6);cursor:pointer;font-size:14px;">დახურვა</button>
+            </div>
+        </div>
+    </div>
 
     <!-- ===== ERROR MONITOR (admin only) ===== -->
     <div id="errorMonitorBtn" title="ერორების მონიტორი">
