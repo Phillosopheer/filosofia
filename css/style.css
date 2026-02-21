@@ -300,3 +300,8 @@
   width: 20px;
   border-radius: 4px;
 }
+
+/* Session 9 Fix 3 — reserve grid space on category pages to prevent footer CLS */
+.hero.no-bg ~ #notesGrid:empty {
+  min-height: 600px !important;
+}
