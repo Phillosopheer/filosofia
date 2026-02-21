@@ -12,21 +12,6 @@ firebase.initializeApp(firebaseConfig);
 }
 // Firebase App Check (reCAPTCHA v3) — monitoring mode
 firebase.appCheck().activate('6LdepXIsAAAAAGPzEX8XfPPh1mMSeT8ZUod1Z5CC', true);
-// ⚠️ DEBUG ბლოკი — წაშალე როცა App Check OK დადასტურდება!
-setTimeout(async () => {
-  const el = document.createElement('div');
-  el.style.cssText = 'position:fixed;bottom:10px;left:10px;right:10px;z-index:99999;background:#111;color:#fff;padding:10px;font-size:12px;border-radius:8px;word-break:break-all;';
-  document.body.appendChild(el);
-  try {
-    el.textContent = 'App Check: ველოდები...';
-    const result = await firebase.appCheck().getToken(true);
-    el.style.background = '#1a3a1a';
-    el.textContent = 'App Check OK: ' + result.token.substring(0, 50) + '...';
-  } catch(e) {
-    el.style.background = '#3a1a1a';
-    el.textContent = 'App Check ERROR: ' + (e.message || String(e));
-  }
-}, 1000);
 const FIREBASE_DB   = "https://gen-lang-client-0339684222-default-rtdb.firebaseio.com";
 // Firebase REST API wrapper — adds App Check token to every Firebase DB request
 async function fbFetch(url, options = {}) {
@@ -1907,3 +1892,99 @@ document.getElementById('addTermBtn').addEventListener('click', addGlossaryTerm)
 document.getElementById('closeEditGlossaryModalBtn').addEventListener('click', () => closeModal('editGlossaryModal'));
 document.getElementById('updateTermBtn').addEventListener('click', updateGlossaryTerm);
 }
+// ===== ERROR MONITOR (admin only) =====
+(function() {
+  const errors = [];
+  const MAX_ERRORS = 50;
+
+  function formatTime() {
+    const now = new Date();
+    return now.toTimeString().substring(0, 8);
+  }
+
+  function addError(type, message, level = 'error') {
+    errors.unshift({ type, message, level, time: formatTime() });
+    if (errors.length > MAX_ERRORS) errors.pop();
+    renderErrors();
+    updateBadge();
+  }
+
+  function renderErrors() {
+    const list = document.getElementById('errorMonitorList');
+    if (!list) return;
+    if (errors.length === 0) {
+      list.innerHTML = '<div class="error-monitor-empty">✅ ერორები არ არის</div>';
+      return;
+    }
+    list.innerHTML = errors.map(e => `
+      <div class="error-item ${e.level}">
+        <div class="error-item-time">${e.time}</div>
+        <div class="error-item-type">${e.type}</div>
+        <div class="error-item-msg">${e.message}</div>
+      </div>
+    `).join('');
+  }
+
+  function updateBadge() {
+    const btn = document.getElementById('errorMonitorBtn');
+    const count = document.getElementById('errorMonitorCount');
+    if (!btn || !count) return;
+    count.textContent = errors.length;
+    if (errors.length > 0) {
+      btn.classList.add('has-errors');
+      btn.style.color = '#ef4444';
+    } else {
+      btn.classList.remove('has-errors');
+      btn.style.color = '#22c55e';
+    }
+  }
+
+  // გლობალური JS შეცდომები
+  window.addEventListener('error', function(e) {
+    addError('JS Error', `${e.message}\n${e.filename ? e.filename.split('/').pop() + ':' + e.lineno : ''}`, 'error');
+  });
+
+  // Promise შეცდომები (fetch, firebase და სხვა)
+  window.addEventListener('unhandledrejection', function(e) {
+    const msg = e.reason?.message || String(e.reason) || 'Unknown rejection';
+    addError('Promise Error', msg, 'error');
+  });
+
+  // console.error-ის ჩაჭერა
+  const origError = console.error;
+  console.error = function(...args) {
+    addError('Console Error', args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '), 'error');
+    origError.apply(console, args);
+  };
+
+  // console.warn-ის ჩაჭერა
+  const origWarn = console.warn;
+  console.warn = function(...args) {
+    addError('Warning', args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '), 'warn');
+    origWarn.apply(console, args);
+  };
+
+  // ღილაკები
+  document.addEventListener('DOMContentLoaded', function() {
+    const btn = document.getElementById('errorMonitorBtn');
+    const panel = document.getElementById('errorMonitorPanel');
+    const closeBtn = document.getElementById('errorMonitorClose');
+    const clearBtn = document.getElementById('errorMonitorClear');
+
+    if (btn) btn.addEventListener('click', function() {
+      panel.classList.toggle('open');
+    });
+    if (closeBtn) closeBtn.addEventListener('click', function() {
+      panel.classList.remove('open');
+    });
+    if (clearBtn) clearBtn.addEventListener('click', function() {
+      errors.length = 0;
+      renderErrors();
+      updateBadge();
+    });
+
+    // პირველი render
+    renderErrors();
+    updateBadge();
+  });
+})();
