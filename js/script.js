@@ -1892,6 +1892,43 @@ document.getElementById('addTermBtn').addEventListener('click', addGlossaryTerm)
 document.getElementById('closeEditGlossaryModalBtn').addEventListener('click', () => closeModal('editGlossaryModal'));
 document.getElementById('updateTermBtn').addEventListener('click', updateGlossaryTerm);
 }
+
+// ===== GEMINI STATUS CHECKER =====
+async function checkGeminiStatus() {
+  const result = document.getElementById('geminiStatusResult');
+  const dot = document.getElementById('geminiStatusDot');
+
+  result.innerHTML = '<div style="color:rgba(255,255,255,0.5);font-size:13px;padding:8px 0;">⏳ შემოწმება მიმდინარეობს...</div>';
+
+  const startTime = Date.now();
+  try {
+    const res = await fetch('https://filosofia-xi.vercel.app/api/gemini', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: 'გამარჯობა. უპასუხე ერთი სიტყვით: OK' }] }] })
+    });
+    const elapsed = Date.now() - startTime;
+    const data = await res.json().catch(() => ({}));
+
+    if (res.ok && (data.status === 'ok' || data.candidates)) {
+      result.innerHTML = `<div style="color:#22c55e;font-weight:700;">✅ Gemini მუშაობს! (${elapsed}ms)</div><div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:4px;">🔑 გასაღები OK · 🌐 სერვერი OK</div>`;
+    } else if (res.status === 503) {
+      result.innerHTML = '<div style="color:#ef4444;font-weight:700;">🌐 Google-ის სერვერის პრობლემა</div><div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:4px;">შენი კოდი სწორია — Google Gemini-ს სერვერი არ პასუხობს. დაელოდე და ცადე მოგვიანებით.</div>';
+    } else if (res.status === 500) {
+      const isNoKeys = (data.error || '').includes('No API keys');
+      result.innerHTML = isNoKeys
+        ? '<div style="color:#ef4444;font-weight:700;">🔑 Vercel-ში გასაღები არ არის</div><div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:4px;">Settings → Environment Variables → GEMINI_KEY_1 დაამატე → Redeploy</div>'
+        : `<div style="color:#ef4444;font-weight:700;">⚙️ gemini.js-ის შეცდომა</div><div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:4px;">${data.error || 'უცნობი შეცდომა'}</div>`;
+    } else if (res.status === 429) {
+      result.innerHTML = '<div style="color:#eab308;font-weight:700;">⏱️ დღიური ლიმიტი ამოიწურა</div><div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:4px;">ხვალ UTC 00:00-ზე განახლდება. ახალი გასაღები ააღე AI Studio-ში.</div>';
+    } else {
+      result.innerHTML = `<div style="color:#ef4444;font-weight:700;">❓ სტატუსი: ${res.status}</div><div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:4px;">${data.error || JSON.stringify(data).substring(0,80)}</div>`;
+    }
+  } catch(err) {
+    result.innerHTML = `<div style="color:#ef4444;font-weight:700;">📡 ქსელის პრობლემა</div><div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:4px;">${err.message}</div>`;
+  }
+}
+
 // ===== ERROR MONITOR (admin only) =====
 (function() {
   const errors = [];
