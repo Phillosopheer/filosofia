@@ -12,6 +12,21 @@ firebase.initializeApp(firebaseConfig);
 }
 // Firebase App Check (reCAPTCHA v3) — monitoring mode
 firebase.appCheck().activate('6LdepXIsAAAAAGPzEX8XfPPh1mMSeT8ZUod1Z5CC', true);
+// ⚠️ DEBUG ბლოკი — წაშალე როცა App Check OK დადასტურდება!
+setTimeout(async () => {
+  const el = document.createElement('div');
+  el.style.cssText = 'position:fixed;bottom:10px;left:10px;right:10px;z-index:99999;background:#111;color:#fff;padding:10px;font-size:12px;border-radius:8px;word-break:break-all;';
+  document.body.appendChild(el);
+  try {
+    el.textContent = 'App Check: ველოდები...';
+    const result = await firebase.appCheck().getToken(true);
+    el.style.background = '#1a3a1a';
+    el.textContent = 'App Check OK: ' + result.token.substring(0, 50) + '...';
+  } catch(e) {
+    el.style.background = '#3a1a1a';
+    el.textContent = 'App Check ERROR: ' + (e.message || String(e));
+  }
+}, 1000);
 const FIREBASE_DB   = "https://gen-lang-client-0339684222-default-rtdb.firebaseio.com";
 // Firebase REST API wrapper — adds App Check token to every Firebase DB request
 async function fbFetch(url, options = {}) {
