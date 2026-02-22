@@ -191,6 +191,8 @@ body::before {
   display: flex; align-items: center; justify-content: center;
 }
 .header-btn:hover { color: var(--gold); border-color: var(--border); background: var(--glass); }
+#uploaderBtn { display: none !important; }
+body.admin-mode #uploaderBtn { display: flex !important; }
 #logoutBtn { display: none; }
 #logoutBtn.active { display: flex; }
 #logoutBtn:hover { color: #ef4444; border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.08); }
