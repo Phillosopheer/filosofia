@@ -482,7 +482,7 @@ body::before {
 .glossary-stats-row { margin-top:14px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
 .glossary-stats-text { color:var(--text-dim); font-size:0.78rem; letter-spacing:1px; margin:0; font-family:'Cinzel',Georgia,serif; }
 #glossaryCount { color:var(--gold); }
-.term-display { display:none; max-width:880px; margin:46px auto; padding:0 6%; }
+.term-display { max-width:880px; margin:46px auto; padding:0 6%; }
 .term-card { background:var(--surface); border:1px solid var(--border); border-top:2px solid var(--gold-dim); padding:44px; box-shadow:0 20px 50px rgba(0,0,0,0.3); }
 .term-title { font-family:'Cinzel',Georgia,serif; font-size:2.4rem; font-weight:700; color:var(--gold); margin-bottom:22px; letter-spacing:1px; }
 .term-category { display:inline-block; padding:5px 13px; background:var(--glass); border:1px solid var(--border); font-size:0.7rem; font-weight:600; color:var(--gold); margin-bottom:22px; letter-spacing:2px; font-family:'Cinzel',Georgia,serif; text-transform:uppercase; }
@@ -494,7 +494,6 @@ body::before {
 .glossary-admin-controls { display:none; margin-top:32px; padding-top:26px; border-top:1px solid var(--border); }
 .glossary-admin-controls.active { display:block; }
 #glossaryInitialView { display:none; }
-#termDisplay { display:none; }
 #editGlossaryTermBtn { margin-right:10px; }
 
 /* MODALS */
