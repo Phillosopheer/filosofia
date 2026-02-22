@@ -629,11 +629,7 @@ select.tb-btn option { background:var(--surface); color:var(--text); }
   justify-content: center; align-items: center;
   flex-direction: column; gap: 10px; position: relative;
 }
-.social-footer::before {
-  content: '— ΦΙΛΟΣΟΦΙΑ —'; position: absolute; top: -11px; left: 50%; transform: translateX(-50%);
-  font-family: 'Cinzel', Georgia, serif; font-size: 0.6rem; letter-spacing: 5px; color: var(--gold);
-  background: var(--surface); padding: 0 16px;
-}
+
 .fb-admin-link { display:inline-block; transition:transform 0.3s, border 0.3s; border:1px solid var(--border); padding:4px; }
 .fb-admin-link:hover { border-color:var(--gold); transform:scale(1.05); }
 .fb-admin-img { width:70px; height:70px; display:block; filter:sepia(0.2) saturate(0.9); }
