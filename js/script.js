@@ -423,7 +423,7 @@ localStorage.removeItem('lastCategoryId');
 document.querySelectorAll('.cat-item').forEach(el => el.classList.remove('active'));
 const pt = document.getElementById('pageTitle');
 pt.classList.add('shimmer');
-document.getElementById('pageSubtitle').innerText = '';
+document.getElementById('pageSubtitle').innerText = 'სიბრძნის სიყვარული';
 document.getElementById('heroBook').style.display = 'block';
 document.querySelector('.welcome-text').style.display = 'block';
 document.getElementById('quoteSection').style.display = 'block';
