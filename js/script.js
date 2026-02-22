@@ -1343,6 +1343,8 @@ countEl.innerText = allGlossaryTerms.length;
 }
 function openGlossary() {
 document.getElementById('glossaryView').classList.add('active');
+document.getElementById('glossaryView').scrollTop = 0;
+document.body.style.overflow = 'hidden';
 document.getElementById('glossarySearchInput').focus();
 document.getElementById('termDisplay').style.display = 'none';
 document.getElementById('glossaryInitialView').style.display = 'block';
@@ -1356,6 +1358,7 @@ if (addBtn) addBtn.style.display = idToken ? 'flex' : 'none';
 }
 function closeGlossary() {
 document.getElementById('glossaryView').classList.remove('active');
+document.body.style.overflow = '';
 const addBtn = document.getElementById('glossaryAddBtn');
 if (addBtn) addBtn.style.display = 'none';
 updateFab();
@@ -1391,6 +1394,7 @@ document.getElementById('glossaryInitialView').style.display = 'none';
 document.getElementById('suggestionDropdown').classList.remove('active');
 document.getElementById('glossarySearchInput').value = '';
 document.getElementById('termDisplay').style.display = 'block';
+document.getElementById('glossaryView').scrollTop = 0;
 document.getElementById('termTitle').innerText = term.term;
 document.getElementById('termDefinition').innerText = term.definition;
 if (term.category) {
