@@ -696,8 +696,8 @@ select.tb-btn option { background:var(--surface); color:var(--text); }
 }
 @keyframes floatUp {
   0%   { opacity: 0; transform: translateY(100vh) scale(0); }
-  10%  { opacity: 0.5; }
-  90%  { opacity: 0.15; }
+  10%  { opacity: 0.7; }
+  90%  { opacity: 0.3; }
   100% { opacity: 0; transform: translateY(-20px) scale(1); }
 }
 
