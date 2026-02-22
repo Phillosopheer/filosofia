@@ -11,7 +11,7 @@
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
     <!-- Security Headers -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://www.gstatic.com https://*.googleapis.com https://www.google.com https://www.recaptcha.net; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://filosofia-xi.vercel.app https://*.firebaseio.com https://*.googleapis.com https://*.firebaseapp.com https://www.google.com https://www.recaptcha.net; img-src 'self' data: https:; frame-src https://www.google.com https://www.recaptcha.net; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://www.gstatic.com https://*.googleapis.com https://www.google.com https://www.recaptcha.net; style-src 'self'; font-src 'self'; connect-src 'self' https://filosofia-xi.vercel.app https://*.firebaseio.com https://*.googleapis.com https://*.firebaseapp.com https://www.google.com https://www.recaptcha.net; img-src 'self' data: https:; frame-src https://www.google.com https://www.recaptcha.net; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';">
     <meta name="referrer" content="strict-origin-when-cross-origin">
 
     <title>ფილოსოფია - ქართული ფილოსოფიური პლატფორმა</title>
@@ -76,9 +76,7 @@
     <link rel="preload" href="philosopher-bg.webp" as="image" type="image/webp">
 
     <!-- Fonts (non-blocking) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@400;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Noto+Sans+Georgian:wght@300;400;500;600&display=optional" rel="stylesheet">
+    <!-- Fonts self-hosted (Session 14) — @font-face in css/style.css -->
     
     <!-- Firebase App (the core Firebase SDK) -->
     <script src="https://www.gstatic.com/firebasejs/12.9.0/firebase-app-compat.js" integrity="sha384-3XWNJu2qFQ6l+dVvCdcgpGP7mp9cxB8uT+w78+fV0wyyiD0lYQ2yMt2cFZOlCcFp" crossorigin="anonymous" defer></script>
