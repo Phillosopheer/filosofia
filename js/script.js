@@ -412,7 +412,8 @@ if (idToken) {
 fetchPendingNotes();
 }
 const titleElement = document.getElementById('pageTitle');
-waveFadeText(titleElement, 'ჩვენ გვიყვარს|ფილოსოფია');
+titleElement.innerText = 'ΦΙΛΟΣΟΦΙΑ';
+titleElement.classList.add('wave-anim');
 }
 function goHome() {
 currentCat = null;
@@ -434,7 +435,8 @@ document.getElementById('homeSection').style.display = 'block';
 updateFab();
 renderHomeCats();
 initCarousel();
-waveFadeText(pt, 'ჩვენ გვიყვარს|ფილოსოფია');
+pt.innerText = 'ΦΙΛΟΣΟΦΙΑ';
+pt.classList.add('wave-anim');
 }
 function renderHomeCats() {
 }
