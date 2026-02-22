@@ -750,7 +750,7 @@ select.tb-btn option { background:var(--surface); color:var(--text); }
 .fb-admin-link:hover { border-color: var(--gold); transform: scale(1.06); }
 .fb-admin-img {
   width: 70px; height: 70px; display: block;
-  filter: sepia(0.2) saturate(0.9);
+  filter: sepia(1) saturate(0.8) hue-rotate(5deg) brightness(0.85);
   animation: slowSpin 8s linear infinite;
 }
 @keyframes slowSpin {
