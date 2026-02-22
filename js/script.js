@@ -2056,14 +2056,22 @@ async function upUploadFile(slot, token) {
     fr.readAsDataURL(inp.files[0]);
   });
   var sha = await upGetSHA(path, token);
+  console.log('[UP] path='+path+' sha='+sha);
   var body = {message: 'Update '+path, content: content, branch: UP_BRANCH};
   if (sha) body.sha = sha;
-  var r = await fetch('https://api.github.com/repos/'+UP_OWNER+'/'+UP_REPO+'/contents/'+path, {
-    method: 'PUT',
-    headers: {Authorization: 'token '+token, 'Content-Type': 'application/json'},
-    body: JSON.stringify(body)
-  });
-  return r.ok ? 'ok' : 'err';
+  try {
+    var r = await fetch('https://api.github.com/repos/'+UP_OWNER+'/'+UP_REPO+'/contents/'+path, {
+      method: 'PUT',
+      headers: {Authorization: 'token '+token, 'Content-Type': 'application/json'},
+      body: JSON.stringify(body)
+    });
+    var rtext = await r.text();
+    console.log('[UP] status='+r.status+' response='+rtext.substring(0,200));
+    return r.ok ? 'ok' : 'err';
+  } catch(e) {
+    console.error('[UP] fetch error: '+e.message);
+    return 'err';
+  }
 }
 
 window.openUploader = function() {
