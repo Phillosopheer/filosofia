@@ -1725,7 +1725,7 @@ const btn = document.getElementById('articleBotSendBtn');
 if (input) input.disabled = true;
 if (btn) btn.disabled = true;
 let remaining = retryAfterSeconds;
-function update() {
+function updateRateLimit() {
 if (remaining <= 0) {
 el.innerHTML = '<div class="article-bot-a bot-warning">✅ შეგიძლია კვლავ დასვა კითხვა!</div>';
 if (input) input.disabled = false;
@@ -1735,16 +1735,16 @@ return;
 el.innerHTML = '<div class="article-bot-a bot-blocked" style="text-align:center;">⏳ ძალიან ბევრი კითხვა!<br><span class="bot-countdown" style="font-size:2.5rem;">' + remaining + '</span><br><small>წამი დარჩენილია</small></div>';
 el.style.display = 'block';
 remaining--;
-setTimeout(update, 1000);
+setTimeout(updateRateLimit, 1000);
 }
-update();
+updateRateLimit();
 }
 function showBotCountdown(el, blockedUntil) {
 const input = document.getElementById('articleBotInput');
 const btn = document.getElementById('articleBotSendBtn');
 if (input) input.disabled = true;
 if (btn) btn.disabled = true;
-function update() {
+function updateCountdown() {
 const remaining = blockedUntil - Date.now();
 if (remaining <= 0) {
 localStorage.removeItem('botBlockedUntil');
@@ -1760,9 +1760,9 @@ const hh = String(h).padStart(2,'0');
 const mm = String(m).padStart(2,'0');
 const ss = String(s).padStart(2,'0');
 el.innerHTML = '<div class="article-bot-a bot-blocked">🚫 დაბლოკილი ხარ სარგებლობის წესების დარღვევის გამო<br><span class="bot-countdown">' + hh + ':' + mm + ':' + ss + '</span><br><small>დარჩენილი დრო განბლოკვამდე</small></div>';
-setTimeout(update, 1000);
+setTimeout(updateCountdown, 1000);
 }
-update();
+updateCountdown();
 }
 function setupEventListeners() {
 document.getElementById('menuBtn').addEventListener('click', toggleMenu);
