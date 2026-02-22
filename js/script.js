@@ -2002,189 +2002,164 @@ async function checkGeminiStatus() {
   });
 })();
 
-// ━━━━━━━━━━━━━━━━ GITHUB UPLOADER (admin only) ━━━━━━━━━━━━━━━━
-(function() {
-  const OWNER = 'Phillosopheer', REPO = 'filosofia', BRANCH = 'main';
+// ━━━━━━━━━━━━━━━━ GITHUB UPLOADER ━━━━━━━━━━━━━━━━
+var UP_OWNER = 'Phillosopheer', UP_REPO = 'filosofia', UP_BRANCH = 'main';
 
-  document.addEventListener('DOMContentLoaded', function() {
-    // X button
-    const closeBtn = document.getElementById('uploaderCloseBtn');
-    if (closeBtn) closeBtn.addEventListener('click', function() {
-      document.getElementById('uploaderModal').classList.remove('active');
-    });
-    // Upload button in header
-    const upBtn = document.getElementById('uploaderBtn');
-    if (upBtn) upBtn.addEventListener('click', function() {
-      document.getElementById('uploaderModal').classList.add('active');
-      const saved = localStorage.getItem('gh_uploader_token');
-      if (saved) document.getElementById('upToken').value = saved;
-    });
+// ღილაკი — მხოლოდ ადმინს
+function upSyncBtn() {
+  var btn = document.getElementById('uploaderBtn');
+  if (!btn) return;
+  btn.style.display = document.body.classList.contains('admin-mode') ? 'flex' : 'none';
+}
+new MutationObserver(upSyncBtn).observe(document.body, {attributes:true, attributeFilter:['class']});
+window.addEventListener('load', upSyncBtn);
+
+// ღილაკზე დაჭერა
+window.openUploader = function() {
+  document.getElementById('uploaderModal').classList.add('active');
+  var saved = localStorage.getItem('gh_uploader_token');
+  if (saved) document.getElementById('upToken').value = saved;
+};
+
+// Token შემოწმება
+window.upCheckToken = async function() {
+  var t = (document.getElementById('upToken').value||'').trim();
+  if (!t) { upTokSet('Token შეიყვანე','#8a7f6a'); return; }
+  upTokSet('შემოწმება...','#8a7f6a');
+  try {
+    var r = await fetch('https://api.github.com/repos/'+UP_OWNER+'/'+UP_REPO, {headers:{Authorization:'token '+t}});
+    if (r.ok) {
+      upTokSet('✓ '+UP_OWNER+' — ვალიდია','#4a9e6b');
+      if (document.getElementById('upSave').checked) localStorage.setItem('gh_uploader_token', t);
+    } else upTokSet('Token არასწორია','#ef4444');
+  } catch(e) { upTokSet('შეცდომა','#ef4444'); }
+};
+function upTokSet(txt, color) {
+  document.getElementById('upTokenText').textContent = txt;
+  document.getElementById('upTokenDot').style.background = color;
+}
+
+// Tab გადართვა
+window.upTab = function(name, btn) {
+  ['js','css','html','api','root','custom'].forEach(function(n) {
+    var g = document.getElementById('upgroup-'+n);
+    if (g) g.style.display = (n===name) ? 'flex' : 'none';
   });
+  var tabs = document.querySelectorAll('#uploaderModal .up-tab');
+  for (var i=0;i<tabs.length;i++) tabs[i].classList.remove('active');
+  btn.classList.add('active');
+};
 
-  // Show/hide based on admin login
-  const _orig_addCls = document.body.classList.add.bind(document.body.classList);
-  function checkAdmin() {
-    const btn = document.getElementById('uploaderBtn');
-    if (!btn) return;
-    if (document.body.classList.contains('admin-mode')) {
-      btn.style.display = 'flex';
-    } else {
-      btn.style.display = 'none';
-    }
-  }
-  const obs = new MutationObserver(checkAdmin);
-  obs.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+// ფაილი
+window.upPick = function(inp) {
+  if (!inp.files[0]) return;
+  var txt = inp.parentElement.querySelector('.up-atext');
+  txt.textContent = '✓ '+inp.files[0].name;
+  txt.style.color = '#e8cc7a'; txt.style.fontStyle = 'normal';
+  inp.closest('.up-slot').querySelector('.up-status').innerHTML = '';
+};
 
-  // Token check
-  window.upCheckToken = async function() {
-    const t = (document.getElementById('upToken').value || '').trim();
-    if (!t) { upSetTok('Token შეიყვანე', '#8a7f6a'); return; }
-    upSetTok('შემოწმება...', '#8a7f6a');
-    try {
-      const r = await fetch('https://api.github.com/repos/' + OWNER + '/' + REPO, {
-        headers: { Authorization: 'token ' + t }
-      });
-      if (r.ok) {
-        upSetTok('✓ ' + OWNER + ' — ვალიდია', '#4a9e6b');
-        document.getElementById('upTokenDot').style.background = '#4a9e6b';
-        if (document.getElementById('upSave').checked) localStorage.setItem('gh_uploader_token', t);
-      } else {
-        upSetTok('Token არასწორია', '#ef4444');
-        document.getElementById('upTokenDot').style.background = '#ef4444';
-      }
-    } catch(e) { upSetTok('კავშირის შეცდომა', '#ef4444'); }
-  };
+// slot-ის გასუფთავება
+window.upClear = function(btn) {
+  var s = btn.closest('.up-slot');
+  var inp = s.querySelector('input[type=file]');
+  var txt = s.querySelector('.up-atext');
+  inp.value = ''; txt.textContent = '📁 არჩიე';
+  txt.style.color = ''; txt.style.fontStyle = '';
+  s.querySelector('.up-status').innerHTML = '';
+};
 
-  function upSetTok(text, color) {
-    document.getElementById('upTokenText').textContent = text;
-    document.getElementById('upTokenDot').style.background = color;
-  }
+// Custom slot
+window.upAddCustom = function() {
+  var path = (document.getElementById('upCustomPath').value||'').trim();
+  if (!path) return;
+  var name = path.split('/').pop();
+  var slot = document.createElement('div');
+  slot.className = 'up-slot'; slot.dataset.path = path;
+  slot.innerHTML = '<div class="up-slot-top"><span class="up-sname">'+name+'</span>'
+    + '<button class="up-xbtn" onclick="this.closest(\'.up-slot\').remove()">✕</button></div>'
+    + '<div class="up-spath">'+path+'</div>'
+    + '<label class="up-area"><input type="file" onchange="upPick(this)"><div class="up-atext">📁 არჩიე</div></label>'
+    + '<div class="up-status"></div>';
+  document.getElementById('upCustomSlots').appendChild(slot);
+  document.getElementById('upCustomPath').value = '';
+};
 
-  // Tab switching
-  window.upTab = function(name, btn) {
-    ['js','css','html','api','root','custom'].forEach(function(n) {
-      const g = document.getElementById('upgroup-' + n);
-      if (g) g.style.display = n === name ? 'flex' : 'none';
-    });
-    document.querySelectorAll('#uploaderModal .up-tab').forEach(function(t) {
-      t.classList.remove('active');
-    });
-    btn.classList.add('active');
-  };
-
-  // File select
-  window.upPick = function(input) {
-    if (!input.files[0]) return;
-    const txt = input.parentElement.querySelector('.up-atext');
-    txt.textContent = '✓ ' + input.files[0].name;
-    txt.style.color = '#e8cc7a'; txt.style.fontStyle = 'normal';
-    input.closest('.up-slot').querySelector('.up-status').innerHTML = '';
-  };
-
-  // Clear single slot
-  window.upClear = function(btn) {
-    const s = btn.closest('.up-slot');
-    const inp = s.querySelector('input[type=file]');
-    const txt = s.querySelector('.up-atext');
-    inp.value = '';
-    txt.textContent = '📁 არჩიე';
-    txt.style.color = ''; txt.style.fontStyle = '';
+// ყველაფრის გასუფთავება
+window.upClearAll = function() {
+  var slots = document.querySelectorAll('#uploaderModal .up-slot input[type=file]');
+  for (var i=0;i<slots.length;i++) {
+    var s = slots[i].closest('.up-slot');
+    var txt = s.querySelector('.up-atext');
+    slots[i].value = ''; txt.textContent = '📁 არჩიე';
+    txt.style.color=''; txt.style.fontStyle='';
     s.querySelector('.up-status').innerHTML = '';
-  };
-
-  // Add custom slot
-  window.upAddCustom = function() {
-    const path = (document.getElementById('upCustomPath').value || '').trim();
-    if (!path) return;
-    const name = path.split('/').pop();
-    const slot = document.createElement('div');
-    slot.className = 'up-slot'; slot.dataset.path = path;
-    var closeHtml = '<div class="up-slot-top"><span class="up-sname">' + name + '</span>';
-    closeHtml += '<button class="up-xbtn" onclick="this.closest(\'.up-slot\').remove()">✕</button></div>';
-    closeHtml += '<div class="up-spath">' + path + '</div>';
-    closeHtml += '<label class="up-area"><input type="file" onchange="upPick(this)"><div class="up-atext">📁 არჩიე</div></label>';
-    closeHtml += '<div class="up-status"></div>';
-    slot.innerHTML = closeHtml;
-    document.getElementById('upCustomSlots').appendChild(slot);
-    document.getElementById('upCustomPath').value = '';
-  };
-
-  // Clear all
-  window.upClearAll = function() {
-    document.querySelectorAll('#uploaderModal .up-slot input[type=file]').forEach(function(inp) {
-      const s = inp.closest('.up-slot'), txt = s.querySelector('.up-atext');
-      inp.value = ''; txt.textContent = '📁 არჩიე';
-      txt.style.color = ''; txt.style.fontStyle = '';
-      s.querySelector('.up-status').innerHTML = '';
-    });
-    const l = document.getElementById('upLog');
-    l.innerHTML = ''; l.style.display = 'none';
-  };
-
-  function upLog(msg, color) {
-    const el = document.getElementById('upLog'); el.style.display = 'block';
-    const d = document.createElement('div'); d.style.color = color || '#8a7f6a';
-    d.textContent = msg; el.appendChild(d); el.scrollTop = el.scrollHeight;
   }
+  var l = document.getElementById('upLog');
+  l.innerHTML=''; l.style.display='none';
+};
 
-  function upSlotStatus(slot, msg, ok) {
-    const color = ok ? '#4a9e6b' : '#ef4444';
-    slot.querySelector('.up-status').innerHTML =
-      '<div style="width:7px;height:7px;border-radius:50%;background:' + color + ';flex-shrink:0;"></div>' +
-      '<span style="color:' + color + ';font-size:0.72rem;">' + msg + '</span>';
+function upLog(msg, color) {
+  var el = document.getElementById('upLog'); el.style.display='block';
+  var d = document.createElement('div'); d.style.color = color||'#8a7f6a';
+  d.textContent = msg; el.appendChild(d); el.scrollTop = el.scrollHeight;
+}
+function upSlotStatus(slot, msg, ok) {
+  var c = ok ? '#4a9e6b' : '#ef4444';
+  slot.querySelector('.up-status').innerHTML =
+    '<div style="width:7px;height:7px;border-radius:50%;background:'+c+';flex-shrink:0;margin-right:5px;"></div>'
+    +'<span style="color:'+c+';font-size:0.72rem;">'+msg+'</span>';
+}
+async function upGetSHA(path, token) {
+  try {
+    var r = await fetch('https://api.github.com/repos/'+UP_OWNER+'/'+UP_REPO+'/contents/'+path+'?ref='+UP_BRANCH,
+      {headers:{Authorization:'token '+token}});
+    if (r.ok) { var d = await r.json(); return d.sha; }
+  } catch(e) {}
+  return null;
+}
+
+// ატვირთვა
+window.upUploadAll = async function() {
+  var token = (document.getElementById('upToken').value||'').trim();
+  if (!token) { alert('Token შეიყვანე!'); return; }
+  document.getElementById('upLog').innerHTML='';
+  var allSlots = document.querySelectorAll('#uploaderModal .up-slot');
+  var slots = [];
+  for (var i=0;i<allSlots.length;i++) {
+    if (allSlots[i].querySelector('input[type=file]').files[0]) slots.push(allSlots[i]);
   }
-
-  async function upGetSHA(path, token) {
+  if (!slots.length) { upLog('ფაილები არ არჩეულა','#ef4444'); return; }
+  var wrap = document.getElementById('upProgressWrap'); wrap.style.display='block';
+  var bar = document.getElementById('upProgressBar'); bar.style.width='0%';
+  var done=0, uploaded=0;
+  for (var i=0;i<slots.length;i++) {
+    var slot = slots[i];
+    var path = slot.dataset.path;
+    var inp = slot.querySelector('input[type=file]');
+    upLog('↑ '+path,'#7a6030');
     try {
-      const r = await fetch('https://api.github.com/repos/' + OWNER + '/' + REPO + '/contents/' + path + '?ref=' + BRANCH, {
-        headers: { Authorization: 'token ' + token }
+      var content = await new Promise(function(res) {
+        var reader = new FileReader();
+        reader.onload = function(e) { res(e.target.result.split(',')[1]); };
+        reader.readAsDataURL(inp.files[0]);
       });
-      if (r.ok) { const d = await r.json(); return d.sha; }
-    } catch(e) {}
-    return null;
-  }
-
-  window.upUploadAll = async function() {
-    const token = (document.getElementById('upToken').value || '').trim();
-    if (!token) { alert('Token შეიყვანე!'); return; }
-    document.getElementById('upLog').innerHTML = '';
-    const allSlots = document.querySelectorAll('#uploaderModal .up-slot');
-    const slots = Array.from(allSlots).filter(function(s) {
-      return s.querySelector('input[type=file]').files[0];
-    });
-    if (!slots.length) { upLog('ფაილები არ არჩეულა', '#ef4444'); return; }
-    const wrap = document.getElementById('upProgressWrap'); wrap.style.display = 'block';
-    const bar = document.getElementById('upProgressBar'); bar.style.width = '0%';
-    let done = 0, uploaded = 0;
-    for (let i = 0; i < slots.length; i++) {
-      const slot = slots[i];
-      const path = slot.dataset.path;
-      const inp = slot.querySelector('input[type=file]');
-      upLog('↑ ' + path, '#7a6030');
-      try {
-        const content = await new Promise(function(res) {
-          const reader = new FileReader();
-          reader.onload = function(e) { res(e.target.result.split(',')[1]); };
-          reader.readAsDataURL(inp.files[0]);
-        });
-        const sha = await upGetSHA(path, token);
-        const body = { message: 'Update ' + path, content: content, branch: BRANCH };
-        if (sha) body.sha = sha;
-        const r = await fetch('https://api.github.com/repos/' + OWNER + '/' + REPO + '/contents/' + path, {
-          method: 'PUT',
-          headers: { Authorization: 'token ' + token, 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
-        });
-        done++;
-        bar.style.width = (done / slots.length * 100) + '%';
-        if (r.ok) { upSlotStatus(slot, '✓ ატვირთულია', true); upLog('✓ ' + path, '#4a9e6b'); uploaded++; }
-        else { upSlotStatus(slot, '✗ შეცდომა', false); upLog('✗ ' + path + ' — HTTP ' + r.status, '#ef4444'); }
-      } catch(e) {
-        upSlotStatus(slot, '✗ შეცდომა', false);
-        upLog('✗ ' + path + ' — ' + e.message, '#ef4444');
-      }
+      var sha = await upGetSHA(path, token);
+      var body = {message:'Update '+path, content:content, branch:UP_BRANCH};
+      if (sha) body.sha = sha;
+      var r = await fetch('https://api.github.com/repos/'+UP_OWNER+'/'+UP_REPO+'/contents/'+path, {
+        method:'PUT',
+        headers:{Authorization:'token '+token,'Content-Type':'application/json'},
+        body:JSON.stringify(body)
+      });
+      done++; bar.style.width=(done/slots.length*100)+'%';
+      if (r.ok) { upSlotStatus(slot,'✓ ატვირთულია',true); upLog('✓ '+path,'#4a9e6b'); uploaded++; }
+      else { upSlotStatus(slot,'✗ შეცდომა HTTP '+r.status,false); upLog('✗ '+path,'#ef4444'); }
+    } catch(e) {
+      upSlotStatus(slot,'✗ '+e.message,false);
+      upLog('✗ '+path+' — '+e.message,'#ef4444');
     }
-    upLog('━━━ ' + uploaded + '/' + slots.length + ' ატვირთულია ━━━', '#7a6030');
-    setTimeout(function() { wrap.style.display = 'none'; bar.style.width = '0%'; }, 3000);
-  };
-})();
+  }
+  upLog('━━━ '+uploaded+'/'+slots.length+' ატვირთულია ━━━','#7a6030');
+  setTimeout(function(){wrap.style.display='none';bar.style.width='0%';},3000);
+};
