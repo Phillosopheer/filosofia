@@ -1387,33 +1387,23 @@ function showTerm(termId) {
 const term = allGlossaryTerms.find(t => t.fbId === termId);
 if (!term) return;
 currentGlossaryTerm = term;
+document.getElementById('glossaryInitialView').style.display = 'none';
 document.getElementById('suggestionDropdown').classList.remove('active');
-// Fill bottom sheet
-const catEl = document.getElementById('sheetTermCategory');
-if (term.category) { catEl.innerText = term.category; catEl.style.display = 'inline-block'; }
-else { catEl.style.display = 'none'; }
-document.getElementById('sheetTermTitle').innerText = term.term;
-document.getElementById('sheetTermDefinition').innerText = term.definition;
-const adminEl = document.getElementById('sheetAdminControls');
-if (idToken) { adminEl.style.display = 'block'; } else { adminEl.style.display = 'none'; }
-// Open sheet
-const sheet = document.getElementById('termBottomSheet');
-sheet.classList.add('open');
-document.body.style.overflow = 'hidden';
+document.getElementById('glossarySearchInput').value = '';
+document.getElementById('termDisplay').style.display = 'block';
+document.getElementById('termTitle').innerText = term.term;
+document.getElementById('termDefinition').innerText = term.definition;
+if (term.category) {
+document.getElementById('termCategory').innerText = term.category;
+document.getElementById('termCategory').style.display = 'inline-block';
+} else {
+document.getElementById('termCategory').style.display = 'none';
 }
-function closeTermSheet(e) {
-if (e && e.target !== document.getElementById('termBottomSheet')) return;
-const sheet = document.getElementById('termBottomSheet');
-sheet.classList.remove('open');
-document.body.style.overflow = '';
+if (idToken) {
+document.getElementById('glossaryAdminControls').classList.add('active');
+} else {
+document.getElementById('glossaryAdminControls').classList.remove('active');
 }
-function editCurrentTerm() {
-closeTermSheet();
-if (typeof editGlossaryTerm === 'function') editGlossaryTerm();
-}
-function deleteCurrentTerm() {
-closeTermSheet();
-if (typeof deleteGlossaryTerm === 'function') deleteGlossaryTerm();
 }
 function backToGlossarySearch() {
 document.getElementById('termDisplay').style.display = 'none';
