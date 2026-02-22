@@ -1,3 +1,49 @@
+
+// ===== TOTP შემოწმება =====
+async function doTotpVerify() {
+  const token = (document.getElementById('totpInput').value || '').replace(/\s/g, '');
+  const errEl = document.getElementById('totpError');
+  const btn = document.getElementById('totpBtn');
+  errEl.innerText = '';
+  if (token.length !== 6) { errEl.innerText = '6 ციფრი შეიყვანე!'; return; }
+  btn.disabled = true;
+  btn.innerText = 'შემოწმება...';
+  try {
+    const res = await fetch('/api/verify-totp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      const d = window._pendingAuthData;
+      idToken    = d.idToken;
+      currentUid = d.localId;
+      localStorage.setItem('idToken', d.idToken);
+      localStorage.setItem('currentUid', d.localId);
+      localStorage.setItem('userEmail', d.email);
+      localStorage.setItem('sessionTimestamp', Date.now().toString());
+      const badge = document.getElementById('userBadge');
+      badge.innerText = d.email.split('@')[0];
+      badge.style.display = 'inline-block';
+      document.getElementById('lockIcon').innerHTML = '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>';
+      document.getElementById('logoutBtn').classList.add('active');
+      document.body.classList.add('admin-mode');
+      closeModal('totpModal');
+      updateFab();
+      updateHeaderButtons();
+      fetchPendingNotes();
+      window._pendingAuthData = null;
+    } else {
+      errEl.innerText = '❌ კოდი არასწორია! სცადე თავიდან.';
+    }
+  } catch(e) {
+    errEl.innerText = '📡 კავშირის შეცდომა, სცადე თავიდან.';
+  } finally {
+    btn.disabled = false;
+    btn.innerText = 'დადასტურება';
+  }
+}
 const firebaseConfig = {
 apiKey: "AIzaSyCcTPhEU478qqwbI9KqJ4iOOFBHox-J7Ao",
 authDomain: "gen-lang-client-0339684222.firebaseapp.com",
@@ -727,23 +773,13 @@ return;
 }
 localStorage.removeItem('loginFails');
 localStorage.removeItem('lockUntil');
-idToken    = data.idToken;
-currentUid = data.localId;
-localStorage.setItem('idToken', data.idToken);
-localStorage.setItem('currentUid', data.localId);
-localStorage.setItem('userEmail', data.email);
-localStorage.setItem('sessionTimestamp', Date.now().toString());
-const badge = document.getElementById('userBadge');
-badge.innerText = data.email.split('@')[0];
-badge.style.display = 'inline-block';
-document.getElementById('lockIcon').innerHTML = '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>';
-document.getElementById('lockBtn').setAttribute('title', 'შესვლა');
-document.getElementById('logoutBtn').classList.add('active');
-document.body.classList.add('admin-mode');
+// Firebase login OK — ახლა TOTP შემოწმება
+window._pendingAuthData = data;
 closeModal('loginModal');
-updateFab();
-updateHeaderButtons();
-fetchPendingNotes();
+openModal('totpModal');
+document.getElementById('totpInput').value = '';
+document.getElementById('totpError').innerText = '';
+setTimeout(() => document.getElementById('totpInput').focus(), 300);
 } catch (err) {
 showMsg(errEl, '📡 ინტერნეტი? რა ინტერნეტი? კავშირი ვერ მოხერხდა, სცადე თავიდან.', true);
 } finally {
@@ -1807,6 +1843,9 @@ const glossarySearch = document.getElementById('glossarySearchInput');
 if (glossarySearch) glossarySearch.addEventListener('input', searchGlossary);
 document.getElementById('closeLoginModalBtn').addEventListener('click', () => closeModal('loginModal'));
 document.getElementById('loginBtn').addEventListener('click', doLogin);
+document.getElementById('totpBtn').addEventListener('click', doTotpVerify);
+document.getElementById('totpInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') doTotpVerify(); });
+document.getElementById('closeTotpModalBtn').addEventListener('click', () => { closeModal('totpModal'); window._pendingAuthData = null; });
 document.getElementById('loginPassword').addEventListener('keydown', (e) => {
 if (e.key === 'Enter') doLogin();
 });
