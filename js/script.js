@@ -635,7 +635,7 @@ authorEl.style.display = 'none';
 }
 const coverContainer = document.getElementById('readCover');
 if (note.coverUrl) {
-coverContainer.innerHTML = `<img src="${note.coverUrl}" alt="${escapeHtml(note.title || '')}" style="width:100%; max-height:500px; object-fit:contain; border-radius:16px; margin-bottom:30px;" loading="lazy" decoding="async" />`;
+coverContainer.innerHTML = `<img src="${note.coverUrl}" alt="${escapeHtml(note.title || '')}" style="width:100%; max-height:min(500px,45vh); object-fit:contain; border-radius:16px; margin-bottom:30px;" loading="lazy" decoding="async" />`;
 } else {
 coverContainer.innerHTML = '';
 }
@@ -1221,7 +1221,7 @@ document.getElementById('readBody').innerHTML  = content.replace(/<script[\s\S]*
 const coverContainer = document.getElementById('readCover');
 if (coverContainer) {
 if (updated.coverUrl) {
-coverContainer.innerHTML = `<img src="${updated.coverUrl}" style="width:100%; max-height:500px; object-fit:contain; border-radius:16px; margin-bottom:30px;" />`;
+coverContainer.innerHTML = `<img src="${updated.coverUrl}" style="width:100%; max-height:min(500px,45vh); object-fit:contain; border-radius:16px; margin-bottom:30px;" />`;
 } else {
 coverContainer.innerHTML = '';
 }
