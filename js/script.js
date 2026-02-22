@@ -2010,6 +2010,10 @@ function upSyncBtn() {
   var btn = document.getElementById('uploaderBtn');
   if (!btn) return;
   btn.style.display = document.body.classList.contains('admin-mode') ? 'flex' : 'none';
+  if (!btn._uploaderListenerAdded) {
+    btn.addEventListener('click', function() { window.openUploader(); });
+    btn._uploaderListenerAdded = true;
+  }
 }
 new MutationObserver(upSyncBtn).observe(document.body, {attributes:true, attributeFilter:['class']});
 window.addEventListener('load', upSyncBtn);
