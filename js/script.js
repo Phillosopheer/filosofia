@@ -1379,11 +1379,21 @@ dropdown.classList.add('active');
 return;
 }
 dropdown.innerHTML = filtered.slice(0, 8).map(term => `
-<div class="suggestion-item" ontouchstart="showTerm('${term.fbId}')" onmousedown="event.preventDefault(); showTerm('${term.fbId}')">
+<div class="suggestion-item" data-term-id="${term.fbId}">
 <div class="suggestion-term">${term.term}</div>
 <div class="suggestion-preview">${term.definition.substring(0, 100)}...</div>
 </div>
 `).join('');
+dropdown.querySelectorAll('.suggestion-item').forEach(item => {
+  item.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    showTerm(item.dataset.termId);
+  }, { passive: false });
+  item.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    showTerm(item.dataset.termId);
+  });
+});
 dropdown.classList.add('active');
 }
 function showTerm(termId) {
