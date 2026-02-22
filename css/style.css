@@ -539,6 +539,9 @@ select.tb-btn option { background:var(--surface); color:var(--text); }
 /* UPLOADER MODAL */
 .up-label { font-family:'Cinzel',Georgia,serif; font-size:0.58rem; letter-spacing:4px; color:var(--gold); text-transform:uppercase; margin-bottom:8px; }
 .up-group { display:none; flex-direction:column; gap:9px; margin-bottom:12px; }
+.up-group.visible { display:flex; }
+.up-input { background:var(--surface2); border:1px solid var(--border); color:var(--text); padding:10px 12px; font-family:monospace; font-size:0.84rem; outline:none; width:100%; transition:border-color 0.2s; }
+.up-input:focus { border-color:var(--gold); }
 .up-group[style*="flex"] { display:flex; }
 .up-slot { border:1px solid var(--border); background:var(--surface2); padding:11px; }
 .up-slot-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:2px; }
