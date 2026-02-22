@@ -1379,7 +1379,7 @@ dropdown.classList.add('active');
 return;
 }
 dropdown.innerHTML = filtered.slice(0, 8).map(term => `
-<div class="suggestion-item" onmousedown="event.preventDefault(); showTerm('${term.fbId}')">
+<div class="suggestion-item" ontouchstart="showTerm('${term.fbId}')" onmousedown="event.preventDefault(); showTerm('${term.fbId}')">
 <div class="suggestion-term">${term.term}</div>
 <div class="suggestion-preview">${term.definition.substring(0, 100)}...</div>
 </div>
