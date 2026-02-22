@@ -569,6 +569,47 @@ select.tb-btn option { background:var(--surface); color:var(--text); }
 .skeleton-line-short { width:42%; }
 @keyframes skeletonShimmer { 0%{background-position:200% 0;} 100%{background-position:-200% 0;} }
 
+/* ═══ script.js-ს საჭირო class-ები ═══ */
+
+.wave-anim {
+  animation: wavePulse 5s ease-in-out infinite;
+  will-change: opacity;
+}
+@keyframes wavePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.75; }
+}
+
+.hero h1.shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--ivory) 0%, var(--ivory) 20%,
+    var(--gold-light) 40%, var(--gold) 50%,
+    var(--gold-light) 60%, var(--ivory) 80%, var(--ivory) 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmerText 6s linear infinite;
+  will-change: background-position;
+}
+@keyframes shimmerText {
+  0%   { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+
+.cat-badge {
+  font-size: 0.65rem; background: var(--glass);
+  border: 1px solid var(--border); color: var(--gold);
+  padding: 2px 8px; font-family: 'Cinzel', Georgia, serif;
+  letter-spacing: 1px;
+}
+.cat-count {
+  font-size: 0.7rem; color: var(--text-dim);
+  font-family: 'Cinzel', Georgia, serif;
+}
+
 /* ═══════════════════════════════ HERO EXTRAS ═══════════════════════════════ */
 
 .hero-content {
