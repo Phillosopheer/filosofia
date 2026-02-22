@@ -2002,141 +2002,189 @@ async function checkGeminiStatus() {
   });
 })();
 
-// ━━━━━━━━━━━━━━━━ GITHUB UPLOADER ━━━━━━━━━━━━━━━━
+// ━━━━━━━━━━━━━━━━ GITHUB UPLOADER (admin only) ━━━━━━━━━━━━━━━━
 (function() {
   const OWNER = 'Phillosopheer', REPO = 'filosofia', BRANCH = 'main';
 
-  // ლოგინის შემდეგ ღილაკის ჩვენება
-  function upShowBtn() {
-    const btn = document.getElementById('uploaderBtn');
-    if (btn) btn.style.display = 'flex';
-    const saved = localStorage.getItem('gh_uploader_token');
-    if (saved) { const el = document.getElementById('upToken'); if (el) el.value = saved; }
-  }
-  function upHideBtn() {
-    const btn = document.getElementById('uploaderBtn');
-    if (btn) btn.style.display = 'none';
-  }
-
-  // admin-mode-ის მონიტორინგი
-  const observer = new MutationObserver(function() {
-    if (document.body.classList.contains('admin-mode')) upShowBtn();
-    else upHideBtn();
-  });
-  observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
-
   document.addEventListener('DOMContentLoaded', function() {
-    const btn = document.getElementById('uploaderBtn');
-    if (btn) btn.addEventListener('click', function() { openModal('uploaderModal'); });
-    if (document.body.classList.contains('admin-mode')) upShowBtn();
+    // X button
+    const closeBtn = document.getElementById('uploaderCloseBtn');
+    if (closeBtn) closeBtn.addEventListener('click', function() {
+      document.getElementById('uploaderModal').classList.remove('active');
+    });
+    // Upload button in header
+    const upBtn = document.getElementById('uploaderBtn');
+    if (upBtn) upBtn.addEventListener('click', function() {
+      document.getElementById('uploaderModal').classList.add('active');
+      const saved = localStorage.getItem('gh_uploader_token');
+      if (saved) document.getElementById('upToken').value = saved;
+    });
   });
 
-  // Token
+  // Show/hide based on admin login
+  const _orig_addCls = document.body.classList.add.bind(document.body.classList);
+  function checkAdmin() {
+    const btn = document.getElementById('uploaderBtn');
+    if (!btn) return;
+    if (document.body.classList.contains('admin-mode')) {
+      btn.style.display = 'flex';
+    } else {
+      btn.style.display = 'none';
+    }
+  }
+  const obs = new MutationObserver(checkAdmin);
+  obs.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
+  // Token check
   window.upCheckToken = async function() {
-    const t = document.getElementById('upToken').value.trim();
-    if (!t) { upSetStatus('Token შეიყვანე', 'err'); return; }
-    upSetStatus('შემოწმება...', '');
+    const t = (document.getElementById('upToken').value || '').trim();
+    if (!t) { upSetTok('Token შეიყვანე', '#8a7f6a'); return; }
+    upSetTok('შემოწმება...', '#8a7f6a');
     try {
-      const r = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}`, { headers: { Authorization: `token ${t}` } });
+      const r = await fetch('https://api.github.com/repos/' + OWNER + '/' + REPO, {
+        headers: { Authorization: 'token ' + t }
+      });
       if (r.ok) {
-        upSetStatus('✓ ' + OWNER + ' — ვალიდია', 'ok');
+        upSetTok('✓ ' + OWNER + ' — ვალიდია', '#4a9e6b');
+        document.getElementById('upTokenDot').style.background = '#4a9e6b';
         if (document.getElementById('upSave').checked) localStorage.setItem('gh_uploader_token', t);
-      } else upSetStatus('Token არასწორია', 'err');
-    } catch(e) { upSetStatus('შეცდომა', 'err'); }
+      } else {
+        upSetTok('Token არასწორია', '#ef4444');
+        document.getElementById('upTokenDot').style.background = '#ef4444';
+      }
+    } catch(e) { upSetTok('კავშირის შეცდომა', '#ef4444'); }
   };
 
-  function upSetStatus(text, state) {
-    const dot = document.getElementById('upTokenDot');
+  function upSetTok(text, color) {
     document.getElementById('upTokenText').textContent = text;
-    dot.style.background = state === 'ok' ? 'var(--success)' : state === 'err' ? '#ef4444' : 'var(--text-dim)';
+    document.getElementById('upTokenDot').style.background = color;
   }
 
-  // Tabs
-  window.upShowTab = function(name, btn) {
-    document.querySelectorAll('.up-group').forEach(g => g.style.display = 'none');
-    document.querySelectorAll('.up-tab').forEach(t => t.classList.remove('active'));
-    const g = document.getElementById('upgroup-' + name);
-    if (g) g.style.display = 'flex';
+  // Tab switching
+  window.upTab = function(name, btn) {
+    ['js','css','html','api','root','custom'].forEach(function(n) {
+      const g = document.getElementById('upgroup-' + n);
+      if (g) g.style.display = n === name ? 'flex' : 'none';
+    });
+    document.querySelectorAll('#uploaderModal .up-tab').forEach(function(t) {
+      t.classList.remove('active');
+    });
     btn.classList.add('active');
   };
 
-  window.upFileSelected = function(input) {
+  // File select
+  window.upPick = function(input) {
     if (!input.files[0]) return;
     const txt = input.parentElement.querySelector('.up-atext');
-    txt.textContent = '✓ ' + input.files[0].name; txt.className = 'up-atext ready';
+    txt.textContent = '✓ ' + input.files[0].name;
+    txt.style.color = '#e8cc7a'; txt.style.fontStyle = 'normal';
     input.closest('.up-slot').querySelector('.up-status').innerHTML = '';
   };
 
+  // Clear single slot
   window.upClear = function(btn) {
-    const s = btn.closest('.up-slot'), inp = s.querySelector('input[type=file]'), txt = s.querySelector('.up-atext');
-    inp.value = ''; txt.textContent = '📁 არჩიე'; txt.className = 'up-atext';
+    const s = btn.closest('.up-slot');
+    const inp = s.querySelector('input[type=file]');
+    const txt = s.querySelector('.up-atext');
+    inp.value = '';
+    txt.textContent = '📁 არჩიე';
+    txt.style.color = ''; txt.style.fontStyle = '';
     s.querySelector('.up-status').innerHTML = '';
   };
 
+  // Add custom slot
   window.upAddCustom = function() {
-    const path = document.getElementById('upCustomPath').value.trim();
+    const path = (document.getElementById('upCustomPath').value || '').trim();
     if (!path) return;
     const name = path.split('/').pop();
     const slot = document.createElement('div');
     slot.className = 'up-slot'; slot.dataset.path = path;
-    slot.innerHTML = `<div class="up-slot-top"><span class="up-sname">${name}</span><button class="up-xbtn" onclick="this.closest('.up-slot').remove()">✕</button></div><div class="up-spath">${path}</div><div class="up-area"><input type="file" onchange="upFileSelected(this)"><div class="up-atext">📁 არჩიე</div></div><div class="up-status"></div>`;
+    var closeHtml = '<div class="up-slot-top"><span class="up-sname">' + name + '</span>';
+    closeHtml += '<button class="up-xbtn" onclick="this.closest(\'.up-slot\').remove()">✕</button></div>';
+    closeHtml += '<div class="up-spath">' + path + '</div>';
+    closeHtml += '<label class="up-area"><input type="file" onchange="upPick(this)"><div class="up-atext">📁 არჩიე</div></label>';
+    closeHtml += '<div class="up-status"></div>';
+    slot.innerHTML = closeHtml;
     document.getElementById('upCustomSlots').appendChild(slot);
     document.getElementById('upCustomPath').value = '';
   };
 
+  // Clear all
   window.upClearAll = function() {
-    document.querySelectorAll('.up-slot input[type=file]').forEach(inp => {
+    document.querySelectorAll('#uploaderModal .up-slot input[type=file]').forEach(function(inp) {
       const s = inp.closest('.up-slot'), txt = s.querySelector('.up-atext');
-      inp.value = ''; txt.textContent = '📁 არჩიე'; txt.className = 'up-atext';
+      inp.value = ''; txt.textContent = '📁 არჩიე';
+      txt.style.color = ''; txt.style.fontStyle = '';
       s.querySelector('.up-status').innerHTML = '';
     });
-    const l = document.getElementById('upLog'); l.innerHTML = ''; l.style.display = 'none';
+    const l = document.getElementById('upLog');
+    l.innerHTML = ''; l.style.display = 'none';
   };
 
-  function upLog(msg, type) {
+  function upLog(msg, color) {
     const el = document.getElementById('upLog'); el.style.display = 'block';
-    const line = document.createElement('div');
-    line.style.color = type === 'ok' ? 'var(--success)' : type === 'err' ? '#ef4444' : 'var(--gold-dim)';
-    line.textContent = msg; el.appendChild(line); el.scrollTop = el.scrollHeight;
+    const d = document.createElement('div'); d.style.color = color || '#8a7f6a';
+    d.textContent = msg; el.appendChild(d); el.scrollTop = el.scrollHeight;
   }
 
-  function upSetSlotStatus(slot, msg, ok) {
-    slot.querySelector('.up-status').innerHTML = `<div style="width:7px;height:7px;border-radius:50%;background:${ok?'var(--success)':'#ef4444'};flex-shrink:0;"></div><span style="color:${ok?'var(--success)':'#ef4444'}">${msg}</span>`;
+  function upSlotStatus(slot, msg, ok) {
+    const color = ok ? '#4a9e6b' : '#ef4444';
+    slot.querySelector('.up-status').innerHTML =
+      '<div style="width:7px;height:7px;border-radius:50%;background:' + color + ';flex-shrink:0;"></div>' +
+      '<span style="color:' + color + ';font-size:0.72rem;">' + msg + '</span>';
   }
 
   async function upGetSHA(path, token) {
-    const r = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}?ref=${BRANCH}`, { headers: { Authorization: `token ${token}` } });
-    if (r.ok) { const d = await r.json(); return d.sha; }
+    try {
+      const r = await fetch('https://api.github.com/repos/' + OWNER + '/' + REPO + '/contents/' + path + '?ref=' + BRANCH, {
+        headers: { Authorization: 'token ' + token }
+      });
+      if (r.ok) { const d = await r.json(); return d.sha; }
+    } catch(e) {}
     return null;
   }
 
   window.upUploadAll = async function() {
-    const token = document.getElementById('upToken').value.trim();
+    const token = (document.getElementById('upToken').value || '').trim();
     if (!token) { alert('Token შეიყვანე!'); return; }
     document.getElementById('upLog').innerHTML = '';
-    const slots = [...document.querySelectorAll('#uploaderModal .up-slot')].filter(s => s.querySelector('input[type=file]').files[0]);
-    if (!slots.length) { upLog('ფაილები არ არჩეულა', 'err'); return; }
+    const allSlots = document.querySelectorAll('#uploaderModal .up-slot');
+    const slots = Array.from(allSlots).filter(function(s) {
+      return s.querySelector('input[type=file]').files[0];
+    });
+    if (!slots.length) { upLog('ფაილები არ არჩეულა', '#ef4444'); return; }
     const wrap = document.getElementById('upProgressWrap'); wrap.style.display = 'block';
     const bar = document.getElementById('upProgressBar'); bar.style.width = '0%';
     let done = 0, uploaded = 0;
-    for (const slot of slots) {
+    for (let i = 0; i < slots.length; i++) {
+      const slot = slots[i];
       const path = slot.dataset.path;
       const inp = slot.querySelector('input[type=file]');
-      upLog('↑ ' + path, 'info');
+      upLog('↑ ' + path, '#7a6030');
       try {
-        const content = await new Promise(res => { const r = new FileReader(); r.onload = e => res(e.target.result.split(',')[1]); r.readAsDataURL(inp.files[0]); });
-        const sha = await upGetSHA(path, token);
-        const body = { message: 'Update ' + path, content, branch: BRANCH };
-        if (sha) body.sha = sha;
-        const r = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`, {
-          method: 'PUT', headers: { Authorization: `token ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+        const content = await new Promise(function(res) {
+          const reader = new FileReader();
+          reader.onload = function(e) { res(e.target.result.split(',')[1]); };
+          reader.readAsDataURL(inp.files[0]);
         });
-        done++; bar.style.width = (done / slots.length * 100) + '%';
-        if (r.ok) { upSetSlotStatus(slot, '✓ ატვირთულია', true); upLog('✓ ' + path, 'ok'); uploaded++; }
-        else { upSetSlotStatus(slot, '✗ შეცდომა', false); upLog('✗ ' + path, 'err'); }
-      } catch(e) { upSetSlotStatus(slot, '✗ შეცდომა', false); upLog('✗ ' + path + ' — ' + e.message, 'err'); }
+        const sha = await upGetSHA(path, token);
+        const body = { message: 'Update ' + path, content: content, branch: BRANCH };
+        if (sha) body.sha = sha;
+        const r = await fetch('https://api.github.com/repos/' + OWNER + '/' + REPO + '/contents/' + path, {
+          method: 'PUT',
+          headers: { Authorization: 'token ' + token, 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        done++;
+        bar.style.width = (done / slots.length * 100) + '%';
+        if (r.ok) { upSlotStatus(slot, '✓ ატვირთულია', true); upLog('✓ ' + path, '#4a9e6b'); uploaded++; }
+        else { upSlotStatus(slot, '✗ შეცდომა', false); upLog('✗ ' + path + ' — HTTP ' + r.status, '#ef4444'); }
+      } catch(e) {
+        upSlotStatus(slot, '✗ შეცდომა', false);
+        upLog('✗ ' + path + ' — ' + e.message, '#ef4444');
+      }
     }
-    upLog('━━━ ' + uploaded + '/' + slots.length + ' ატვირთულია ━━━', 'info');
-    setTimeout(() => { wrap.style.display = 'none'; bar.style.width = '0%'; }, 3000);
+    upLog('━━━ ' + uploaded + '/' + slots.length + ' ატვირთულია ━━━', '#7a6030');
+    setTimeout(function() { wrap.style.display = 'none'; bar.style.width = '0%'; }, 3000);
   };
 })();
