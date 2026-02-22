@@ -343,6 +343,24 @@
         </div>
     </div>
 
+
+    <!-- ===== TOTP MODAL ===== -->
+    <div class="modal" id="totpModal">
+        <div class="modal-box" style="max-width:360px;text-align:center;">
+            <button class="modal-close" id="closeTotpModalBtn">✕</button>
+            <div style="font-size:2.5rem;margin-bottom:8px;">🔐</div>
+            <h2 style="margin-bottom:4px;">ორფაქტორიანი დაცვა</h2>
+            <p style="color:var(--ivory-dim);font-size:0.85rem;margin-bottom:20px;">Google Authenticator-ის 6-ნიშნა კოდი შეიყვანე</p>
+            <div class="msg error" id="totpError" style="margin-bottom:12px;"></div>
+            <div class="form-group">
+                <input type="text" id="totpInput" placeholder="000000" maxlength="6"
+                    inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code"
+                    style="text-align:center;font-size:1.8rem;letter-spacing:8px;font-family:monospace;" aria-label="TOTP კოდი"/>
+            </div>
+            <button class="btn btn-primary" id="totpBtn" style="width:100%;margin-top:8px;">დადასტურება</button>
+        </div>
+    </div>
+
     <!-- ===== EDITOR MODAL ===== -->
     <div class="modal" id="editorModal">
         <div class="modal-box wide">
