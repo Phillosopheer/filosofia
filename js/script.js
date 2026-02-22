@@ -2002,168 +2002,203 @@ async function checkGeminiStatus() {
   });
 })();
 
+
 // ━━━━━━━━━━━━━━━━ GITHUB UPLOADER ━━━━━━━━━━━━━━━━
 var UP_OWNER = 'Phillosopheer', UP_REPO = 'filosofia', UP_BRANCH = 'main';
 
-// ღილაკი — მხოლოდ ადმინს
 function upSyncBtn() {
   var btn = document.getElementById('uploaderBtn');
   if (!btn) return;
   btn.style.display = document.body.classList.contains('admin-mode') ? 'flex' : 'none';
-  if (!btn._uploaderListenerAdded) {
-    btn.addEventListener('click', function() { window.openUploader(); });
-    btn._uploaderListenerAdded = true;
-  }
 }
 new MutationObserver(upSyncBtn).observe(document.body, {attributes:true, attributeFilter:['class']});
-window.addEventListener('load', upSyncBtn);
 
-// ღილაკზე დაჭერა
-window.openUploader = function() {
-  document.getElementById('uploaderModal').classList.add('active');
-  var saved = localStorage.getItem('gh_uploader_token');
-  if (saved) document.getElementById('upToken').value = saved;
-};
-
-// Token შემოწმება
-window.upCheckToken = async function() {
-  var t = (document.getElementById('upToken').value||'').trim();
-  if (!t) { upTokSet('Token შეიყვანე','#8a7f6a'); return; }
-  upTokSet('შემოწმება...','#8a7f6a');
-  try {
-    var r = await fetch('https://api.github.com/repos/'+UP_OWNER+'/'+UP_REPO, {headers:{Authorization:'token '+t}});
-    if (r.ok) {
-      upTokSet('✓ '+UP_OWNER+' — ვალიდია','#4a9e6b');
-      if (document.getElementById('upSave').checked) localStorage.setItem('gh_uploader_token', t);
-    } else upTokSet('Token არასწორია','#ef4444');
-  } catch(e) { upTokSet('შეცდომა','#ef4444'); }
-};
-function upTokSet(txt, color) {
-  document.getElementById('upTokenText').textContent = txt;
-  document.getElementById('upTokenDot').style.background = color;
+function upSetTokenStatus(text, state) {
+  var dot = document.getElementById('upTokenDot');
+  var span = document.getElementById('upTokenText');
+  if (!dot || !span) return;
+  span.textContent = text;
+  dot.style.background = state === 'ok' ? '#4a9e6b' : state === 'err' ? '#c0392b' : 'var(--text-dim)';
 }
 
-// Tab გადართვა
-window.upTab = function(name, btn) {
-  ['js','css','html','api','root','custom'].forEach(function(n) {
-    var g = document.getElementById('upgroup-'+n);
-    if (g) g.style.display = (n===name) ? 'flex' : 'none';
-  });
-  var tabs = document.querySelectorAll('#uploaderModal .up-tab');
-  for (var i=0;i<tabs.length;i++) tabs[i].classList.remove('active');
-  btn.classList.add('active');
-};
-
-// ფაილი
-window.upPick = function(inp) {
-  if (!inp.files[0]) return;
-  var txt = inp.parentElement.querySelector('.up-atext');
-  txt.textContent = '✓ '+inp.files[0].name;
-  txt.style.color = '#e8cc7a'; txt.style.fontStyle = 'normal';
-  inp.closest('.up-slot').querySelector('.up-status').innerHTML = '';
-};
-
-// slot-ის გასუფთავება
-window.upClear = function(btn) {
-  var s = btn.closest('.up-slot');
-  var inp = s.querySelector('input[type=file]');
-  var txt = s.querySelector('.up-atext');
-  inp.value = ''; txt.textContent = '📁 არჩიე';
-  txt.style.color = ''; txt.style.fontStyle = '';
-  s.querySelector('.up-status').innerHTML = '';
-};
-
-// Custom slot
-window.upAddCustom = function() {
-  var path = (document.getElementById('upCustomPath').value||'').trim();
-  if (!path) return;
-  var name = path.split('/').pop();
-  var slot = document.createElement('div');
-  slot.className = 'up-slot'; slot.dataset.path = path;
-  slot.innerHTML = '<div class="up-slot-top"><span class="up-sname">'+name+'</span>'
-    + '<button class="up-xbtn" onclick="this.closest(\'.up-slot\').remove()">✕</button></div>'
-    + '<div class="up-spath">'+path+'</div>'
-    + '<label class="up-area"><input type="file" onchange="upPick(this)"><div class="up-atext">📁 არჩიე</div></label>'
-    + '<div class="up-status"></div>';
-  document.getElementById('upCustomSlots').appendChild(slot);
-  document.getElementById('upCustomPath').value = '';
-};
-
-// ყველაფრის გასუფთავება
-window.upClearAll = function() {
-  var slots = document.querySelectorAll('#uploaderModal .up-slot input[type=file]');
-  for (var i=0;i<slots.length;i++) {
-    var s = slots[i].closest('.up-slot');
-    var txt = s.querySelector('.up-atext');
-    slots[i].value = ''; txt.textContent = '📁 არჩიე';
-    txt.style.color=''; txt.style.fontStyle='';
-    s.querySelector('.up-status').innerHTML = '';
-  }
-  var l = document.getElementById('upLog');
-  l.innerHTML=''; l.style.display='none';
-};
-
-function upLog(msg, color) {
-  var el = document.getElementById('upLog'); el.style.display='block';
-  var d = document.createElement('div'); d.style.color = color||'#8a7f6a';
-  d.textContent = msg; el.appendChild(d); el.scrollTop = el.scrollHeight;
+function upLog(msg, type) {
+  var el = document.getElementById('upLog');
+  if (!el) return;
+  el.style.display = 'block';
+  var line = document.createElement('div');
+  line.style.color = type === 'ok' ? '#4a9e6b' : type === 'err' ? '#ef4444' : 'var(--gold-dim)';
+  line.textContent = msg;
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
 }
-function upSlotStatus(slot, msg, ok) {
-  var c = ok ? '#4a9e6b' : '#ef4444';
-  slot.querySelector('.up-status').innerHTML =
-    '<div style="width:7px;height:7px;border-radius:50%;background:'+c+';flex-shrink:0;margin-right:5px;"></div>'
-    +'<span style="color:'+c+';font-size:0.72rem;">'+msg+'</span>';
+
+function upSetSlotStatus(slot, msg, ok) {
+  var el = slot.querySelector('.up-status');
+  if (!el) return;
+  el.innerHTML = '<div style="width:6px;height:6px;border-radius:50%;background:'+(ok?'#4a9e6b':'#ef4444')+';flex-shrink:0;"></div><span style="color:'+(ok?'#4a9e6b':'#ef4444')+'">'+msg+'</span>';
 }
+
 async function upGetSHA(path, token) {
   try {
-    var r = await fetch('https://api.github.com/repos/'+UP_OWNER+'/'+UP_REPO+'/contents/'+path+'?ref='+UP_BRANCH,
-      {headers:{Authorization:'token '+token}});
+    var r = await fetch('https://api.github.com/repos/'+UP_OWNER+'/'+UP_REPO+'/contents/'+path+'?ref='+UP_BRANCH, {headers:{Authorization:'token '+token}});
     if (r.ok) { var d = await r.json(); return d.sha; }
   } catch(e) {}
   return null;
 }
 
-// ატვირთვა
-window.upUploadAll = async function() {
-  var token = (document.getElementById('upToken').value||'').trim();
-  if (!token) { alert('Token შეიყვანე!'); return; }
-  document.getElementById('upLog').innerHTML='';
-  var allSlots = document.querySelectorAll('#uploaderModal .up-slot');
-  var slots = [];
-  for (var i=0;i<allSlots.length;i++) {
-    if (allSlots[i].querySelector('input[type=file]').files[0]) slots.push(allSlots[i]);
+async function upUploadFile(slot, token) {
+  var inp = slot.querySelector('input[type=file]');
+  if (!inp || !inp.files[0]) return 'skip';
+  var path = slot.dataset.path;
+  var content = await new Promise(function(res) {
+    var fr = new FileReader();
+    fr.onload = function(e) { res(e.target.result.split(',')[1]); };
+    fr.readAsDataURL(inp.files[0]);
+  });
+  var sha = await upGetSHA(path, token);
+  var body = {message: 'Update '+path, content: content, branch: UP_BRANCH};
+  if (sha) body.sha = sha;
+  var r = await fetch('https://api.github.com/repos/'+UP_OWNER+'/'+UP_REPO+'/contents/'+path, {
+    method: 'PUT',
+    headers: {Authorization: 'token '+token, 'Content-Type': 'application/json'},
+    body: JSON.stringify(body)
+  });
+  return r.ok ? 'ok' : 'err';
+}
+
+window.openUploader = function() {
+  var modal = document.getElementById('uploaderModal');
+  if (modal) modal.classList.add('active');
+  var saved = localStorage.getItem('gh_uploader_token');
+  if (saved) {
+    var inp = document.getElementById('upToken');
+    if (inp) { inp.value = saved; upSetTokenStatus('შენახული token ჩაიტვირთა', 'idle'); }
   }
-  if (!slots.length) { upLog('ფაილები არ არჩეულა','#ef4444'); return; }
-  var wrap = document.getElementById('upProgressWrap'); wrap.style.display='block';
-  var bar = document.getElementById('upProgressBar'); bar.style.width='0%';
-  var done=0, uploaded=0;
-  for (var i=0;i<slots.length;i++) {
-    var slot = slots[i];
-    var path = slot.dataset.path;
-    var inp = slot.querySelector('input[type=file]');
-    upLog('↑ '+path,'#7a6030');
-    try {
-      var content = await new Promise(function(res) {
-        var reader = new FileReader();
-        reader.onload = function(e) { res(e.target.result.split(',')[1]); };
-        reader.readAsDataURL(inp.files[0]);
-      });
-      var sha = await upGetSHA(path, token);
-      var body = {message:'Update '+path, content:content, branch:UP_BRANCH};
-      if (sha) body.sha = sha;
-      var r = await fetch('https://api.github.com/repos/'+UP_OWNER+'/'+UP_REPO+'/contents/'+path, {
-        method:'PUT',
-        headers:{Authorization:'token '+token,'Content-Type':'application/json'},
-        body:JSON.stringify(body)
-      });
-      done++; bar.style.width=(done/slots.length*100)+'%';
-      if (r.ok) { upSlotStatus(slot,'✓ ატვირთულია',true); upLog('✓ '+path,'#4a9e6b'); uploaded++; }
-      else { upSlotStatus(slot,'✗ შეცდომა HTTP '+r.status,false); upLog('✗ '+path,'#ef4444'); }
-    } catch(e) {
-      upSlotStatus(slot,'✗ '+e.message,false);
-      upLog('✗ '+path+' — '+e.message,'#ef4444');
-    }
-  }
-  upLog('━━━ '+uploaded+'/'+slots.length+' ატვირთულია ━━━','#7a6030');
-  setTimeout(function(){wrap.style.display='none';bar.style.width='0%';},3000);
 };
+
+document.addEventListener('DOMContentLoaded', function() {
+  upSyncBtn();
+
+  // ღილაკი — გახსნა
+  var uploaderBtn = document.getElementById('uploaderBtn');
+  if (uploaderBtn) uploaderBtn.addEventListener('click', window.openUploader);
+
+  // X — დახურვა
+  var closeBtn = document.getElementById('uploaderCloseBtn');
+  if (closeBtn) closeBtn.addEventListener('click', function() {
+    var modal = document.getElementById('uploaderModal');
+    if (modal) modal.classList.remove('active');
+  });
+
+  // Token შემოწმება
+  var checkBtn = document.getElementById('upCheckBtn');
+  if (checkBtn) checkBtn.addEventListener('click', async function() {
+    var t = (document.getElementById('upToken').value || '').trim();
+    if (!t) { upSetTokenStatus('Token შეიყვანე', 'err'); return; }
+    upSetTokenStatus('შემოწმება...', 'idle');
+    try {
+      var r = await fetch('https://api.github.com/repos/'+UP_OWNER+'/'+UP_REPO, {headers:{Authorization:'token '+t}});
+      if (r.ok) {
+        upSetTokenStatus('✓ '+UP_OWNER+' — Token ვალიდია', 'ok');
+        if (document.getElementById('upSave').checked) localStorage.setItem('gh_uploader_token', t);
+      } else {
+        upSetTokenStatus('Token არასწორია', 'err');
+      }
+    } catch(e) { upSetTokenStatus('შეცდომა', 'err'); }
+  });
+
+  // ტაბები
+  var tabs = document.querySelectorAll('#upTabs .up-tab');
+  tabs.forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      tabs.forEach(function(t) { t.classList.remove('active'); });
+      document.querySelectorAll('.up-group').forEach(function(g) { g.classList.remove('visible'); });
+      tab.classList.add('active');
+      var group = document.getElementById('upgroup-'+tab.dataset.tab);
+      if (group) group.classList.add('visible');
+    });
+  });
+
+  // ფაილის არჩევა — delegation
+  document.addEventListener('change', function(e) {
+    if (e.target.type === 'file' && e.target.closest('#uploaderModal')) {
+      var f = e.target.files[0];
+      if (!f) return;
+      var area = e.target.closest('.up-area');
+      if (area) { var txt = area.querySelector('.up-atext'); if (txt) { txt.textContent = '✓ '+f.name; txt.classList.add('ready'); } }
+      var slot = e.target.closest('.up-slot');
+      if (slot) { var st = slot.querySelector('.up-status'); if (st) st.innerHTML = ''; }
+    }
+  });
+
+  // X — slot გასუფთავება — delegation
+  document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('up-xbtn')) {
+      var slot = e.target.closest('.up-slot');
+      if (!slot) return;
+      var inp = slot.querySelector('input[type=file]');
+      if (inp) inp.value = '';
+      var txt = slot.querySelector('.up-atext');
+      if (txt) { txt.textContent = '📁 არჩიე'; txt.classList.remove('ready'); }
+      var st = slot.querySelector('.up-status');
+      if (st) st.innerHTML = '';
+    }
+  });
+
+  // Custom slot დამატება
+  var addCustomBtn = document.getElementById('upAddCustomBtn');
+  if (addCustomBtn) addCustomBtn.addEventListener('click', function() {
+    var pathVal = (document.getElementById('upCustomPath').value || '').trim();
+    if (!pathVal) return;
+    var name = pathVal.split('/').pop();
+    var slot = document.createElement('div');
+    slot.className = 'up-slot'; slot.dataset.path = pathVal;
+    slot.innerHTML = '<div class="up-slot-top"><span class="up-sname">'+name+'</span><button class="up-xbtn" style="position:relative;z-index:1;">✕</button></div><div class="up-spath">'+pathVal+'</div><label class="up-area"><input type="file"><div class="up-atext">📁 არჩიე</div></label><div class="up-status"></div>';
+    document.getElementById('upCustomSlots').appendChild(slot);
+    document.getElementById('upCustomPath').value = '';
+  });
+
+  // ↑ ატვირთვა
+  var uploadBtn = document.getElementById('upUploadBtn');
+  if (uploadBtn) uploadBtn.addEventListener('click', async function() {
+    var token = (document.getElementById('upToken').value || '').trim();
+    if (!token) { alert('Token შეიყვანე!'); return; }
+    var logEl = document.getElementById('upLog');
+    if (logEl) { logEl.innerHTML = ''; logEl.style.display = 'none'; }
+    var slots = Array.from(document.querySelectorAll('#uploaderModal .up-slot')).filter(function(s) {
+      var inp = s.querySelector('input[type=file]'); return inp && inp.files[0];
+    });
+    if (!slots.length) { upLog('ფაილები არ არჩეულა', 'err'); return; }
+    var wrap = document.getElementById('upProgressWrap');
+    var bar = document.getElementById('upProgressBar');
+    if (wrap) wrap.style.display = 'block';
+    if (bar) bar.style.width = '0%';
+    var done = 0, uploaded = 0;
+    for (var i = 0; i < slots.length; i++) {
+      var slot = slots[i];
+      var path = slot.dataset.path;
+      upLog('↑ '+path, 'info');
+      try {
+        var res = await upUploadFile(slot, token);
+        done++;
+        if (bar) bar.style.width = (done/slots.length*100)+'%';
+        if (res === 'ok') { upSetSlotStatus(slot, '✓ ატვირთულია', true); upLog('✓ '+path, 'ok'); uploaded++; }
+        else if (res === 'skip') { upLog('— '+path+' (გამოტოვდა)', 'info'); }
+        else { upSetSlotStatus(slot, '✗ შეცდომა', false); upLog('✗ '+path, 'err'); }
+      } catch(e) { upSetSlotStatus(slot, '✗ შეცდომა', false); upLog('✗ '+path+' — '+e.message, 'err'); }
+    }
+    upLog('━━━ '+uploaded+'/'+slots.length+' ━━━', 'info');
+    setTimeout(function() { if (wrap) wrap.style.display = 'none'; if (bar) bar.style.width = '0%'; }, 3000);
+  });
+
+  // ✕ გასუფთავება
+  var clearAllBtn = document.getElementById('upClearAllBtn');
+  if (clearAllBtn) clearAllBtn.addEventListener('click', function() {
+    document.querySelectorAll('#uploaderModal .up-slot').forEach(function(slot) {
+      var inp = slot.querySelector('input[type=file]'); if (inp) inp.value = '';
+      var txt = slot.querySelector('.up-atext'); if (txt) { txt.textContent = '📁 არჩიე'; txt.classList.remove('ready'); }
+      var st = slot.querySelector('.up-status'); if (st) st.innerHTML = '';
+    });
+    var logEl = document.getElementById('upLog'); if (logEl) { logEl.innerHTML = ''; logEl.style.display = 'none'; }
+  });
+});
