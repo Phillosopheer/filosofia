@@ -1374,12 +1374,12 @@ const filtered = allGlossaryTerms.filter(term =>
 term.term.toLowerCase().includes(query)
 );
 if (filtered.length === 0) {
-dropdown.innerHTML = '<div class="no-results">სიტყვა ლექსიკონში ვერ მოიძებნა<br><small style="color:var(--text-dim);font-size:0.8rem;">სცადე ბოტის რეჟიმი 🤖</small></div>';
+dropdown.innerHTML = '<div class="no-results">სიტყვა ლექსიკონში ვერ მოიძებნა</div>';
 dropdown.classList.add('active');
 return;
 }
 dropdown.innerHTML = filtered.slice(0, 8).map(term => `
-<div class="suggestion-item" onclick="showTerm('${term.fbId}')">
+<div class="suggestion-item" onmousedown="event.preventDefault(); showTerm('${term.fbId}')">
 <div class="suggestion-term">${term.term}</div>
 <div class="suggestion-preview">${term.definition.substring(0, 100)}...</div>
 </div>
