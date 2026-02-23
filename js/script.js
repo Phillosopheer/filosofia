@@ -1326,6 +1326,8 @@ showMsg(errEl, '✅ განბლოკილია! სცადე თავ
 }
 });
 async function fetchGlossary() {
+const countEl = document.getElementById('glossaryCount');
+if (countEl) countEl.innerText = 'იტვირთება...';
 try {
 const res = await fbFetch(`${FIREBASE_DB}/glossary.json`);
 if (!res.ok) throw new Error('Failed to fetch glossary');
@@ -1339,12 +1341,13 @@ updateGlossaryCount();
 } catch (err) {
 console.error('Error fetching glossary:', err);
 allGlossaryTerms = [];
+if (countEl) countEl.innerText = '0';
 }
 }
 function updateGlossaryCount() {
 const countEl = document.getElementById('glossaryCount');
 if (countEl) {
-countEl.innerText = allGlossaryTerms.length;
+countEl.innerText = allGlossaryTerms.length.toLocaleString();
 }
 }
 function openGlossary() {
