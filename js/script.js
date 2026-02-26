@@ -20,6 +20,7 @@ async function doTotpVerify() {
       idToken    = d.idToken;
       currentUid = d.localId;
       localStorage.setItem('idToken', d.idToken);
+      localStorage.setItem('refreshToken', d.refreshToken || '');
       localStorage.setItem('currentUid', d.localId);
       localStorage.setItem('userEmail', d.email);
       localStorage.setItem('sessionTimestamp', Date.now().toString());
@@ -390,17 +391,56 @@ currentNote = { ...note, pending: true };
 openEditModal();
 closeModal('pendingModal');
 }
+// JWT exp-ის გაშიფვრა — token-ი ვადაგასულია?
+function isTokenExpired(token) {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+    // 5 წუთის ბუფერი
+    return (payload.exp * 1000) < (Date.now() + 5 * 60 * 1000);
+  } catch { return true; }
+}
+// idToken განახლება refreshToken-ით
+async function refreshIdToken() {
+  const rt = localStorage.getItem('refreshToken');
+  if (!rt) throw new Error('სესია ამოიწურა. გთხოვთ ხელახლა შეხვიდეთ.');
+  const res = await fetch(`https://securetoken.googleapis.com/v1/token?key=${API_KEY}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `grant_type=refresh_token&refresh_token=${encodeURIComponent(rt)}`
+  });
+  const data = await res.json();
+  if (!res.ok || !data.id_token) throw new Error('სესიის განახლება ვერ მოხერხდა. გთხოვთ ხელახლა შეხვიდეთ.');
+  idToken = data.id_token;
+  localStorage.setItem('idToken', data.id_token);
+  if (data.refresh_token) localStorage.setItem('refreshToken', data.refresh_token);
+  console.log('✅ idToken განახლდა');
+  return idToken;
+}
+// ვალიდური (არ-ვადაგასული) token-ის მიღება
+async function getValidIdToken() {
+  if (!idToken) {
+    const saved = localStorage.getItem('idToken');
+    if (saved) idToken = saved;
+    else throw new Error('სესია ამოიწურა. გთხოვთ ხელახლა შეხვიდეთ.');
+  }
+  if (isTokenExpired(idToken)) {
+    console.log('⚠️ idToken ვადაგასულია — განახლება...');
+    return await refreshIdToken();
+  }
+  return idToken;
+}
 function confirmPendingAction(action, noteId, btn) {
 if (action === 'approve') {
-  approvePendingNote(noteId);
+  approvePendingNote(noteId, btn);
 } else {
-  rejectPendingNote(noteId);
+  rejectPendingNote(noteId, btn);
 }
 }
 
-async function approvePendingNote(noteId) {
-if (!idToken) return;
+async function approvePendingNote(noteId, btn) {
+if (btn) { btn.disabled = true; btn.innerText = '⏳...'; }
 try {
+const token = await getValidIdToken();
 const note = pendingNotes.find(n => n.fbId === noteId);
 if (!note) throw new Error('სტატია არ მოიძებნა');
 const approved = { ...note };
@@ -408,13 +448,16 @@ delete approved.pending;
 delete approved.submittedDate;
 delete approved.fbId;
 approved.date = Date.now();
-const addRes = await fbFetch(`${FIREBASE_DB}/notes.json?auth=${idToken}`, {
+const addRes = await fbFetch(`${FIREBASE_DB}/notes.json?auth=${token}`, {
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
 body: JSON.stringify(approved)
 });
-if (!addRes.ok) throw new Error('დადასტურება ვერ მოხერხდა');
-const delRes = await fbFetch(`${FIREBASE_DB}/pending-notes/${noteId}.json?auth=${idToken}`, {
+if (!addRes.ok) {
+  const errData = await addRes.json().catch(() => ({}));
+  throw new Error('დადასტურება ვერ მოხერხდა: ' + (errData?.error || addRes.status));
+}
+const delRes = await fbFetch(`${FIREBASE_DB}/pending-notes/${noteId}.json?auth=${token}`, {
 method: 'DELETE'
 });
 if (!delRes.ok) throw new Error('წაშლა pending-დან ვერ მოხერხდა');
@@ -422,20 +465,25 @@ await fetchPendingNotes();
 await fetchNotes();
 openPendingPanel();
 } catch (err) {
+console.error('approvePendingNote error:', err);
 alert('შეცდომა: ' + err.message);
+if (btn) { btn.disabled = false; btn.innerText = '✅ დადასტურება'; }
 }
 }
-async function rejectPendingNote(noteId) {
-if (!idToken) return;
+async function rejectPendingNote(noteId, btn) {
+if (btn) { btn.disabled = true; btn.innerText = '⏳...'; }
 try {
-const res = await fbFetch(`${FIREBASE_DB}/pending-notes/${noteId}.json?auth=${idToken}`, {
+const token = await getValidIdToken();
+const res = await fbFetch(`${FIREBASE_DB}/pending-notes/${noteId}.json?auth=${token}`, {
 method: 'DELETE'
 });
-if (!res.ok) throw new Error('წაშლა ვერ მოხერხდა');
+if (!res.ok) throw new Error('წაშლა ვერ მოხერხდა: ' + res.status);
 await fetchPendingNotes();
 openPendingPanel();
 } catch (err) {
+console.error('rejectPendingNote error:', err);
 alert('შეცდომა: ' + err.message);
+if (btn) { btn.disabled = false; btn.innerText = '❌ უარყოფა'; }
 }
 }
 function init() {
@@ -816,6 +864,7 @@ if (!confirm('დარწმუნებული ხართ რომ გს
 idToken    = null;
 currentUid = null;
 localStorage.removeItem('idToken');
+localStorage.removeItem('refreshToken');
 localStorage.removeItem('currentUid');
 localStorage.removeItem('userEmail');
 localStorage.removeItem('sessionTimestamp');
@@ -840,6 +889,7 @@ return 'პაროლი ან ელფოსტა არასწორი
 }
 function clearSession() {
 localStorage.removeItem('idToken');
+localStorage.removeItem('refreshToken');
 localStorage.removeItem('currentUid');
 localStorage.removeItem('userEmail');
 localStorage.removeItem('sessionTimestamp');
