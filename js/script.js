@@ -256,7 +256,7 @@ try {
   });
   const reviewData = await reviewRes.json();
   if (!reviewData.valid) {
-    showMsg(errEl, '⚠️ AI-ის შენიშვნა: ' + reviewData.message, true);
+    showMsg(errEl, '⚠️ შენიშვნა: ' + reviewData.message, true);
     btn.disabled  = false;
     btn.innerText = 'გაგზავნა';
     return;
@@ -1394,9 +1394,6 @@ if (document.getElementById('reader').style.display === 'block') closeReader();
 if (document.getElementById('glossaryView').classList.contains('active')) closeGlossary();
 if (document.getElementById('sidebar').classList.contains('active')) toggleMenu();
 }
-});
-document.addEventListener('contextmenu', e => {
-if (!idToken) e.preventDefault();
 });
 let logoClickCount = 0;
 let logoClickTimer = null;
