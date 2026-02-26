@@ -2028,6 +2028,9 @@ else fmtE(cmd);
 });
 document.getElementById('closeSubmissionModalBtn').addEventListener('click', () => closeModal('publicSubmissionModal'));
 document.getElementById('cancelSubmissionBtn').addEventListener('click', () => closeModal('publicSubmissionModal'));
+document.getElementById('openRulesBtn').addEventListener('click', () => openModal('rulesModal'));
+document.getElementById('closeRulesModalBtn').addEventListener('click', () => closeModal('rulesModal'));
+document.getElementById('closeRulesBtn').addEventListener('click', () => closeModal('rulesModal'));
 document.getElementById('submitArticleBtn').addEventListener('click', submitArticle);
 document.querySelectorAll('.tb-btn[data-target="sub"]').forEach(btn => {
 btn.addEventListener('click', () => {
