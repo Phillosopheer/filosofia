@@ -22,6 +22,16 @@ async function hashIP(ip) {
     return hashArray.map(b => b.toString(16).padStart(2, "0")).join("").substring(0, 32);
 }
 
+// VPN / Proxy / Tor გამოვლენა
+async function isVPN(ip) {
+    if (!ip || ip === "unknown" || ip === "::1" || ip.startsWith("127.")) return false;
+    try {
+        const res  = await fetch(`http://ip-api.com/json/${ip}?fields=status,proxy,hosting`);
+        const data = await res.json();
+        return data.status === "success" && (data.proxy === true || data.hosting === true);
+    } catch { return false; }
+}
+
 // Firebase-ში warning სტატუსის წამოღება
 async function getWarningData(ipHash) {
     try {
@@ -100,6 +110,16 @@ export default async function handler(req, res) {
 
         const ipHash = await hashIP(ip);
 
+        // ===== VPN / PROXY / TOR შემოწმება =====
+        const vpnDetected = await isVPN(ip);
+        if (vpnDetected) {
+            return res.status(403).json({
+                status: "blocked",
+                hoursLeft: null,
+                message: "VPN/Proxy/Tor-ის გამოყენება დაუშვებელია."
+            });
+        }
+
         // შევამოწმოთ დაბლოკილია თუ არა
         const warningData = await getWarningData(ipHash);
         const now = Date.now();
@@ -169,18 +189,10 @@ export default async function handler(req, res) {
         const hasKeyword = VIOLATION_KEYWORDS.some(kw => questionLine.includes(kw.toLowerCase()));
         
         if (hasKeyword || isInternalViolation) {
-            const currentWarnings = (warningData?.count || 0) + 1;
-            if (currentWarnings >= MAX_WARNINGS) {
-                const blockData = { count: currentWarnings, blockedUntil: now + BLOCK_HOURS * 60 * 60 * 1000, lastViolation: now };
-                await saveWarningData(ipHash, blockData);
-                if (fpHash) await saveWarningData(fpHash, blockData); // FP-საც ვბლოკავთ!
-                return res.status(403).json({ status: "blocked", hoursLeft: BLOCK_HOURS, message: "დაბლოკილი." });
-            } else {
-                const warnData = { count: currentWarnings, blockedUntil: null, lastViolation: now };
-                await saveWarningData(ipHash, warnData);
-                if (fpHash) await saveWarningData(fpHash, warnData);
-                return res.status(200).json({ status: "warning", warningNumber: currentWarnings, warningsLeft: MAX_WARNINGS - currentWarnings, message: "⚠️ გაფრთხილება " + currentWarnings + "/" + MAX_WARNINGS + " — დასვი კითხვა სტატიის შესახებ. კიდევ " + (MAX_WARNINGS - currentWarnings) + " გაფრთხილება და 24 საათით დაიბლოკები." });
-            }
+            const blockData = { count: 1, blockedUntil: now + BLOCK_HOURS * 60 * 60 * 1000, lastViolation: now, reason: "abuse" };
+            await saveWarningData(ipHash, blockData);
+            if (fpHash) await saveWarningData(fpHash, blockData);
+            return res.status(403).json({ status: "blocked", hoursLeft: BLOCK_HOURS, message: "დარღვევა გამოვლინდა. დაბლოკილი ხარ 24 საათით." });
         }
         const modifiedPrompt = `${originalPrompt}
 
@@ -242,40 +254,10 @@ SYSTEM RULES (უმაღლესი პრიორიტეტი — ვე
         const isViolation = geminiText.includes("[VIOLATION]");
 
         if (isViolation) {
-            const currentWarnings = (warningData?.count || 0) + 1;
-
-            if (currentWarnings >= MAX_WARNINGS) {
-                // დავბლოკოთ 24 საათით
-                const blockData = {
-                    count: currentWarnings,
-                    blockedUntil: now + BLOCK_HOURS * 60 * 60 * 1000,
-                    lastViolation: now
-                };
-                await saveWarningData(ipHash, blockData);
-                if (fpHash) await saveWarningData(fpHash, blockData); // FP-საც ვბლოკავთ!
-
-                return res.status(403).json({
-                    status: "blocked",
-                    hoursLeft: BLOCK_HOURS,
-                    message: `3-ჯერ გააფრთხილეს — დაბლოკილი ხარ ${BLOCK_HOURS} საათით.`
-                });
-            } else {
-                // გავაფრთხილოთ
-                const warnData = {
-                    count: currentWarnings,
-                    blockedUntil: null,
-                    lastViolation: now
-                };
-                await saveWarningData(ipHash, warnData);
-                if (fpHash) await saveWarningData(fpHash, warnData);
-
-                return res.status(200).json({
-                    status: "warning",
-                    warningNumber: currentWarnings,
-                    warningsLeft: MAX_WARNINGS - currentWarnings,
-                    message: "⚠️ გაფრთხილება " + currentWarnings + "/" + MAX_WARNINGS + " — დასვი კითხვა სტატიის შესახებ. კიდევ " + (MAX_WARNINGS - currentWarnings) + " გაფრთხილება და 24 საათით დაიბლოკები."
-                });
-            }
+            const blockData = { count: 1, blockedUntil: now + BLOCK_HOURS * 60 * 60 * 1000, lastViolation: now, reason: "violation" };
+            await saveWarningData(ipHash, blockData);
+            if (fpHash) await saveWarningData(fpHash, blockData);
+            return res.status(403).json({ status: "blocked", hoursLeft: BLOCK_HOURS, message: `დარღვევა გამოვლინდა — დაბლოკილი ხარ ${BLOCK_HOURS} საათით.` });
         }
 
         // ნორმალური პასუხი
