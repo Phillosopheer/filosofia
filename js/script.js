@@ -270,7 +270,7 @@ try {
   const reviewRes = await fetch('/api/review', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title, content, honeypot, fpHash })
+    body: JSON.stringify({ title, content, honeypot, fpHash, cat })
   });
   const reviewData = await reviewRes.json();
   if (reviewData.blocked) {
@@ -282,8 +282,18 @@ try {
   if (reviewData.error) {
     // სერვერის შეცდომა — გავაგრძელოთ გაგზავნა
     console.warn('Review API error:', reviewData.error);
+  } else if (reviewData.categoryWarn) {
+    // კატეგორია არასწორია — მომხმარებელს შევახსენებთ
+    const catSelect = document.getElementById('submissionCat');
+    if (reviewData.suggestedCat) catSelect.value = reviewData.suggestedCat;
+    const left = reviewData.warningsLeft;
+    const leftStr = left === 1 ? 'კიდევ 1 შანსი გაქვს' : `კიდევ ${left} შანსი გაქვს`;
+    showMsg(errEl, `⚠️ ${reviewData.categoryComment} კატეგორია ავტომატურად შეიცვალა. ${leftStr} სანამ დაიბლოკები.`, true);
+    btn.disabled  = false;
+    btn.innerText = 'გაგზავნა';
+    return;
   } else if (!reviewData.valid) {
-    showMsg(errEl, '⚠️ შენიშვნა: ' + (reviewData.message || 'სტატია ვერ გაიარა შემოწმება.'), true);
+    showMsg(errEl, '⚠️ ' + (reviewData.message || 'სტატია ვერ გაიარა შემოწმება.'), true);
     btn.disabled  = false;
     btn.innerText = 'გაგზავნა';
     return;
