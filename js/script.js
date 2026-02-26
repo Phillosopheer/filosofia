@@ -232,6 +232,22 @@ document.execCommand('formatBlock', false, 'blockquote');
 }
 }
 }
+// ===== Browser Fingerprint =====
+async function getBrowserFingerprint() {
+  try {
+    const raw = [
+      screen.width, screen.height, screen.colorDepth,
+      Intl.DateTimeFormat().resolvedOptions().timeZone,
+      navigator.language,
+      navigator.platform,
+      navigator.hardwareConcurrency
+    ].join('|');
+    const data = new TextEncoder().encode(raw + '_fp_salt_filosof');
+    const buf  = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('').substring(0, 32);
+  } catch { return null; }
+}
+
 async function submitArticle() {
 const title   = document.getElementById('submissionTitle').value.trim();
 const author  = document.getElementById('submissionAuthor').value.trim();
@@ -250,10 +266,11 @@ btn.disabled  = true;
 btn.innerText = 'სტატია მოწმდება...';
 try {
   const honeypot = document.getElementById('website_hp')?.value || '';
+  const fpHash   = await getBrowserFingerprint();
   const reviewRes = await fetch('/api/review', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title, content, honeypot })
+    body: JSON.stringify({ title, content, honeypot, fpHash })
   });
   const reviewData = await reviewRes.json();
   if (reviewData.blocked) {
