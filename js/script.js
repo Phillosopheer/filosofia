@@ -244,6 +244,27 @@ showMsg(sucEl, '', false);
 if (!title)   { showMsg(errEl, 'სათაური სავალდებულოა', true); return; }
 if (!content || content === '<br>') { showMsg(errEl, 'შინაარსი სავალდებულოა', true); return; }
 btn.disabled  = true;
+
+// ===== AI შემოწმება =====
+btn.innerText = '🤖 AI ამოწმებს...';
+try {
+  const reviewRes = await fetch('/api/review', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title, content })
+  });
+  const reviewData = await reviewRes.json();
+  if (!reviewData.valid) {
+    showMsg(errEl, '⚠️ AI-ის შენიშვნა: ' + reviewData.message, true);
+    btn.disabled  = false;
+    btn.innerText = 'გაგზავნა';
+    return;
+  }
+} catch {
+  // თუ review API მიუწვდომელია — გავაგრძელოთ
+}
+
+// ===== Firebase-ში გაგზავნა =====
 btn.innerText = 'იგზავნება...';
 try {
 const submission = {
@@ -260,14 +281,14 @@ headers: { 'Content-Type': 'application/json' },
 body: JSON.stringify(submission)
 });
 if (!res.ok) throw new Error('გაგზავნა ვერ მოხერხდა');
-showMsg(sucEl, '✓ სტატია გაგზავნილია! ადმინისტრატორი მალე განიხილავს.', true);
+showMsg(sucEl, '✓ სტატია AI-მა გადაამოწმა და ადმინისტრატორს გაეგზავნა!', true);
 document.getElementById('submissionTitle').value = '';
 document.getElementById('submissionAuthor').value = '';
 document.getElementById('submissionArea').innerHTML = '';
 setTimeout(() => {
 closeModal('publicSubmissionModal');
 showMsg(sucEl, '', false);
-}, 2000);
+}, 2500);
 } catch (err) {
 showMsg(errEl, 'შეცდომა: ' + err.message, true);
 } finally {
