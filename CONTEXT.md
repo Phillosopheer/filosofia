@@ -8,7 +8,6 @@
 
 ## 🔔 ASSISTANT-ის ᲨᲔᲮᲡᲔᲜᲔᲑᲔᲑᲘ (ᲛᲜᲘᲨᲕᲜᲔᲚᲝᲕᲐᲜᲘ!)
 
-**შემდეგ assistant-მა უნდა შეახსენოს ნოდარს კონტექსტის განახლება:**
 - ✅ ყოველი სესიის ბოლოს — "ნოდარ, გინდა კონტექსტი განვაახლოთ?"
 - ✅ როცა ახალი ფიჩერი დაემატება
 - ✅ როცა URL ან კონფიგი იცვლება
@@ -18,7 +17,7 @@
 
 ---
 
-## ✅ CURRENT STATE (February 27, 2026 — Session 30)
+## ✅ CURRENT STATE (February 27, 2026 — Session 31)
 
 - ✅ Frontend on Vercel — **Ready**
 - ✅ **GitHub Repository** — **PRIVATE** 🔒 (Phillosopheer/filosofia)
@@ -45,31 +44,54 @@
 - ✅ **AI Review** — სტატიის გაგზავნამდე AI ამოწმებს (Session 27) 🤖
 - ✅ **Pending ღილაკები** — გამოსწორდა (Session 29) 🟢
 - ✅ **Anti-Spam სისტემა** — სრული დაცვა (Session 30) 🛡️
+- ✅ **Firebase Admin SDK** — Service Account, App Check-ს გვერდს უვლის (Session 30) 🔑
+- ✅ **Anti-Spam ბაგები გასწორდა** — (Session 31) 🐛
 
 ---
 
-## ✅ Session 30-ში გაკეთებული (Anti-Spam სისტემა):
+## ✅ Session 31-ში გაკეთებული (Bug Fixes):
+
+### პრობლემა 1: `შენიშვნა: undefined`
+- **მიზეზი:** Gemini-მ `valid: false` დააბრუნა `message`-ის გარეშე
+- **გამოსწორება `api/review.js`:** `result.message || "სტატია ვერ გაიარა AI-ის შემოწმება..."`
+- **გამოსწორება `js/script.js`:** ყველა `reviewData.message` → fallback-ებით
+
+### პრობლემა 2: Rate Limit არ მუშაობდა (500 error)
+- **მიზეზი:** `FIREBASE_SERVICE_ACCOUNT` Vercel-ში **კოდი იყო შეყვანილი JSON-ის მაგივრად**
+- **გამოსწორება:** სწორი Service Account JSON ჩაიწერა
+- **შედეგი:** Rate Limit ✅, 24h ბანი ✅ — სრულად მუშაობს
+
+### ფაილები შეცვლილი (Session 31):
+- `api/review.js` — `result.message` fallback
+- `js/script.js` — `reviewData.message` + `reviewData.error` handling
+
+---
+
+## ✅ Session 30-ში გაკეთებული (Anti-Spam + Admin SDK):
 
 ### სტატიის გაგზავნა (`api/review.js`):
 - 🪤 **Honeypot** — ფარული ველი (`#website_hp`), ბოტი ავსებს → **24h ბანი**
-- 🌐 **VPN/Proxy/Tor გამოვლენა** — ip-api.com → მყისიერი ბლოკი (ბანის გარეშე)
-- 📊 **Rate Limit** — 3 სტატია/საათში, მე-4-ზე AI ამოწმებს
+- 🌐 **VPN/Proxy/Tor გამოვლენა** — ip-api.com → მყისიერი ბლოკი
+- 📊 **Rate Limit** — 3 სტატია/საათში, მე-4-ზე **24h ბანი** (AI-ს გარეშეც)
 - 🤬 **გინება/შეურაცხყოფა** → **60 დღის ბანი**
-- 📧 **სპამი + Rate Limit** → **24h ბანი**
 - Firebase node: `bot-ratelimit-sub` (სტატიებისთვის ცალკე)
+- **ბლოკი IP-ზეა** (`ipHash`) — Firebase `bot-blocks` node-ში
 
 ### AI ასისტენტი (`api/gemini.js`):
 - 🌐 **VPN/Proxy/Tor** → მყისიერი ბლოკი
-- ❌ **ნებისმიერი დარღვევა** → **პირდაპირ 24h ბანი** (გაფრთხილება გაუქმდა)
+- ❌ **ნებისმიერი დარღვევა** → **პირდაპირ 24h ბანი**
 
-### ფაილები შეცვლილი:
-- `api/review.js` — სრულად განახლდა
-- `api/gemini.js` — VPN + პირდაპირი ბანი
-- `js/script.js` — honeypot გაგზავნა + ბანის შეტყობინება
-- `index.html` — `#website_hp` Honeypot ველი
-- `css/style.css` — `.hp-field` კლასი
+### Firebase Admin SDK (ორივე ფაილში):
+- `getAdminToken()` — Service Account-ით JWT → Access Token (1 საათი ქეშდება)
+- `fbGet(path)` / `fbSet(path, data)` — Admin REST, App Check-ს გვერდს უვლის
+- **Env var:** `FIREBASE_SERVICE_ACCOUNT` — Vercel-ში **სწორი JSON!** **არასოდეს GitHub-ზე!** 🔴
 
-### Firebase Rules (Session 30-ში განახლდა!):
+### Vercel Env Variables:
+- `FIREBASE_SERVICE_ACCOUNT` — **სწორი Service Account JSON** 🔑
+- `TOTP_SECRET` — TOTP 2FA
+- `GEMINI_KEY_1` ... `GEMINI_KEY_10` — Gemini API keys
+
+### Firebase Rules:
 ```json
 {
   "rules": {
@@ -87,39 +109,29 @@
 ---
 
 ## ⚠️ ᲨᲔᲛᲓᲔᲒ ASSISTANT — ANTI-SPAM-ის შესახებ:
-- `#website_hp` — Honeypot ველი, **ნუ წაშლი!**
-- `bot-ratelimit-sub` — სტატიების Rate Limit node (ასისტენტის `bot-ratelimit`-ისგან განცალკევებული)
-- VPN გამოვლენა — `ip-api.com` (server-side, უფასო)
-- **`onclick="" HTML-ში`** — **არ გამოიყენო!** CSP ბლოკავს! addEventListener გამოიყენე
+- `FIREBASE_SERVICE_ACCOUNT` — Vercel env var — **სრული JSON უნდა იყოს, არა კოდი!** 🔴
+- `getAdminToken()` — JWT-ით Access Token, 1 საათს ქეშავს — **ნუ შეცვლი!**
+- `#website_hp` — Honeypot ველი — **ნუ წაშლი!**
+- `bot-ratelimit-sub` — სტატიების Rate Limit node
+- `bot-blocks` — ბანების node (IP hash-ით)
+- VPN გამოვლენა — `ip-api.com` (server-side HTTP, უფასო)
+- **`onclick="" HTML-ში`** — CSP ბლოკავს! addEventListener გამოიყენე
 - **`getValidIdToken()`** — Firebase write-ის წინ ყოველთვის გამოიყენე
 - **სესიის ბოლოს შეახსენე კონტექსტის განახლება!** 🔔
 
 ---
 
-## ✅ Session 29-ში გაკეთებული (Pending ღილაკების გამოსწორება):
-
-### 🔴 ბაგი #1 — Firebase Rules
-- `notes` ნოდს `.write` არ ჰქონდა → გამოსწორდა
-
-### 🔴 ბაგი #2 — CSP ბლოკავდა onclick=""
-- ყველა `onclick=` → `addEventListener('click', ...)`
-
-### 🔴 ბაგი #3 — idToken 1 საათში იწურება
-- `refreshToken` ახლა `localStorage`-ში ინახება
-- `getValidIdToken()` — ყოველი ოპერაციის წინ გამოიძახება
+## ✅ Session 29-ში გაკეთებული:
+- Firebase Rules — `notes` ნოდს `.write` დაემატა
+- CSP: ყველა `onclick=` → `addEventListener`
+- `refreshToken` localStorage-ში, `getValidIdToken()` დაემატა
 
 ---
 
-## ⚠️ ᲨᲔᲛᲓᲔᲒ ASSISTANT — PENDING-ის შესახებ:
-- Firebase Rules-ში `"notes": { ".read": true, ".write": "auth != null" }` — **ნუ შეცვლი!**
-- `getValidIdToken()` — **ყოველი Firebase write ოპერაციის წინ** გამოიყენე
-
----
-
-## ⚠️ GLOSSARY — ᲨᲔᲛᲓᲔᲒ ASSISTANT:
-- Glossary **დასრულებულია** — 50,334 სიტყვა ✅
+## ⚠️ GLOSSARY:
+- **დასრულებულია** — 50,334 სიტყვა ✅
 - ახალი სიტყვები: **Firebase Console → /glossary → Import JSON**
-- **curl Firebase-ზე არ მუშაობს** — App Check ბლოკავს!
+- **curl არ მუშაობს** — App Check ბლოკავს!
 
 ---
 
@@ -144,7 +156,6 @@
 ---
 
 ## 🌐 URLs
-
 - **Frontend:** https://philosoph.vercel.app ✅
 - **Frontend (ძველი):** https://filosofia-xi.vercel.app
 - **API:** https://philosoph.vercel.app/api/gemini
@@ -152,15 +163,11 @@
 
 ---
 
-## ⚠️ TODO (Session 31+):
+## ⚠️ TODO (Session 32+):
 1. **Meta URLs განახლება** — canonical, og:url ჯერ კიდევ GitHub Pages-ზეა
 2. **robots.txt** sitemap URL ძველია
 3. **CSP meta** — `connect-src`-ში `filosofia-xi.vercel.app` ჯერ კიდევ არის
 4. **Telegram Bot** — საიტის მონიტორინგი 👁️
-   - საეჭვო IP → Telegram alert
-   - Public Submission მოვიდა → მაშინვე შეტყობინება
-   - Rate limit გადაცილება → alert
-   - ყოველდღიური სტატისტიკა → `/stats` ბრძანება
 
 ---
 
@@ -168,24 +175,17 @@
 ```
 /
 ├── api/
-│   ├── gemini.js            ← AI ასისტენტი + Anti-Spam (Session 30)
-│   ├── review.js            ← სტატიის შემოწმება + Anti-Spam (Session 30)
+│   ├── gemini.js            ← AI ასისტენტი + Admin SDK + Anti-Spam (Session 30)
+│   ├── review.js            ← სტატიის შემოწმება + Admin SDK + Anti-Spam + bugfix (Session 31)
 │   └── verify-totp.js       ← TOTP 2FA
 ├── css/
-│   ├── style.css            ← .hp-field კლასი დამატებულია (Session 30)
-│   └── fonts/
-│       ├── Cinzel-*.woff
-│       ├── CinzelDecorative-*.woff
-│       ├── EBGaramond-*.woff
-│       └── NotoSansGeorgian-*.woff
+│   ├── style.css            ← .hp-field კლასი (Session 30)
+│   └── fonts/               ← Self-hosted
 ├── js/
-│   ├── script.js            ← honeypot + ბანის handling (Session 30)
-│   ├── extras.js            ← particles + mobile console
+│   ├── script.js            ← honeypot + ბანის handling + bugfix (Session 31)
+│   ├── extras.js
 │   └── firebase-app-compat.js
-├── backups/
-│   └── gen-lang-client-0339684222-default-rtdb-export.json
-├── index.html               ← #website_hp honeypot ველი (Session 30)
-├── apple-touch-icon.png
+├── index.html               ← #website_hp honeypot (Session 30)
 ├── philosopher-bg.jpg       ← DO NOT DELETE
 ├── philosopher-bg.webp
 ├── sitemap.xml
@@ -200,9 +200,10 @@
 - Frontend → Vercel
 - Backend → Vercel /api/gemini + /api/verify-totp + /api/review
 - Database → Firebase Realtime DB
-- AI → **gemma-3-27b-it** (GEMINI_KEY_1, GEMINI_KEY_2) — **არასოდეს შეცვალო!**
+- AI → **gemma-3-27b-it** (GEMINI_KEY_1...GEMINI_KEY_10) — **არასოდეს შეცვალო!**
 - Auth → Firebase Auth + TOTP (TOTP_SECRET env var)
 - VPN Detection → ip-api.com (server-side, უფასო)
+- Firebase Admin → Service Account JWT (FIREBASE_SERVICE_ACCOUNT env var)
 
 ---
 
@@ -212,7 +213,7 @@
 3. `vercel.json` — root-ში, **არასოდეს** წაშალო
 4. `index.html` — **lowercase i**!
 5. Firebase App Compat — **CDN 12.9.0**
-6. CORS — `gemini.js`-ში მხოლოდ, `vercel.json`-ში **არ** დაამატო
+6. CORS — `gemini.js`-ში მხოლოდ
 7. **Google Fonts** — **არ გამოიყენო!** Self-hosted-ია
 8. **Skeleton cards** — **არ გამოიყენო!**
 9. App Check — **ENFORCED on Realtime Database** 🔒
@@ -221,6 +222,9 @@
 12. **getValidIdToken()** — Firebase write-ის წინ ყოველთვის გამოიყენე
 13. **#website_hp** — Honeypot ველი, **არ წაშალო!**
 14. **bot-ratelimit-sub** — Firebase node, სტატიების Rate Limit-ისთვის
+15. **FIREBASE_SERVICE_ACCOUNT** — Vercel env var, **სრული JSON**, **არასოდეს GitHub-ზე!** 🔴
+16. **getAdminToken()** — Admin SDK, App Check-ს გვერდს უვლის, **ნუ შეცვლი!**
+17. **bot-blocks** — IP ბანები (ipHash), Firebase-ში ინახება
 
 ---
 
@@ -234,16 +238,6 @@
   crossorigin="anonymous" defer></script>
 <script src="js/extras.js" defer></script>
 <script src="js/script.js" defer></script>
-```
-
----
-
-## 🚫 ALLOWED_ORIGINS:
-```javascript
-const ALLOWED_ORIGINS = [
-    "https://filosofia-xi.vercel.app",
-    "https://philosoph.vercel.app"
-];
 ```
 
 ---
@@ -263,7 +257,7 @@ const firebaseConfig = {
 
 ---
 
-## 🧪 Test Results (Session 24/29/30)
+## 🧪 Test Results
 
 | Tool | Result |
 |---|---|
@@ -278,17 +272,22 @@ const firebaseConfig = {
 | CLS Mobile | **0.003** 🏆 |
 | CLS Desktop | **0.028** ✅ |
 | Google Search Console | **Verified** ✅ |
-| Firebase App Check | **Enforced (Realtime Database)** 🔒 |
+| Firebase App Check | **Enforced** 🔒 |
 | Glossary | **50,334 სიტყვა** 🏆 |
 | Pending ღილაკები | **✅ გამოსწორდა (Session 29)** |
 | Anti-Spam სისტემა | **✅ სრული დაცვა (Session 30)** 🛡️ |
+| Firebase Admin SDK | **✅ სწორი JSON (Session 31)** 🔑 |
+| Rate Limit 3/საათი | **✅ დატესტილია (Session 31)** |
+| 24h ბანი | **✅ დატესტილია (Session 31)** |
+| Abuse/გინება → 60 დღე | **✅ დატესტილია (Session 31)** |
+| Tor Browser ბლოკი | **✅ დატესტილია (Session 31)** 🧅 |
+| DuckDuckGo VPN | **⚠️ ვერ ბლოკავს — IP-საც ვერ მალავს** |
 
 ---
 
 ## 📋 Instructions for Next Assistant
-
 - ZIP → `/mnt/user-data/uploads/` → unzip → read files
 - Modified files → `/mnt/user-data/outputs/`
-- Syntax check: `node --check js/script.js` / `node --check api/gemini.js` / `node --check api/verify-totp.js`
+- Syntax check: `node --check api/review.js` / `node --check api/gemini.js`
 - `present_files` tool for sharing
 - **სესიის ბოლოს ყოველთვის შეახსენე კონტექსტის განახლება!** 🔔
