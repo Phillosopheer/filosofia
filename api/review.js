@@ -214,7 +214,7 @@ export default async function handler(req, res) {
         }
 
         if (!result.valid) {
-            return res.status(200).json({ valid: false, message: result.message });
+            return res.status(200).json({ valid: false, message: result.message || "სტატია ვერ გაიარა AI-ის შემოწმება. სცადე სათაური ან შინაარსი დააზუსტო." });
         }
 
         return res.status(200).json({ valid: true, message: result.message || "სტატია დადასტურებულია." });
