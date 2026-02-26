@@ -595,12 +595,78 @@
                 </div>
                 <div class="editor-area" id="submissionArea" contenteditable="true" data-placeholder="დაიწყე წერა..."></div>
             </div>
-            <button class="btn btn-primary" id="submitArticleBtn">გაგზავნა</button>
-            <button class="btn btn-secondary" id="cancelSubmissionBtn">გაუქმება</button>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+                <button class="btn btn-primary" id="submitArticleBtn">გაგზავნა</button>
+                <button class="btn btn-secondary" id="cancelSubmissionBtn">გაუქმება</button>
+                <button class="btn btn-secondary" id="openRulesBtn" style="display:flex;align-items:center;gap:6px;">📋 წესები</button>
+            </div>
             <div class="hp-field" aria-hidden="true">
                 <label for="website_hp">Website</label>
                 <input type="text" id="website_hp" name="website" tabindex="-1" autocomplete="off">
             </div>
+        </div>
+    </div>
+
+    <!-- წესების Modal -->
+    <div class="modal" id="rulesModal">
+        <div class="modal-box" style="max-width:520px;">
+            <button class="modal-close" id="closeRulesModalBtn">✕</button>
+            <h2 style="margin-bottom:6px;">📋 გაგზავნის წესები</h2>
+            <p style="color:var(--text-dim);font-size:0.88rem;margin-bottom:20px;">გთხოვთ გაეცნოთ სტატიის გაგზავნის პირობებს</p>
+
+            <div style="display:flex;flex-direction:column;gap:12px;">
+
+                <div style="display:flex;gap:14px;align-items:flex-start;background:rgba(180,145,60,0.07);border:1px solid rgba(180,145,60,0.2);border-radius:12px;padding:14px 16px;">
+                    <span style="font-size:1.5rem;line-height:1;">📖</span>
+                    <div>
+                        <div style="font-weight:600;font-size:0.92rem;margin-bottom:3px;">ფილოსოფიური შინაარსი</div>
+                        <div style="color:var(--text-dim);font-size:0.84rem;">სტატია უნდა იყოს ფილოსოფიურ თემატიკაზე. სპამი, რეკლამა ან შეუსაბამო შინაარსი — უარყოფილი იქნება.</div>
+                    </div>
+                </div>
+
+                <div style="display:flex;gap:14px;align-items:flex-start;background:rgba(180,145,60,0.07);border:1px solid rgba(180,145,60,0.2);border-radius:12px;padding:14px 16px;">
+                    <span style="font-size:1.5rem;line-height:1;">✍️</span>
+                    <div>
+                        <div style="font-weight:600;font-size:0.92rem;margin-bottom:3px;">მინიმალური მოცულობა</div>
+                        <div style="color:var(--text-dim);font-size:0.84rem;">სტატია უნდა შეიცავდეს სულ მცირე 80 სიმბოლოს. ძალიან მოკლე ტექსტი — უარყოფილი იქნება.</div>
+                    </div>
+                </div>
+
+                <div style="display:flex;gap:14px;align-items:flex-start;background:rgba(180,145,60,0.07);border:1px solid rgba(180,145,60,0.2);border-radius:12px;padding:14px 16px;">
+                    <span style="font-size:1.5rem;line-height:1;">⏱️</span>
+                    <div>
+                        <div style="font-weight:600;font-size:0.92rem;margin-bottom:3px;">Rate Limit — 3 სტატია/საათი</div>
+                        <div style="color:var(--text-dim);font-size:0.84rem;">1 საათის განმავლობაში მაქსიმუმ 3 სტატიის გაგზავნაა შესაძლებელი. გადამეტებისას — <strong>24 საათით</strong> დაიბლოკება.</div>
+                    </div>
+                </div>
+
+                <div style="display:flex;gap:14px;align-items:flex-start;background:rgba(220,60,60,0.07);border:1px solid rgba(220,60,60,0.2);border-radius:12px;padding:14px 16px;">
+                    <span style="font-size:1.5rem;line-height:1;">🤬</span>
+                    <div>
+                        <div style="font-weight:600;font-size:0.92rem;margin-bottom:3px;">გინება და შეურაცხყოფა</div>
+                        <div style="color:var(--text-dim);font-size:0.84rem;">გინება, ლანძღვა ან შეურაცხმყოფელი შინაარსი → <strong>60 დღის</strong> ბლოკი. ყოველგვარი გამონაკლისის გარეშე.</div>
+                    </div>
+                </div>
+
+                <div style="display:flex;gap:14px;align-items:flex-start;background:rgba(220,60,60,0.07);border:1px solid rgba(220,60,60,0.2);border-radius:12px;padding:14px 16px;">
+                    <span style="font-size:1.5rem;line-height:1;">🌐</span>
+                    <div>
+                        <div style="font-weight:600;font-size:0.92rem;margin-bottom:3px;">VPN / Proxy / Tor</div>
+                        <div style="color:var(--text-dim);font-size:0.84rem;">VPN, Proxy ან Tor-ის გამოყენებით სტატიის გაგზავნა დაუშვებელია — მყისიერად დაიბლოკება.</div>
+                    </div>
+                </div>
+
+                <div style="display:flex;gap:14px;align-items:flex-start;background:rgba(180,145,60,0.07);border:1px solid rgba(180,145,60,0.2);border-radius:12px;padding:14px 16px;">
+                    <span style="font-size:1.5rem;line-height:1;">✅</span>
+                    <div>
+                        <div style="font-weight:600;font-size:0.92rem;margin-bottom:3px;">AI შემოწმება</div>
+                        <div style="color:var(--text-dim);font-size:0.84rem;">ყოველი სტატია AI-ს მიერ მოწმდება. დადასტურების შემდეგ ადმინისტრატორს ეგზავნება გამოქვეყნებისთვის.</div>
+                    </div>
+                </div>
+
+            </div>
+
+            <button class="btn btn-primary" id="closeRulesBtn" style="margin-top:20px;width:100%;">გასაგებია ✓</button>
         </div>
     </div>
 
