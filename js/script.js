@@ -249,12 +249,19 @@ btn.disabled  = true;
 // ===== AI შემოწმება =====
 btn.innerText = 'სტატია მოწმდება...';
 try {
+  const honeypot = document.getElementById('website_hp')?.value || '';
   const reviewRes = await fetch('/api/review', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title, content })
+    body: JSON.stringify({ title, content, honeypot })
   });
   const reviewData = await reviewRes.json();
+  if (reviewData.blocked) {
+    showMsg(errEl, '🚫 ' + reviewData.message, true);
+    btn.disabled  = false;
+    btn.innerText = 'გაგზავნა';
+    return;
+  }
   if (!reviewData.valid) {
     showMsg(errEl, '⚠️ შენიშვნა: ' + reviewData.message, true);
     btn.disabled  = false;
