@@ -6,134 +6,249 @@
 
 ---
 
-## ✅ CURRENT STATE (February 21, 2026 — Session 9)
+## 🔔 ASSISTANT-ის ᲨᲔᲮᲡᲔᲜᲔᲑᲔᲑᲘ (ᲛᲜᲘᲨᲕᲜᲔᲚᲝᲕᲐᲜᲘ!)
+
+**შემდეგ assistant-მა უნდა შეახსენოს ნოდარს კონტექსტის განახლება:**
+- ✅ ყოველი სესიის ბოლოს — "ნოდარ, გინდა კონტექსტი განვაახლოთ?"
+- ✅ როცა ახალი ფიჩერი დაემატება
+- ✅ როცა URL ან კონფიგი იცვლება
+- ✅ როცა PageSpeed/Security ქულები იცვლება
+- ✅ როცა Firebase-ში მასშტაბური ცვლილება ხდება
+- ✅ როცა ახალი env variable ემატება Vercel-ში
+
+---
+
+## ✅ CURRENT STATE (February 27, 2026 — Session 30)
 
 - ✅ Frontend on Vercel — **Ready**
-- ✅ **GitHub Repository** — **PRIVATE** 🔒
+- ✅ **GitHub Repository** — **PRIVATE** 🔒 (Phillosopheer/filosofia)
 - ✅ Mozilla Observatory: **A+ 140/100, 10/10** 🏆
 - ✅ ImmuniWeb: **A**
-- ✅ PageSpeed Desktop: **81**, Mobile: **80**
+- ✅ Qualys SSL Labs: **A+ (ორივე სერვერი)** 🏆
+- ✅ SecurityHeaders.com: **A+** ✅
+- ✅ PageSpeed Mobile: **98** 🚀
+- ✅ PageSpeed Desktop: **98** 🚀
+- ✅ PageSpeed SEO: **100/100**
+- ✅ PageSpeed Accessibility: **100/100**
+- ✅ CLS Mobile: **0.003** 🏆
+- ✅ CLS Desktop: **0.028**
 - ✅ Google Search Console: verified + sitemap submitted
-- ✅ Firebase App Check — **Enforced!** ✅
-- ✅ **apple-touch-icon.png** — root-ში (ზევსის ლოგო 180x180px)
-- ✅ App Check SRI hash — სწორია: `sha384-iF93NE9DFYjJ/GJcb4h18LKfvMn3Ppl4GSSFZ8RFvwc7OtGGQSHQXbHEdO8Rknhj`
-- ✅ **DEBUG ბლოკი** — წაშლილია script.js-დან
-- ✅ **ადმინ მონიტორი** — მუშაობს (401 error გამოსწორდა Session 9-ში)
-- ✅ **Vercel + GitHub** — დაკავშირებულია (Phillosopheer account connected)
-- 🔄 Gemini API — სტატუსი უცნობია (ჯერ ვერ შემოწმდა)
+- ✅ Firebase App Check — **ENFORCED** (Realtime Database) 🔒
+- ✅ **Fonts** — Self-hosted
+- ✅ **TOTP 2FA** — Google Authenticator
+- ✅ **Glossary** — **50,334 სიტყვა** Firebase-ში! 🏆
+- ✅ **GitHub Uploader** — ჩაშენებული UI-ში
+- ✅ **Public Submission** — visitors-ებს სტატიის გაგზავნა შეუძლიათ
+- ✅ **Mobile Console** — Admin-only (extras.js)
+- ✅ **Particles** — ოქროს ნაწილაკები (extras.js)
+- ✅ **ფემინისტური ფილოსოფია** — კატეგორია დაემატა (Session 26)
+- ✅ **AI Review** — სტატიის გაგზავნამდე AI ამოწმებს (Session 27) 🤖
+- ✅ **Pending ღილაკები** — გამოსწორდა (Session 29) 🟢
+- ✅ **Anti-Spam სისტემა** — სრული დაცვა (Session 30) 🛡️
 
 ---
 
-## ✅ Session 9-ში გაკეთებული:
+## ✅ Session 30-ში გაკეთებული (Anti-Spam სისტემა):
 
-1. ✅ **ადმინ მონიტორი 401 error** — გამოსწორდა
-2. ✅ **CLS გაუმჯობესდა** — Desktop: 0.258 → 0.244, Mobile: 0.174 → 0.148
-3. ✅ **Card სურათები** — `card-img-wrapper` div-ებით, `loading="lazy"`, `decoding="async"`
-4. ✅ **Carousel** — `card.style.cssText` → CSS class-ები (`carousel-card`, `carousel-card-hover` და სხვ.) — CSP errors შემცირდა
-5. ✅ **Hero min-height** — `.hero.no-bg { min-height: 0 }` — კატეგორიის გვერდზე ზედმეტი ადგილი გაქრა
-6. ✅ **Grid min-height** — კატეგორიის გვერდზე Firebase load-მდე 600px ადგილი დარეზერვებულია
-7. ✅ **index.html** — admin img-ს `width="80" height="80"` დაემატა
-8. ✅ **Carousel dots** — `style.background/width` → class toggling (`carousel-dot`, `carousel-dot-active`)
+### სტატიის გაგზავნა (`api/review.js`):
+- 🪤 **Honeypot** — ფარული ველი (`#website_hp`), ბოტი ავსებს → **24h ბანი**
+- 🌐 **VPN/Proxy/Tor გამოვლენა** — ip-api.com → მყისიერი ბლოკი (ბანის გარეშე)
+- 📊 **Rate Limit** — 3 სტატია/საათში, მე-4-ზე AI ამოწმებს
+- 🤬 **გინება/შეურაცხყოფა** → **60 დღის ბანი**
+- 📧 **სპამი + Rate Limit** → **24h ბანი**
+- Firebase node: `bot-ratelimit-sub` (სტატიებისთვის ცალკე)
+
+### AI ასისტენტი (`api/gemini.js`):
+- 🌐 **VPN/Proxy/Tor** → მყისიერი ბლოკი
+- ❌ **ნებისმიერი დარღვევა** → **პირდაპირ 24h ბანი** (გაფრთხილება გაუქმდა)
+
+### ფაილები შეცვლილი:
+- `api/review.js` — სრულად განახლდა
+- `api/gemini.js` — VPN + პირდაპირი ბანი
+- `js/script.js` — honeypot გაგზავნა + ბანის შეტყობინება
+- `index.html` — `#website_hp` Honeypot ველი
+- `css/style.css` — `.hp-field` კლასი
+
+### Firebase Rules (Session 30-ში განახლდა!):
+```json
+{
+  "rules": {
+    ".read": false, ".write": false,
+    "notes": { ".read": true, ".write": "auth != null" },
+    "glossary": { ".read": true },
+    "pending-notes": { ".read": "auth != null", ".write": true },
+    "bot-blocks": { ".read": true, ".write": true },
+    "bot-ratelimit": { ".read": true, ".write": true },
+    "bot-ratelimit-sub": { ".read": true, ".write": true }
+  }
+}
+```
 
 ---
 
-## ⚠️ PageSpeed-ის ისტორია
+## ⚠️ ᲨᲔᲛᲓᲔᲒ ASSISTANT — ANTI-SPAM-ის შესახებ:
+- `#website_hp` — Honeypot ველი, **ნუ წაშლი!**
+- `bot-ratelimit-sub` — სტატიების Rate Limit node (ასისტენტის `bot-ratelimit`-ისგან განცალკევებული)
+- VPN გამოვლენა — `ip-api.com` (server-side, უფასო)
+- **`onclick="" HTML-ში`** — **არ გამოიყენო!** CSP ბლოკავს! addEventListener გამოიყენე
+- **`getValidIdToken()`** — Firebase write-ის წინ ყოველთვის გამოიყენე
+- **სესიის ბოლოს შეახსენე კონტექსტის განახლება!** 🔔
+
+---
+
+## ✅ Session 29-ში გაკეთებული (Pending ღილაკების გამოსწორება):
+
+### 🔴 ბაგი #1 — Firebase Rules
+- `notes` ნოდს `.write` არ ჰქონდა → გამოსწორდა
+
+### 🔴 ბაგი #2 — CSP ბლოკავდა onclick=""
+- ყველა `onclick=` → `addEventListener('click', ...)`
+
+### 🔴 ბაგი #3 — idToken 1 საათში იწურება
+- `refreshToken` ახლა `localStorage`-ში ინახება
+- `getValidIdToken()` — ყოველი ოპერაციის წინ გამოიძახება
+
+---
+
+## ⚠️ ᲨᲔᲛᲓᲔᲒ ASSISTANT — PENDING-ის შესახებ:
+- Firebase Rules-ში `"notes": { ".read": true, ".write": "auth != null" }` — **ნუ შეცვლი!**
+- `getValidIdToken()` — **ყოველი Firebase write ოპერაციის წინ** გამოიყენე
+
+---
+
+## ⚠️ GLOSSARY — ᲨᲔᲛᲓᲔᲒ ASSISTANT:
+- Glossary **დასრულებულია** — 50,334 სიტყვა ✅
+- ახალი სიტყვები: **Firebase Console → /glossary → Import JSON**
+- **curl Firebase-ზე არ მუშაობს** — App Check ბლოკავს!
+
+---
+
+## ⚠️ PageSpeed ისტორია
 
 | Session | Desktop | Mobile | Desktop CLS | Mobile CLS |
 |---|---|---|---|---|
-| Session 5 | 87 | 81 | — | — |
-| Session 6 | 75 | 78 | — | — |
-| Session 7 | 80 | 81 | — | — |
-| Session 8 | 80 | 81 | 0.258 | 0.174 |
-| Session 9 | **81** | **80** | **0.244** | **0.148** |
+| Session 9 | 81 | 80 | 0.244 | 0.148 |
+| **Session 24** | **98** 🏆 | **98** 🏆 | **0.028** | **0.003** 🏆 |
 
-**⚠️ ᲨᲔᲛᲓᲔᲒ ASSISTANT:**
-- PageSpeed-ის გასაუმჯობესებლად ნუ შეეხები Google Fonts-ის ჩატვირთვის ლოგიკას! CSP ბლოკავს onload ატრიბუტებს.
-- **Skeleton cards არ გამოიყენო CLS-ისთვის** — პირიქით ამაღლებს CLS-ს (Session 9-ში გამოვცადეთ)!
-- დარჩენილი CLS 0.244 მოდის Firebase async load-დან და reCAPTCHA-დან — Cloudflare-ით გადაჭრა შეიძლება.
+---
+
+## ⚠️ ᲨᲔᲛᲓᲔᲒ ASSISTANT:
+- Google Fonts **ნუ შეეხები** — self-hosted-ია
+- **Skeleton cards არ გამოიყენო** — CLS-ს ამაღლებს
+- App Check **ENFORCED on Realtime Database** 🔒
+- მთავარი URL: `philosoph.vercel.app`
+- **curl Firebase-ზე არ მუშაობს** — App Check ბლოკავს!
+- **CSP `'unsafe-inline'` არ არის** — inline onclick-ები ბლოკდება!
+- **სესიის ბოლოს შეახსენე კონტექსტის განახლება!** 🔔
 
 ---
 
 ## 🌐 URLs
 
-- **Frontend:** https://filosofia-xi.vercel.app ✅
-- **API:** https://filosofia-xi.vercel.app/api/gemini
-- **GitHub:** https://github.com/Phillosopheer/filosofia 🔒 (Private)
+- **Frontend:** https://philosoph.vercel.app ✅
+- **Frontend (ძველი):** https://filosofia-xi.vercel.app
+- **API:** https://philosoph.vercel.app/api/gemini
+- **GitHub:** https://github.com/Phillosopheer/filosofia 🔒
+
+---
+
+## ⚠️ TODO (Session 31+):
+1. **Meta URLs განახლება** — canonical, og:url ჯერ კიდევ GitHub Pages-ზეა
+2. **robots.txt** sitemap URL ძველია
+3. **CSP meta** — `connect-src`-ში `filosofia-xi.vercel.app` ჯერ კიდევ არის
+4. **Telegram Bot** — საიტის მონიტორინგი 👁️
+   - საეჭვო IP → Telegram alert
+   - Public Submission მოვიდა → მაშინვე შეტყობინება
+   - Rate limit გადაცილება → alert
+   - ყოველდღიური სტატისტიკა → `/stats` ბრძანება
 
 ---
 
 ## 📁 File Structure
 ```
 /
-├── api/gemini.js
-├── css/style.css
+├── api/
+│   ├── gemini.js            ← AI ასისტენტი + Anti-Spam (Session 30)
+│   ├── review.js            ← სტატიის შემოწმება + Anti-Spam (Session 30)
+│   └── verify-totp.js       ← TOTP 2FA
+├── css/
+│   ├── style.css            ← .hp-field კლასი დამატებულია (Session 30)
+│   └── fonts/
+│       ├── Cinzel-*.woff
+│       ├── CinzelDecorative-*.woff
+│       ├── EBGaramond-*.woff
+│       └── NotoSansGeorgian-*.woff
 ├── js/
-│   └── script.js
-│   (firebase-app-compat.js წაშლილია — CDN-ზე გადავიდა Session 8-ში)
-├── index.html                  ← lowercase i always!
-├── apple-touch-icon.png        ← ზევსის ლოგო 180x180px
-├── philosopher-bg.jpg          ← OG image — DO NOT DELETE
+│   ├── script.js            ← honeypot + ბანის handling (Session 30)
+│   ├── extras.js            ← particles + mobile console
+│   └── firebase-app-compat.js
+├── backups/
+│   └── gen-lang-client-0339684222-default-rtdb-export.json
+├── index.html               ← #website_hp honeypot ველი (Session 30)
+├── apple-touch-icon.png
+├── philosopher-bg.jpg       ← DO NOT DELETE
 ├── philosopher-bg.webp
 ├── sitemap.xml
 ├── robots.txt
 ├── CNAME
-└── vercel.json                 ← CRITICAL — always in root
+└── vercel.json              ← CRITICAL
 ```
 
 ---
 
 ## ⚙️ Tech Stack
 - Frontend → Vercel
-- Backend → Vercel /api/gemini (serverless)
+- Backend → Vercel /api/gemini + /api/verify-totp + /api/review
 - Database → Firebase Realtime DB
-- AI → **gemma-3-27b-it** (GEMINI_KEY_1, GEMINI_KEY_2 env vars) — **DO NOT CHANGE MODEL!**
-- Gemini request: `{ contents: [{ parts: [{ text: prompt }] }] }`
-- Gemini response: `data?.candidates?.[0]?.content?.parts?.[0]?.text`
+- AI → **gemma-3-27b-it** (GEMINI_KEY_1, GEMINI_KEY_2) — **არასოდეს შეცვალო!**
+- Auth → Firebase Auth + TOTP (TOTP_SECRET env var)
+- VPN Detection → ip-api.com (server-side, უფასო)
 
 ---
 
 ## 🔑 Critical Rules
-1. Firebase `apiKey` — კლიენტური გასაღებია, **ნებადართულია** კოდში.
+1. Firebase `apiKey` — კლიენტური, **ნებადართულია** კოდში
 2. Model: `gemma-3-27b-it` — **არასოდეს** შეცვალო!
-3. `vercel.json` — root-ში, არასოდეს წაშალო
-4. `index.html` — **lowercase i** GitHub-ზე!
-5. Firebase App Compat — **CDN 12.9.0** (gstatic.com) — Session 8-ში შეიცვალა!
-6. CORS headers — `gemini.js`-ში, `/api/(.*)` `vercel.json`-ში არ დაამატო
-7. App Check SDK — CDN (gstatic), SRI hash სწორია!
-8. **DEBUG ბლოკი წაშლილია** — script.js-ში აღარ არის!
-9. **Google Fonts onload/media trick არ მუშაობს** — CSP ბლოკავს!
-10. **Skeleton cards არ გამოიყენო** — CLS-ს ამაღლებს!
+3. `vercel.json` — root-ში, **არასოდეს** წაშალო
+4. `index.html` — **lowercase i**!
+5. Firebase App Compat — **CDN 12.9.0**
+6. CORS — `gemini.js`-ში მხოლოდ, `vercel.json`-ში **არ** დაამატო
+7. **Google Fonts** — **არ გამოიყენო!** Self-hosted-ია
+8. **Skeleton cards** — **არ გამოიყენო!**
+9. App Check — **ENFORCED on Realtime Database** 🔒
+10. **curl Firebase-ზე** — App Check ბლოკავს!
+11. **onclick="" HTML-ში** — **არ გამოიყენო!** addEventListener გამოიყენე
+12. **getValidIdToken()** — Firebase write-ის წინ ყოველთვის გამოიყენე
+13. **#website_hp** — Honeypot ველი, **არ წაშალო!**
+14. **bot-ratelimit-sub** — Firebase node, სტატიების Rate Limit-ისთვის
 
 ---
 
-## 🛡️ index.html — Scripts (head-ში) — Session 8 განახლების შემდეგ:
+## 🛡️ Scripts (index.html head):
 ```html
-<script src="https://www.gstatic.com/firebasejs/12.9.0/firebase-app-compat.js" integrity="sha384-3XWNJu2qFQ6l+dVvCdcgpGP7mp9cxB8uT+w78+fV0wyyiD0lYQ2yMt2cFZOlCcFp" crossorigin="anonymous" defer></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-check-compat.js" integrity="sha384-iF93NE9DFYjJ/GJcb4h18LKfvMn3Ppl4GSSFZ8RFvwc7OtGGQSHQXbHEdO8Rknhj" crossorigin="anonymous" defer></script>
+<script src="https://www.gstatic.com/firebasejs/12.9.0/firebase-app-compat.js"
+  integrity="sha384-3XWNJu2qFQ6l+dVvCdcgpGP7mp9cxB8uT+w78+fV0wyyiD0lYQ2yMt2cFZOlCcFp"
+  crossorigin="anonymous" defer></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-check-compat.js"
+  integrity="sha384-iF93NE9DFYjJ/GJcb4h18LKfvMn3Ppl4GSSFZ8RFvwc7OtGGQSHQXbHEdO8Rknhj"
+  crossorigin="anonymous" defer></script>
+<script src="js/extras.js" defer></script>
+<script src="js/script.js" defer></script>
 ```
 
 ---
 
-## 🔒 Firebase App Check
-
-- **reCAPTCHA Site Key:** `6LdepXIsAAAAAGPzEX8XfPPh1mMSeT8ZUod1Z5CC`
-- **Status:** ✅ **ENFORCED**
-- **შენიშვნა:** საიტზე მომხმარებლების რეგისტრაცია არ არის — მხოლოდ ნოდარი შედის ადმინად.
-
----
-
-## 🚫 ALLOWED_ORIGINS (gemini.js — Session 8-ში განახლდა):
-
+## 🚫 ALLOWED_ORIGINS:
 ```javascript
 const ALLOWED_ORIGINS = [
-    "https://filosofia-xi.vercel.app"    // ← მხოლოდ ეს! GitHub Pages წაიშალა.
+    "https://filosofia-xi.vercel.app",
+    "https://philosoph.vercel.app"
 ];
 ```
 
 ---
 
-## 🔐 Firebase Config (script.js — სწორი!)
-
+## 🔐 Firebase Config:
 ```javascript
 const firebaseConfig = {
   apiKey: "AIzaSyCcTPhEU478qqwbI9KqJ4iOOFBHox-J7Ao",
@@ -148,23 +263,7 @@ const firebaseConfig = {
 
 ---
 
-## Firebase Rules:
-```json
-{
-  "rules": {
-    ".read": false, ".write": false,
-    "notes": { ".read": true },
-    "glossary": { ".read": true },
-    "pending-notes": { ".read": "auth != null", ".write": true },
-    "bot-blocks": { ".read": true, ".write": true },
-    "bot-ratelimit": { ".read": true, ".write": true }
-  }
-}
-```
-
----
-
-## 🧪 Test Results
+## 🧪 Test Results (Session 24/29/30)
 
 | Tool | Result |
 |---|---|
@@ -172,12 +271,17 @@ const firebaseConfig = {
 | Qualys SSL Labs | **A+ ორივე სერვერზე** 🏆 |
 | SecurityHeaders.com | **A+** ✅ |
 | ImmuniWeb | **A** ✅ |
-| PageSpeed Mobile | **80** |
-| PageSpeed Desktop | **81** |
+| PageSpeed Mobile | **98** 🚀 |
+| PageSpeed Desktop | **98** 🚀 |
 | PageSpeed SEO | **100/100** ✅ |
 | PageSpeed Accessibility | **100/100** ✅ |
+| CLS Mobile | **0.003** 🏆 |
+| CLS Desktop | **0.028** ✅ |
 | Google Search Console | **Verified** ✅ |
-| Firebase App Check | **Enforced** ✅ |
+| Firebase App Check | **Enforced (Realtime Database)** 🔒 |
+| Glossary | **50,334 სიტყვა** 🏆 |
+| Pending ღილაკები | **✅ გამოსწორდა (Session 29)** |
+| Anti-Spam სისტემა | **✅ სრული დაცვა (Session 30)** 🛡️ |
 
 ---
 
@@ -185,20 +289,6 @@ const firebaseConfig = {
 
 - ZIP → `/mnt/user-data/uploads/` → unzip → read files
 - Modified files → `/mnt/user-data/outputs/`
-- Syntax check: `node --check js/script.js` / `node --check api/gemini.js`
-- Use `present_files` tool for sharing
-
----
-
-## 🎯 TODO (Session 10 — START HERE!):
-
-1. **Gemini API შემოწმება** — ადმინ მონიტორი → "Gemini-ს შემოწმება" — სტატუსი გაურკვეველია
-2. **Cloudflare WAF + Custom Domain** — CLS-ის შემდგომი გაუმჯობესებისთვის:
-   - Firebase requests Cloudflare-ზე გაივლის — უფრო სწრაფი
-   - Custom domain საჭიროა პირველ რიგში
-   - CLS 0.244 → შემდგომი შემცირება შესაძლებელია
-3. **PageSpeed გაუმჯობესება** — Desktop 81→87+:
-   - Render blocking: 440ms (Firebase, reCAPTCHA)
-   - სურათების ოპტიმიზაცია — 111 KiB savings
-   - ⚠️ Google Fonts-ს **ნუ შეეხები**!
-   - ⚠️ Skeleton cards **არ გამოიყენო**!
+- Syntax check: `node --check js/script.js` / `node --check api/gemini.js` / `node --check api/verify-totp.js`
+- `present_files` tool for sharing
+- **სესიის ბოლოს ყოველთვის შეახსენე კონტექსტის განახლება!** 🔔
