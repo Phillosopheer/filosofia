@@ -257,13 +257,16 @@ try {
   });
   const reviewData = await reviewRes.json();
   if (reviewData.blocked) {
-    showMsg(errEl, '🚫 ' + reviewData.message, true);
+    showMsg(errEl, '🚫 ' + (reviewData.message || 'გაგზავნა დაიბლოკა.'), true);
     btn.disabled  = false;
     btn.innerText = 'გაგზავნა';
     return;
   }
-  if (!reviewData.valid) {
-    showMsg(errEl, '⚠️ შენიშვნა: ' + reviewData.message, true);
+  if (reviewData.error) {
+    // სერვერის შეცდომა — გავაგრძელოთ გაგზავნა
+    console.warn('Review API error:', reviewData.error);
+  } else if (!reviewData.valid) {
+    showMsg(errEl, '⚠️ შენიშვნა: ' + (reviewData.message || 'სტატია ვერ გაიარა შემოწმება.'), true);
     btn.disabled  = false;
     btn.innerText = 'გაგზავნა';
     return;
