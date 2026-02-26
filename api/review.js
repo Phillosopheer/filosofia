@@ -122,7 +122,12 @@ export default async function handler(req, res) {
         const rlData      = await getRateLimitData(ipHash);
         const windowStart = now - RATE_LIMIT_WINDOW;
         const recentTs    = (rlData?.timestamps || []).filter(t => t > windowStart);
-        const rateLimitExceeded = recentTs.length >= RATE_LIMIT_MAX;
+
+        if (recentTs.length >= RATE_LIMIT_MAX) {
+            await saveBanData(ipHash, { blockedUntil: now + BLOCK_HOURS * 3600000, reason: "ratelimit" });
+            return res.status(403).json({ blocked: true, hoursLeft: BLOCK_HOURS, message: `1 საათში მაქსიმუმ ${RATE_LIMIT_MAX} სტატიის გაგზავნა შეიძლება. დაბლოკილი ხარ ${BLOCK_HOURS} საათით.` });
+        }
+
         await saveRateLimitData(ipHash, { timestamps: [...recentTs, now] });
 
         // ===== AI შემოწმება =====
@@ -200,13 +205,7 @@ export default async function handler(req, res) {
             return res.status(403).json({ blocked: true, daysLeft: BLOCK_DAYS_ABUSE, message: `შეურაცხმყოფელი შინაარსი. IP დაბლოკილია ${BLOCK_DAYS_ABUSE} დღით.` });
         }
 
-        // ===== ᲡᲞᲐᲛᲘ + RATE LIMIT → 24 საათი =====
-        if (!result.valid && rateLimitExceeded) {
-            await saveBanData(ipHash, { blockedUntil: now + BLOCK_HOURS * 3600000, reason: "spam" });
-            return res.status(403).json({ blocked: true, hoursLeft: BLOCK_HOURS, message: `სპამი გამოვლინდა. დაბლოკილი ხარ ${BLOCK_HOURS} საათით.` });
-        }
-
-        // ===== INVALID (rate limit-ის გარეშე — მხოლოდ უარყოფა, ბანი არ არის) =====
+        // ===== ᲡᲞᲐᲛᲘ → უბრალოდ უარყოფა (Rate Limit უკვე ზემოთ მოხდა) =====
         if (!result.valid) {
             return res.status(200).json({ valid: false, message: result.message });
         }
