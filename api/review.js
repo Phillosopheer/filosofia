@@ -125,7 +125,13 @@ export default async function handler(req, res) {
         const ipHash = await hashIP(ip);
         const now    = Date.now();
 
-        // ===== არსებული ბანი =====
+        const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+        const { title, content, honeypot, fpHash } = body;
+
+        // ===== fpHash ვალიდაცია =====
+        const validFp = typeof fpHash === "string" && /^[0-9a-f]{32}$/.test(fpHash);
+
+        // ===== არსებული ბანი — IP =====
         const banData = await fbGet(`/bot-blocks/${ipHash}`);
         if (banData?.blockedUntil && now < banData.blockedUntil) {
             const ms       = banData.blockedUntil - now;
@@ -135,13 +141,23 @@ export default async function handler(req, res) {
             return res.status(403).json({ blocked: true, hoursLeft, message: `შენ დაბლოკილი ხარ ${timeStr}.` });
         }
 
-        const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
-        const { title, content, honeypot } = body;
+        // ===== არსებული ბანი — fpHash =====
+        if (validFp) {
+            const fpBan = await fbGet(`/bot-blocks/${fpHash}`);
+            if (fpBan?.blockedUntil && now < fpBan.blockedUntil) {
+                const ms       = fpBan.blockedUntil - now;
+                const daysLeft  = Math.ceil(ms / 86400000);
+                const hoursLeft = Math.ceil(ms / 3600000);
+                const timeStr   = daysLeft > 1 ? `${daysLeft} დღით` : `${hoursLeft} საათით`;
+                return res.status(403).json({ blocked: true, hoursLeft, message: `შენ დაბლოკილი ხარ ${timeStr}.` });
+            }
+        }
         if (!title || !content) return res.status(400).json({ error: "სათაური და შინაარსი სავალდებულოა" });
 
         // ===== HONEYPOT =====
         if (honeypot) {
             await fbSet(`/bot-blocks/${ipHash}`, { blockedUntil: now + BLOCK_HOURS * 3600000, reason: "honeypot" });
+            if (validFp) await fbSet(`/bot-blocks/${fpHash}`, { blockedUntil: now + BLOCK_HOURS * 3600000, reason: "honeypot" });
             return res.status(403).json({ blocked: true, hoursLeft: BLOCK_HOURS, message: `ბოტი გამოვლინდა. დაბლოკილი ხარ ${BLOCK_HOURS} საათით.` });
         }
 
@@ -151,15 +167,29 @@ export default async function handler(req, res) {
             return res.status(403).json({ blocked: true, message: "VPN/Proxy/Tor-ის გამოყენება სტატიის გაგზავნისას დაუშვებელია." });
         }
 
-        // ===== RATE LIMIT =====
+        // ===== RATE LIMIT — IP =====
         const rlData      = await fbGet(`/bot-ratelimit-sub/${ipHash}`);
         const windowStart = now - RATE_LIMIT_WINDOW;
         const recentTs    = (rlData?.timestamps || []).filter(t => t > windowStart);
 
         if (recentTs.length >= RATE_LIMIT_MAX) {
             await fbSet(`/bot-blocks/${ipHash}`, { blockedUntil: now + BLOCK_HOURS * 3600000, reason: "ratelimit" });
+            if (validFp) await fbSet(`/bot-blocks/${fpHash}`, { blockedUntil: now + BLOCK_HOURS * 3600000, reason: "ratelimit" });
             return res.status(403).json({ blocked: true, hoursLeft: BLOCK_HOURS, message: `1 საათში მაქსიმუმ ${RATE_LIMIT_MAX} სტატიის გაგზავნა შეიძლება. დაბლოკილი ხარ ${BLOCK_HOURS} საათით.` });
         }
+
+        // ===== RATE LIMIT — fpHash =====
+        if (validFp) {
+            const rlFp       = await fbGet(`/bot-ratelimit-sub/${fpHash}`);
+            const recentFpTs = (rlFp?.timestamps || []).filter(t => t > windowStart);
+            if (recentFpTs.length >= RATE_LIMIT_MAX) {
+                await fbSet(`/bot-blocks/${ipHash}`, { blockedUntil: now + BLOCK_HOURS * 3600000, reason: "ratelimit_fp" });
+                await fbSet(`/bot-blocks/${fpHash}`, { blockedUntil: now + BLOCK_HOURS * 3600000, reason: "ratelimit_fp" });
+                return res.status(403).json({ blocked: true, hoursLeft: BLOCK_HOURS, message: `1 საათში მაქსიმუმ ${RATE_LIMIT_MAX} სტატიის გაგზავნა შეიძლება. დაბლოკილი ხარ ${BLOCK_HOURS} საათით.` });
+            }
+            await fbSet(`/bot-ratelimit-sub/${fpHash}`, { timestamps: [...recentFpTs, now] });
+        }
+
         await fbSet(`/bot-ratelimit-sub/${ipHash}`, { timestamps: [...recentTs, now] });
 
         // ===== AI შემოწმება =====
@@ -210,6 +240,7 @@ export default async function handler(req, res) {
         // ===== ABUSE → 60 დღე =====
         if (result.abuse === true) {
             await fbSet(`/bot-blocks/${ipHash}`, { blockedUntil: now + BLOCK_DAYS_ABUSE * 86400000, reason: "abuse" });
+            if (validFp) await fbSet(`/bot-blocks/${fpHash}`, { blockedUntil: now + BLOCK_DAYS_ABUSE * 86400000, reason: "abuse" });
             return res.status(403).json({ blocked: true, daysLeft: BLOCK_DAYS_ABUSE, message: `შეურაცხმყოფელი შინაარსი. IP დაბლოკილია ${BLOCK_DAYS_ABUSE} დღით.` });
         }
 
