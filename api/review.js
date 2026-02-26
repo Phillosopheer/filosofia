@@ -7,6 +7,23 @@ const BLOCK_HOURS      = 24;
 const BLOCK_DAYS_ABUSE = 60;
 const RATE_LIMIT_WINDOW = 60 * 60 * 1000;
 const RATE_LIMIT_MAX    = 3;
+const CAT_WARN_MAX      = 3;
+
+const CAT_NAMES = {
+    epist:      "ეპისტემოლოგია",
+    ethics:     "ეთიკა",
+    logic:      "ლოგიკა",
+    meta:       "მეტაფიზიკა",
+    lang:       "ენის ფილოსოფია",
+    anthro:     "ანთროპოლოგიური ფილოსოფია",
+    aesthetics: "ესთეტიკა",
+    exist:      "ეგზისტენციალიზმი",
+    onto:       "ონტოლოგია",
+    axio:       "ობიექტური აქსიოლოგია",
+    histphil:   "ფილოსოფიის ისტორია",
+    relphil:    "რელიგიის ფილოსოფია",
+    feminist:   "ფემინისტური ფილოსოფია"
+};
 
 const ALLOWED_ORIGINS = [
     "https://filosofia-xi.vercel.app",
@@ -126,7 +143,7 @@ export default async function handler(req, res) {
         const now    = Date.now();
 
         const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
-        const { title, content, honeypot, fpHash } = body;
+        const { title, content, honeypot, fpHash, cat } = body;
 
         // ===== fpHash ვალიდაცია =====
         const validFp = typeof fpHash === "string" && /^[0-9a-f]{32}$/.test(fpHash);
@@ -194,18 +211,25 @@ export default async function handler(req, res) {
 
         // ===== AI შემოწმება =====
         const plainContent = content.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+        const selectedCatName = CAT_NAMES[cat] || cat || "უცნობი";
+        const catList = Object.entries(CAT_NAMES).map(([k,v]) => `${k}: ${v}`).join(", ");
         const reviewPrompt = `შენ ხარ ფილოსოფიური ვებსაიტის მკაცრი რედაქტორი და მოდერატორი.
 
 მომხმარებელმა გამოგზავნა:
 სათაური: ${title}
 შინაარსი: ${plainContent}
+არჩეული კატეგორია: ${selectedCatName} (კოდი: ${cat})
+
+კატეგორიების სია: ${catList}
 
 უპასუხე მხოლოდ JSON ფორმატში, სხვა არაფერი:
-{"valid": true/false, "abuse": true/false, "message": "მიზეზი ქართულად"}
+{"valid": true/false, "abuse": true/false, "message": "მიზეზი ქართულად", "categoryOk": true/false, "suggestedCat": "კატეგორიის კოდი", "categoryComment": "კომენტარი ქართულად"}
 
 "abuse"=true — გინება, ლანძღვა, უხამსობა, შეურაცხყოფა, ძალადობრივი ენა.
 "valid"=false (abuse=false) — ფილოსოფიასთან კავშირი არ აქვს, სპამია, 80 სიმბოლოზე ნაკლებია.
 "valid"=true, "abuse"=false — ნორმალური ფილოსოფიური სტატია.
+"categoryOk"=false — კატეგორია არ შეესაბამება შინაარსს. "suggestedCat" — სწორი კატეგორიის კოდი სიიდან. "categoryComment" — მოკლე ახსნა ქართულად.
+"categoryOk"=true — კატეგორია სწორია.
 მხოლოდ JSON.`;
 
         const apiKeys = Object.keys(process.env).filter(k => k.startsWith("GEMINI_KEY_")).sort().map(k => process.env[k]).filter(Boolean);
@@ -217,7 +241,7 @@ export default async function handler(req, res) {
                 const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemma-3-27b-it:generateContent?key=${key}`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: reviewPrompt }] }], generationConfig: { temperature: 0.1, maxOutputTokens: 200 } })
+                    body: JSON.stringify({ contents: [{ parts: [{ text: reviewPrompt }] }], generationConfig: { temperature: 0.1, maxOutputTokens: 350 } })
                 });
                 if (r.status === 429 || r.status === 403) continue;
                 const d = await r.json();
@@ -246,6 +270,32 @@ export default async function handler(req, res) {
 
         if (!result.valid) {
             return res.status(200).json({ valid: false, message: result.message || "სტატია ვერ გაიარა AI-ის შემოწმება. სცადე სათაური ან შინაარსი დააზუსტო." });
+        }
+
+        // ===== კატეგორიის შემოწმება =====
+        if (result.categoryOk === false && result.suggestedCat && result.suggestedCat !== cat) {
+            const warnData  = await fbGet(`/bot-cat-warn/${ipHash}`);
+            const warnCount = (warnData?.count || 0) + 1;
+
+            if (warnCount >= CAT_WARN_MAX) {
+                await fbSet(`/bot-blocks/${ipHash}`, { blockedUntil: now + BLOCK_HOURS * 3600000, reason: "cat_warn" });
+                if (validFp) await fbSet(`/bot-blocks/${fpHash}`, { blockedUntil: now + BLOCK_HOURS * 3600000, reason: "cat_warn" });
+                await fbSet(`/bot-cat-warn/${ipHash}`, { count: 0 });
+                return res.status(403).json({ blocked: true, hoursLeft: BLOCK_HOURS, message: `3-ჯერ არასწორი კატეგორია მიუთითე. დაბლოკილი ხარ ${BLOCK_HOURS} საათით.` });
+            }
+
+            await fbSet(`/bot-cat-warn/${ipHash}`, { count: warnCount });
+            const suggestedName = CAT_NAMES[result.suggestedCat] || result.suggestedCat;
+            const warningsLeft  = CAT_WARN_MAX - warnCount;
+            return res.status(200).json({
+                valid: false,
+                categoryWarn: true,
+                suggestedCat: result.suggestedCat,
+                suggestedCatName: suggestedName,
+                categoryComment: result.categoryComment || `შენი სტატია უფრო "${suggestedName}"-ს შეესაბამება.`,
+                warningsLeft,
+                message: result.categoryComment || `შენი სტატია უფრო "${suggestedName}"-ს შეესაბამება.`
+            });
         }
 
         return res.status(200).json({ valid: true, message: result.message || "სტატია დადასტურებულია." });
