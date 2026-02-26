@@ -363,12 +363,18 @@ ${note.author ? `<p style="color:var(--accent); font-size:0.8rem; font-weight:60
 </div>
 <p style="color:var(--text-dim); font-size:0.9rem; line-height:1.6; margin-bottom:15px;">${excerpt}</p>
 <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:4px;">
-<button onclick="previewPendingNote('${note.fbId}')" style="display:flex;align-items:center;gap:6px;padding:9px 15px;background:rgba(180,145,60,0.08);border:1px solid rgba(180,145,60,0.3);border-radius:8px;color:var(--accent);cursor:pointer;font-size:0.82rem;font-family:inherit;letter-spacing:0.5px;transition:all 0.2s;" onmouseover="this.style.background='rgba(180,145,60,0.18)'" onmouseout="this.style.background='rgba(180,145,60,0.08)'">👁 ნახვა</button>
-<button onclick="editPendingNote('${note.fbId}')" style="display:flex;align-items:center;gap:6px;padding:9px 15px;background:rgba(180,145,60,0.08);border:1px solid rgba(180,145,60,0.3);border-radius:8px;color:var(--accent);cursor:pointer;font-size:0.82rem;font-family:inherit;letter-spacing:0.5px;transition:all 0.2s;" onmouseover="this.style.background='rgba(180,145,60,0.18)'" onmouseout="this.style.background='rgba(180,145,60,0.08)'">✏️ რედაქტირება</button>
-<button onclick="confirmPendingAction('approve','${note.fbId}', this)" style="display:flex;align-items:center;gap:6px;padding:9px 15px;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.35);border-radius:8px;color:#4ade80;cursor:pointer;font-size:0.82rem;font-family:inherit;font-weight:600;letter-spacing:0.5px;transition:all 0.2s;" onmouseover="this.style.background='rgba(34,197,94,0.18)'" onmouseout="this.style.background='rgba(34,197,94,0.08)'">✅ დადასტურება</button>
-<button onclick="confirmPendingAction('reject','${note.fbId}', this)" style="display:flex;align-items:center;gap:6px;padding:9px 15px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.35);border-radius:8px;color:#f87171;cursor:pointer;font-size:0.82rem;font-family:inherit;letter-spacing:0.5px;transition:all 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.18)'" onmouseout="this.style.background='rgba(239,68,68,0.08)'">❌ უარყოფა</button>
+<button class="pnote-preview" style="display:flex;align-items:center;gap:6px;padding:9px 15px;background:rgba(180,145,60,0.08);border:1px solid rgba(180,145,60,0.3);border-radius:8px;color:var(--accent);cursor:pointer;font-size:0.82rem;font-family:inherit;letter-spacing:0.5px;transition:all 0.2s;">👁 ნახვა</button>
+<button class="pnote-edit" style="display:flex;align-items:center;gap:6px;padding:9px 15px;background:rgba(180,145,60,0.08);border:1px solid rgba(180,145,60,0.3);border-radius:8px;color:var(--accent);cursor:pointer;font-size:0.82rem;font-family:inherit;letter-spacing:0.5px;transition:all 0.2s;">✏️ რედაქტირება</button>
+<button class="pnote-approve" style="display:flex;align-items:center;gap:6px;padding:9px 15px;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.35);border-radius:8px;color:#4ade80;cursor:pointer;font-size:0.82rem;font-family:inherit;font-weight:600;letter-spacing:0.5px;transition:all 0.2s;">✅ დადასტურება</button>
+<button class="pnote-reject" style="display:flex;align-items:center;gap:6px;padding:9px 15px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.35);border-radius:8px;color:#f87171;cursor:pointer;font-size:0.82rem;font-family:inherit;letter-spacing:0.5px;transition:all 0.2s;">❌ უარყოფა</button>
 </div>
 `;
+card.querySelector('.pnote-preview').addEventListener('click', () => previewPendingNote(note.fbId));
+card.querySelector('.pnote-edit').addEventListener('click', () => editPendingNote(note.fbId));
+const approveBtn = card.querySelector('.pnote-approve');
+approveBtn.addEventListener('click', () => confirmPendingAction('approve', note.fbId, approveBtn));
+const rejectBtn = card.querySelector('.pnote-reject');
+rejectBtn.addEventListener('click', () => confirmPendingAction('reject', note.fbId, rejectBtn));
 list.appendChild(card);
 });
 }
