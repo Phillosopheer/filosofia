@@ -361,11 +361,11 @@ ${note.author ? `<p style="color:var(--accent); font-size:0.8rem; font-weight:60
 </div>
 </div>
 <p style="color:var(--text-dim); font-size:0.9rem; line-height:1.6; margin-bottom:15px;">${excerpt}</p>
-<div style="display:flex; gap:10px; flex-wrap:wrap;">
-<button onclick="previewPendingNote('${note.fbId}')" style="padding:8px 16px; background:var(--surface); border:1px solid var(--border); border-radius:8px; color:var(--text); cursor:pointer; font-size:0.85rem; transition:0.3s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">👁 ნახვა</button>
-<button onclick="editPendingNote('${note.fbId}')" style="padding:8px 16px; background:var(--surface); border:1px solid var(--border); border-radius:8px; color:var(--accent); cursor:pointer; font-size:0.85rem; transition:0.3s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">✏️ რედაქტირება</button>
-<button onclick="approvePendingNote('${note.fbId}')" style="padding:8px 16px; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); border-radius:8px; color:#22c55e; cursor:pointer; font-size:0.85rem; font-weight:600; transition:0.3s;" onmouseover="this.style.background='rgba(34,197,94,0.2)'" onmouseout="this.style.background='rgba(34,197,94,0.1)'">✅ დადასტურება</button>
-<button onclick="rejectPendingNote('${note.fbId}')" style="padding:8px 16px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); border-radius:8px; color:#ef4444; cursor:pointer; font-size:0.85rem; transition:0.3s;" onmouseover="this.style.background='rgba(239,68,68,0.2)'" onmouseout="this.style.background='rgba(239,68,68,0.1)'">❌ უარყოფა</button>
+<div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:4px;">
+<button onclick="previewPendingNote('${note.fbId}')" style="display:flex;align-items:center;gap:6px;padding:9px 15px;background:rgba(180,145,60,0.08);border:1px solid rgba(180,145,60,0.3);border-radius:8px;color:var(--accent);cursor:pointer;font-size:0.82rem;font-family:inherit;letter-spacing:0.5px;transition:all 0.2s;" onmouseover="this.style.background='rgba(180,145,60,0.18)'" onmouseout="this.style.background='rgba(180,145,60,0.08)'">👁 ნახვა</button>
+<button onclick="editPendingNote('${note.fbId}')" style="display:flex;align-items:center;gap:6px;padding:9px 15px;background:rgba(180,145,60,0.08);border:1px solid rgba(180,145,60,0.3);border-radius:8px;color:var(--accent);cursor:pointer;font-size:0.82rem;font-family:inherit;letter-spacing:0.5px;transition:all 0.2s;" onmouseover="this.style.background='rgba(180,145,60,0.18)'" onmouseout="this.style.background='rgba(180,145,60,0.08)'">✏️ რედაქტირება</button>
+<button onclick="confirmPendingAction('approve','${note.fbId}', this)" style="display:flex;align-items:center;gap:6px;padding:9px 15px;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.35);border-radius:8px;color:#4ade80;cursor:pointer;font-size:0.82rem;font-family:inherit;font-weight:600;letter-spacing:0.5px;transition:all 0.2s;" onmouseover="this.style.background='rgba(34,197,94,0.18)'" onmouseout="this.style.background='rgba(34,197,94,0.08)'">✅ დადასტურება</button>
+<button onclick="confirmPendingAction('reject','${note.fbId}', this)" style="display:flex;align-items:center;gap:6px;padding:9px 15px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.35);border-radius:8px;color:#f87171;cursor:pointer;font-size:0.82rem;font-family:inherit;letter-spacing:0.5px;transition:all 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.18)'" onmouseout="this.style.background='rgba(239,68,68,0.08)'">❌ უარყოფა</button>
 </div>
 `;
 list.appendChild(card);
@@ -390,9 +390,39 @@ currentNote = { ...note, pending: true };
 openEditModal();
 closeModal('pendingModal');
 }
+function confirmPendingAction(action, noteId, btn) {
+// inline დადასტურება — confirm() მობაილზე ხშირად იბლოკება
+const card = btn.closest('div').parentElement;
+const existingConfirm = card.querySelector('.inline-confirm');
+if (existingConfirm) { existingConfirm.remove(); return; }
+const isApprove = action === 'approve';
+const confirmDiv = document.createElement('div');
+confirmDiv.className = 'inline-confirm';
+confirmDiv.style.cssText = `
+  margin-top: 12px;
+  padding: 14px 16px;
+  background: ${isApprove ? 'rgba(34,197,94,0.07)' : 'rgba(239,68,68,0.07)'};
+  border: 1px solid ${isApprove ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'};
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+`;
+confirmDiv.innerHTML = `
+  <span style="color:var(--text-dim);font-size:0.85rem;font-family:inherit;">
+    ${isApprove ? '✅ დაადასტურო ეს სტატია?' : '❌ სამუდამოდ წაიშლება. დარწმუნებული ხარ?'}
+  </span>
+  <div style="display:flex;gap:8px;">
+    <button onclick="this.closest('.inline-confirm').remove()" style="padding:7px 16px;background:transparent;border:1px solid var(--border);border-radius:7px;color:var(--text-dim);cursor:pointer;font-size:0.82rem;font-family:inherit;transition:0.2s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">გაუქმება</button>
+    <button onclick="${isApprove ? 'approvePendingNote' : 'rejectPendingNote'}('${noteId}')" style="padding:7px 18px;background:${isApprove ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)'};border:1px solid ${isApprove ? 'rgba(34,197,94,0.5)' : 'rgba(239,68,68,0.5)'};border-radius:7px;color:${isApprove ? '#4ade80' : '#f87171'};cursor:pointer;font-size:0.82rem;font-family:inherit;font-weight:600;transition:0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">${isApprove ? 'დიახ, დადასტურება' : 'დიახ, წაშლა'}</button>
+  </div>
+`;
+card.appendChild(confirmDiv);
+}
 async function approvePendingNote(noteId) {
 if (!idToken) return;
-if (!confirm('დაადასტურო ეს სტატია?')) return;
 try {
 const note = pendingNotes.find(n => n.fbId === noteId);
 if (!note) throw new Error('სტატია არ მოიძებნა');
@@ -420,7 +450,6 @@ alert('შეცდომა: ' + err.message);
 }
 async function rejectPendingNote(noteId) {
 if (!idToken) return;
-if (!confirm('უარყო ეს სტატია? ის სამუდამოდ წაიშლება.')) return;
 try {
 const res = await fbFetch(`${FIREBASE_DB}/pending-notes/${noteId}.json?auth=${idToken}`, {
 method: 'DELETE'
