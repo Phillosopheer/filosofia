@@ -1,19 +1,65 @@
 // ===== gemma-3-27b-it (14,400 მოთხოვნა/დღეში) =====
-// ავტომატურად იყენებს ყველა GEMINI_KEY_* გასაღებს — რამდენსაც დაამატებ Vercel-ში
+// ავტომატურად იყენებს ყველა GEMINI_KEY_* გასაღებს
+// Firebase Admin SDK (Service Account) — App Check-ს გვერდს უვლის
 
 const FIREBASE_DB = "https://gen-lang-client-0339684222-default-rtdb.firebaseio.com";
 const BLOCK_HOURS = 24;
 const MAX_WARNINGS = 3;
-const RATE_LIMIT_WINDOW = 60 * 1000; // 60 წამი
-const RATE_LIMIT_MAX = 3;            // მაქსიმუმ 3 კითხვა/წუთში
+const RATE_LIMIT_WINDOW = 60 * 1000;
+const RATE_LIMIT_MAX = 3;
 
-// დაშვებული origins — მხოლოდ ეს საიტები
 const ALLOWED_ORIGINS = [
     "https://filosofia-xi.vercel.app",
     "https://philosoph.vercel.app"
 ];
 
-// IP-ს ჰეშავს — პირდაპირ არ ვინახავთ Firebase-ში
+// ===== Service Account → Access Token =====
+let cachedToken = null;
+let tokenExpiry  = 0;
+
+async function getAdminToken() {
+    if (cachedToken && Date.now() < tokenExpiry - 60000) return cachedToken;
+    const sa  = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    const now = Math.floor(Date.now() / 1000);
+    const payload = {
+        iss: sa.client_email, sub: sa.client_email,
+        aud: "https://oauth2.googleapis.com/token",
+        iat: now, exp: now + 3600,
+        scope: "https://www.googleapis.com/auth/firebase.database https://www.googleapis.com/auth/userinfo.email"
+    };
+    const enc = (obj) => btoa(JSON.stringify(obj)).replace(/=/g,"").replace(/\+/g,"-").replace(/\//g,"_");
+    const signingInput = `${enc({alg:"RS256",typ:"JWT"})}.${enc(payload)}`;
+    const pemBody  = sa.private_key.replace(/-----[^-]+-----/g,"").replace(/\s/g,"");
+    const keyBytes = Uint8Array.from(atob(pemBody), c => c.charCodeAt(0));
+    const cryptoKey = await crypto.subtle.importKey("pkcs8", keyBytes, { name:"RSASSA-PKCS1-v1_5", hash:"SHA-256" }, false, ["sign"]);
+    const sig = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", cryptoKey, new TextEncoder().encode(signingInput));
+    const sigB64 = btoa(String.fromCharCode(...new Uint8Array(sig))).replace(/=/g,"").replace(/\+/g,"-").replace(/\//g,"_");
+    const jwt = `${signingInput}.${sigB64}`;
+    const tokenRes  = await fetch("https://oauth2.googleapis.com/token", {
+        method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${jwt}`
+    });
+    const tokenData = await tokenRes.json();
+    cachedToken = tokenData.access_token;
+    tokenExpiry  = Date.now() + 3600000;
+    return cachedToken;
+}
+
+async function fbGet(path) {
+    const token = await getAdminToken();
+    const res   = await fetch(`${FIREBASE_DB}${path}.json?access_token=${token}`);
+    if (!res.ok) return null;
+    return await res.json();
+}
+
+async function fbSet(path, data) {
+    const token = await getAdminToken();
+    await fetch(`${FIREBASE_DB}${path}.json?access_token=${token}`, {
+        method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data)
+    });
+}
+
+// IP-ს ჰეშავს
 async function hashIP(ip) {
     const encoder = new TextEncoder();
     const data = encoder.encode(ip + "filosof_salt_2025");
@@ -32,50 +78,20 @@ async function isVPN(ip) {
     } catch { return false; }
 }
 
-// Firebase-ში warning სტატუსის წამოღება
 async function getWarningData(ipHash) {
-    try {
-        const res = await fetch(`${FIREBASE_DB}/bot-blocks/${ipHash}.json`);
-        if (!res.ok) return null;
-        return await res.json();
-    } catch { return null; }
+    return await fbGet(`/bot-blocks/${ipHash}`);
 }
 
-// Firebase-ში warning-ის შენახვა (public write — rules-ში უნდა იყოს დაშვებული /bot-blocks/)
 async function saveWarningData(ipHash, data) {
-    try {
-        const res = await fetch(`${FIREBASE_DB}/bot-blocks/${ipHash}.json`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data)
-        });
-        if (!res.ok) {
-            console.error("Firebase write failed:", res.status, await res.text());
-        }
-    } catch (e) {
-        console.error("Firebase write error:", e.message);
-    }
+    await fbSet(`/bot-blocks/${ipHash}`, data);
 }
 
-// Rate limit: ბოლო მოთხოვნების timestamp-ები
 async function getRateLimitData(hash) {
-    try {
-        const res = await fetch(`${FIREBASE_DB}/bot-ratelimit/${hash}.json`);
-        if (!res.ok) return null;
-        return await res.json();
-    } catch { return null; }
+    return await fbGet(`/bot-ratelimit/${hash}`);
 }
 
 async function saveRateLimitData(hash, data) {
-    try {
-        await fetch(`${FIREBASE_DB}/bot-ratelimit/${hash}.json`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data)
-        });
-    } catch (e) {
-        console.error("Rate limit save error:", e.message);
-    }
+    await fbSet(`/bot-ratelimit/${hash}`, data);
 }
 
 export default async function handler(req, res) {
