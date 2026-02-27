@@ -399,19 +399,46 @@
             </div>
             <!-- Register Form -->
             <div id="registerForm" style="display:none">
-                <div class="form-group">
-                    <label>სახელი (nickname)</label>
-                    <input type="text" id="regNickname" placeholder="მაგ: ფილოსოფოსი" maxlength="30" aria-label="სახელი" />
+                <!-- Step 1 -->
+                <div id="regStep1">
+                    <div class="form-group">
+                        <label>სახელი</label>
+                        <input type="text" id="regNickname" placeholder="მაგ: ფილოსოფოსი" maxlength="20" aria-label="სახელი" />
+                        <div class="field-hint">3–20 სიმბოლო, მხოლოდ ასოები და ციფრები</div>
+                    </div>
+                    <div class="form-group">
+                        <label>ელ. ფოსტა</label>
+                        <input type="email" id="regEmail" placeholder="you@example.com" aria-label="ელ-ფოსტა" />
+                    </div>
+                    <div class="form-group">
+                        <label>პაროლი</label>
+                        <input type="password" id="regPassword" placeholder="მინ. 6 სიმბოლო" aria-label="პაროლი" />
+                    </div>
+                    <div class="form-group">
+                        <label>გაიმეორე პაროლი</label>
+                        <input type="password" id="regPassword2" placeholder="••••••••" aria-label="პაროლის გამეორება" />
+                    </div>
+                    <div class="form-group captcha-group">
+                        <label id="captchaQuestion" class="captcha-label"></label>
+                        <input type="number" id="captchaAnswer" placeholder="პასუხი" class="captcha-input" />
+                    </div>
+                    <button class="btn btn-primary" id="regStep1Btn" style="width:100%">კოდის გაგზავნა →</button>
                 </div>
-                <div class="form-group">
-                    <label>ელ. ფოსტა</label>
-                    <input type="email" id="regEmail" placeholder="you@example.com" aria-label="ელ-ფოსტა" />
+                <!-- Step 2 -->
+                <div id="regStep2" style="display:none">
+                    <div style="text-align:center;margin-bottom:18px;">
+                        <div style="font-size:2rem;margin-bottom:6px;">📧</div>
+                        <p style="color:var(--ivory-dim);font-size:0.85rem;">6-ნიშნა კოდი გამოგეგზავნა<br><span id="regEmailShow" style="color:var(--accent);"></span></p>
+                    </div>
+                    <div class="form-group">
+                        <label>დადასტურების კოდი</label>
+                        <input type="text" id="regCode" placeholder="000000" maxlength="6"
+                            inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code"
+                            style="text-align:center;letter-spacing:8px;font-size:1.4rem;" />
+                    </div>
+                    <button class="btn btn-primary" id="regBtn" style="width:100%">დარეგისტრირდი ✓</button>
+                    <button class="btn" id="regBackBtn" style="width:100%;margin-top:8px;background:none;border:1px solid var(--border);color:var(--ivory-dim);">← უკან</button>
                 </div>
-                <div class="form-group">
-                    <label>პაროლი</label>
-                    <input type="password" id="regPassword" placeholder="მინ. 6 სიმბოლო" aria-label="პაროლი" />
-                </div>
-                <button class="btn btn-primary" id="regBtn" style="width:100%">რეგისტრაცია</button>
             </div>
         </div>
     </div>
