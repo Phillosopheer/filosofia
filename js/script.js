@@ -2647,30 +2647,27 @@ async function loadUserProfile(uid, token) {
 
 function updateAdminSidebar() {
   const avatarImg     = document.getElementById('userAvatarImg');
-  const profilePanel  = document.getElementById('userProfilePanel');
   const sidebarAvatar = document.getElementById('sidebarAvatar');
   const sidebarNickname = document.getElementById('sidebarNickname');
   const sidebarEmail  = document.getElementById('sidebarEmail');
   const statsEl       = document.querySelector('.user-stats');
-
-  // admin avatar — ოქროს "N" ასოთი
-  const adminEmail = localStorage.getItem('userEmail') || 'Admin';
-  const letter = adminEmail[0].toUpperCase();
-  const adminAvatar = `https://ui-avatars.com/api/?name=${letter}&background=c9a84c&color=1a1610&size=64&bold=true`;
-
-  avatarImg.src = adminAvatar;
-  sidebarAvatar.src = adminAvatar;
-  sidebarNickname.innerHTML = 'ნოდარ კებაძე <span class="admin-owner-badge">👑 Owner</span>';
-  sidebarEmail.textContent = adminEmail;
-
-  // სტატისტიკა — admin-ს არ ჭირდება
-  if (statsEl) statsEl.style.display = 'none';
-
-  // logout ღილაკი — admin-ს სხვა logout აქვს (logoutBtn), ამიტომ ვმალავთ
   const userLogoutBtn = document.getElementById('userLogoutBtn');
-  if (userLogoutBtn) userLogoutBtn.style.display = 'none';
+  const avatarWrap    = document.getElementById('avatarWrap');
+  const nicknameEditBtn = document.getElementById('nicknameEditBtn');
 
-  if (profilePanel) profilePanel.style.display = 'block';
+  const adminEmail    = localStorage.getItem('userEmail') || 'admin';
+  const adminNickname = localStorage.getItem('adminNickname') || 'ნოდარ კებაძე';
+  const adminPhoto    = localStorage.getItem('adminPhoto') || '';
+  const fallback      = `https://ui-avatars.com/api/?name=${encodeURIComponent(adminNickname[0])}&background=c9a84c&color=1a1610&size=64&bold=true`;
+  const avatarSrc     = adminPhoto || fallback;
+
+  if (avatarImg) avatarImg.src = avatarSrc;
+  if (sidebarAvatar) sidebarAvatar.src = avatarSrc;
+  if (sidebarNickname) sidebarNickname.innerHTML = adminNickname + ' <span class="admin-owner-badge">👑 Owner</span>';
+  if (sidebarEmail) sidebarEmail.textContent = adminEmail;
+  if (statsEl) statsEl.style.display = 'none';
+  if (userLogoutBtn) userLogoutBtn.style.display = 'none';
+  if (avatarWrap) avatarWrap.style.display = 'flex';
 }
 
 function updateUserUI(loggedIn) {
@@ -2726,7 +2723,11 @@ function doUserLogout() {
 function showNicknameEdit() {
   const input = document.getElementById('nicknameInput');
   if (!input) return;
-  input.value = currentUser ? currentUser.nickname : '';
+  if (idToken) {
+    input.value = localStorage.getItem('adminNickname') || 'ნოდარ კებაძე';
+  } else {
+    input.value = currentUser ? currentUser.nickname : '';
+  }
   document.getElementById('nicknameDisplay').style.display = 'none';
   document.getElementById('nicknameEditWrap').style.display = 'flex';
   input.focus();
@@ -2737,10 +2738,27 @@ function hideNicknameEdit() {
   document.getElementById('nicknameEditWrap').style.display = 'none';
 }
 async function saveNickname() {
-  if (!currentUser || !userToken) return;
   const input = document.getElementById('nicknameInput');
   const trimmed = (input.value || '').trim().slice(0, 30);
-  if (!trimmed || trimmed === currentUser.nickname) { hideNicknameEdit(); return; }
+  if (!trimmed) { hideNicknameEdit(); return; }
+
+  if (idToken) {
+    // Admin — save to localStorage only
+    localStorage.setItem('adminNickname', trimmed);
+    const nick = document.getElementById('sidebarNickname');
+    if (nick) nick.innerHTML = trimmed + ' <span class="admin-owner-badge">👑 Owner</span>';
+    const adminPhoto = localStorage.getItem('adminPhoto') || '';
+    if (!adminPhoto) {
+      const src = `https://ui-avatars.com/api/?name=${encodeURIComponent(trimmed[0])}&background=c9a84c&color=1a1610&size=64&bold=true`;
+      document.getElementById('userAvatarImg').src = src;
+      document.getElementById('sidebarAvatar').src = src;
+    }
+    hideNicknameEdit();
+    return;
+  }
+
+  if (!currentUser || !userToken) return;
+  if (trimmed === currentUser.nickname) { hideNicknameEdit(); return; }
   try {
     await fbFetch(`${FIREBASE_DB}/users/${currentUser.uid}/nickname.json?auth=${userToken}`, {
       method: 'PUT',
@@ -2769,12 +2787,19 @@ document.getElementById('nicknameInput').addEventListener('keydown', (e) => {
 // --- Avatar upload ---
 document.getElementById('avatarFileInput').addEventListener('change', async (e) => {
   const file = e.target.files[0];
-  if (!file || !currentUser || !userToken) return;
+  if (!file) return;
   if (file.size > 2 * 1024 * 1024) { alert('ფოტო მაქს. 2MB უნდა იყოს'); return; }
-  // Convert to base64 data URL and store in Firebase DB (Storage-ის გარეშე ჯერ)
   const reader = new FileReader();
   reader.onload = async (ev) => {
     const dataURL = ev.target.result;
+    if (idToken) {
+      // Admin — save to localStorage only
+      localStorage.setItem('adminPhoto', dataURL);
+      document.getElementById('sidebarAvatar').src = dataURL;
+      document.getElementById('userAvatarImg').src = dataURL;
+      return;
+    }
+    if (!currentUser || !userToken) return;
     try {
       await fbFetch(`${FIREBASE_DB}/users/${currentUser.uid}/photoURL.json?auth=${userToken}`, {
         method: 'PUT',
