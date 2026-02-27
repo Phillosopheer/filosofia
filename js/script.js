@@ -2722,11 +2722,25 @@ function doUserLogout() {
 }
 
 // --- Nickname edit ---
-document.getElementById('nicknameEditBtn').addEventListener('click', async () => {
+// --- Nickname inline edit ---
+function showNicknameEdit() {
+  const input = document.getElementById('nicknameInput');
+  if (!input) return;
+  input.value = currentUser ? currentUser.nickname : '';
+  document.getElementById('nicknameDisplay').style.display = 'none';
+  document.getElementById('nicknameEditWrap').style.display = 'flex';
+  input.focus();
+  input.select();
+}
+function hideNicknameEdit() {
+  document.getElementById('nicknameDisplay').style.display = 'flex';
+  document.getElementById('nicknameEditWrap').style.display = 'none';
+}
+async function saveNickname() {
   if (!currentUser || !userToken) return;
-  const newName = prompt('ახალი სახელი:', currentUser.nickname);
-  if (!newName || !newName.trim() || newName.trim() === currentUser.nickname) return;
-  const trimmed = newName.trim().slice(0, 30);
+  const input = document.getElementById('nicknameInput');
+  const trimmed = (input.value || '').trim().slice(0, 30);
+  if (!trimmed || trimmed === currentUser.nickname) { hideNicknameEdit(); return; }
   try {
     await fbFetch(`${FIREBASE_DB}/users/${currentUser.uid}/nickname.json?auth=${userToken}`, {
       method: 'PUT',
@@ -2736,9 +2750,20 @@ document.getElementById('nicknameEditBtn').addEventListener('click', async () =>
     currentUser.nickname = trimmed;
     localStorage.setItem('userNickname', trimmed);
     document.getElementById('sidebarNickname').textContent = trimmed;
-    document.getElementById('userAvatarImg').src =
-      `https://ui-avatars.com/api/?name=${encodeURIComponent(trimmed)}&background=c9a84c&color=1a1610&size=64&bold=true`;
+    if (!currentUser.photoURL) {
+      const newSrc = `https://ui-avatars.com/api/?name=${encodeURIComponent(trimmed)}&background=c9a84c&color=1a1610&size=64&bold=true`;
+      document.getElementById('userAvatarImg').src = newSrc;
+      document.getElementById('sidebarAvatar').src = newSrc;
+    }
+    hideNicknameEdit();
   } catch(e) { alert('შეცდომა, სცადე თავიდან'); }
+}
+document.getElementById('nicknameEditBtn').addEventListener('click', showNicknameEdit);
+document.getElementById('nicknameSaveBtn').addEventListener('click', saveNickname);
+document.getElementById('nicknameCancelBtn').addEventListener('click', hideNicknameEdit);
+document.getElementById('nicknameInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') saveNickname();
+  if (e.key === 'Escape') hideNicknameEdit();
 });
 
 // --- Avatar upload ---
