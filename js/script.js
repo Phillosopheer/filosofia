@@ -1240,28 +1240,29 @@ const submitBtn   = document.getElementById('submitBtn');
 const pendingBtn  = document.getElementById('pendingBtn');
 const registerBtn = document.getElementById('registerBtn');
 const lockBtn     = document.getElementById('lockBtn');
-const avatarBtn   = document.getElementById('userAvatarBtn');
+const avatarWrap2 = document.getElementById('avatarWrap');
 if (idToken) {
   // Admin logged in
   submitBtn.style.display   = 'none';
   pendingBtn.style.display  = 'flex';
   registerBtn.style.display = 'none';
   lockBtn.style.display     = 'none';
-  avatarBtn.style.display   = 'none';
+  if (avatarWrap2) avatarWrap2.style.display = 'flex';
+  updateAdminSidebar();
 } else if (currentUser) {
   // Regular user logged in
   submitBtn.style.display   = 'flex';
   pendingBtn.style.display  = 'none';
   registerBtn.style.display = 'none';
   lockBtn.style.display     = 'none';
-  avatarBtn.style.display   = 'flex';
+  if (avatarWrap2) avatarWrap2.style.display = 'flex';
 } else {
   // Nobody logged in
   submitBtn.style.display   = 'flex';
   pendingBtn.style.display  = 'none';
   registerBtn.style.display = 'flex';
   lockBtn.style.display     = 'flex';
-  avatarBtn.style.display   = 'none';
+  if (avatarWrap2) avatarWrap2.style.display = 'none';
 }
 }
 function showMsg(el, text, show) {
@@ -2644,8 +2645,36 @@ async function loadUserProfile(uid, token) {
   } catch(e) { /* silent */ }
 }
 
+function updateAdminSidebar() {
+  const avatarImg     = document.getElementById('userAvatarImg');
+  const profilePanel  = document.getElementById('userProfilePanel');
+  const sidebarAvatar = document.getElementById('sidebarAvatar');
+  const sidebarNickname = document.getElementById('sidebarNickname');
+  const sidebarEmail  = document.getElementById('sidebarEmail');
+  const statsEl       = document.querySelector('.user-stats');
+
+  // admin avatar — ოქროს "N" ასოთი
+  const adminEmail = localStorage.getItem('userEmail') || 'Admin';
+  const letter = adminEmail[0].toUpperCase();
+  const adminAvatar = `https://ui-avatars.com/api/?name=${letter}&background=c9a84c&color=1a1610&size=64&bold=true`;
+
+  avatarImg.src = adminAvatar;
+  sidebarAvatar.src = adminAvatar;
+  sidebarNickname.innerHTML = 'ნოდარ კებაძე <span class="admin-owner-badge">👑 Owner</span>';
+  sidebarEmail.textContent = adminEmail;
+
+  // სტატისტიკა — admin-ს არ ჭირდება
+  if (statsEl) statsEl.style.display = 'none';
+
+  // logout ღილაკი — admin-ს სხვა logout აქვს (logoutBtn), ამიტომ ვმალავთ
+  const userLogoutBtn = document.getElementById('userLogoutBtn');
+  if (userLogoutBtn) userLogoutBtn.style.display = 'none';
+
+  if (profilePanel) profilePanel.style.display = 'block';
+}
+
 function updateUserUI(loggedIn) {
-  const avatarBtn  = document.getElementById('userAvatarBtn');
+  const avatarWrap = document.getElementById('avatarWrap');
   const avatarImg  = document.getElementById('userAvatarImg');
   const registerBtn = document.getElementById('registerBtn');
   const lockBtn    = document.getElementById('lockBtn');
@@ -2657,10 +2686,10 @@ function updateUserUI(loggedIn) {
   const statTopics   = document.getElementById('statTopics');
 
   if (loggedIn && currentUser) {
-    avatarBtn.style.display  = 'flex';
+    if (avatarWrap) avatarWrap.style.display  = 'flex';
     registerBtn.style.display = 'none';
     lockBtn.style.display    = 'none';
-    profilePanel.style.display = 'block';
+    if (profilePanel) profilePanel.style.display = 'block';
     // Avatar
     const avatarSrc = currentUser.photoURL ||
       `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.nickname)}&background=c9a84c&color=1a1610&size=64&bold=true`;
@@ -2673,10 +2702,10 @@ function updateUserUI(loggedIn) {
     if (statArticles) statArticles.textContent = currentUser.articlesCount || 0;
     if (statTopics)   statTopics.textContent   = currentUser.topicsCount   || 0;
   } else {
-    avatarBtn.style.display   = 'none';
+    if (avatarWrap) avatarWrap.style.display = 'none';
     registerBtn.style.display = 'flex';
     if (!idToken) lockBtn.style.display = 'flex';
-    profilePanel.style.display = 'none';
+    if (profilePanel) profilePanel.style.display = 'none';
     currentUser = null;
     userToken   = null;
   }
@@ -2735,10 +2764,18 @@ document.getElementById('avatarFileInput').addEventListener('change', async (e) 
   reader.readAsDataURL(file);
 });
 
-// --- Avatar button opens sidebar ---
-document.getElementById('userAvatarBtn').addEventListener('click', () => {
-  document.getElementById('sidebar').classList.add('active');
-  document.getElementById('sidebarOverlay').classList.add('active');
+// --- Avatar button opens profile popup ---
+document.getElementById('userAvatarBtn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  document.getElementById('profilePopup').classList.toggle('open');
+});
+// Close popup when clicking outside
+document.addEventListener('click', (e) => {
+  const wrap = document.getElementById('avatarWrap');
+  if (wrap && !wrap.contains(e.target)) {
+    const popup = document.getElementById('profilePopup');
+    if (popup) popup.classList.remove('open');
+  }
 });
 
 // --- User logout button ---
