@@ -893,20 +893,130 @@ select.tb-btn option { background:var(--surface); color:var(--text); }
 /* Honeypot — ბოტების ხაფანგი (ადამიანს არ უჩანს) */
 .hp-field{position:absolute;left:-9999px;top:-9999px;opacity:0;pointer-events:none;width:0;height:0;overflow:hidden;}
 
-/* ===== GOOGLE SIGN-IN ===== */
-.google-signin-btn svg { display: block; }
-.google-user-wrap {
+/* ===== AUTH TABS (Session 35) ===== */
+.auth-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+  gap: 0;
+}
+.auth-tab {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--ivory-dim);
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+  padding: 10px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+}
+.auth-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+/* ===== USER AVATAR HEADER ===== */
+.user-avatar-btn { padding: 0 !important; overflow: hidden; border-radius: 50% !important; }
+.user-avatar-img {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--accent);
+  display: block;
+}
+
+/* ===== SIDEBAR PROFILE (Session 35) ===== */
+.sidebar-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 16px 0;
+}
+.user-profile-section {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 14px;
+  padding: 0 4px 12px;
 }
-.google-avatar {
-  width: 28px;
-  height: 28px;
+.user-profile-avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+.sidebar-avatar {
+  width: 52px; height: 52px;
   border-radius: 50%;
-  border: 2px solid var(--accent);
   object-fit: cover;
-  cursor: pointer;
-  transition: opacity 0.2s;
+  border: 2px solid var(--accent);
+  display: block;
 }
-.google-avatar:hover { opacity: 0.8; }
+.avatar-upload-label {
+  position: absolute;
+  bottom: -2px; right: -2px;
+  background: var(--accent);
+  border-radius: 50%;
+  width: 20px; height: 20px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  color: var(--bg);
+}
+.user-profile-info { flex: 1; min-width: 0; }
+.user-nickname-wrap { display: flex; align-items: center; gap: 6px; }
+.user-nickname {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.9rem;
+  color: var(--accent);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.nickname-edit-btn {
+  background: none; border: none;
+  cursor: pointer; font-size: 0.75rem; padding: 0;
+  opacity: 0.6; transition: opacity 0.2s;
+}
+.nickname-edit-btn:hover { opacity: 1; }
+.user-email {
+  font-size: 0.72rem;
+  color: var(--ivory-dim);
+  display: block;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.user-stats {
+  display: flex;
+  gap: 12px;
+  padding: 10px 4px;
+}
+.user-stat {
+  flex: 1;
+  background: rgba(201,168,76,0.07);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  text-align: center;
+  padding: 10px 6px;
+}
+.user-stat-num {
+  display: block;
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 1.3rem;
+  color: var(--accent);
+}
+.user-stat-label {
+  font-size: 0.7rem;
+  color: var(--ivory-dim);
+  letter-spacing: 1px;
+}
+.btn-user-logout {
+  width: 100%;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--ivory-dim);
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.78rem;
+  letter-spacing: 1px;
+  padding: 9px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: border-color 0.2s, color 0.2s;
+}
+.btn-user-logout:hover { border-color: var(--accent); color: var(--accent); }
