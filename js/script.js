@@ -71,6 +71,8 @@ async function fbFetch(url, options = {}) {
   return fetch(url, options);
 }
 const FIREBASE_AUTH = "https://identitytoolkit.googleapis.com/v1/accounts";
+const GOOGLE_CLIENT_ID = "636166502416-j5pgcn5acglo8luo69mh25991k93ajh4.apps.googleusercontent.com";
+let googleUser = null;
 const API_KEY       = "AIzaSyCcTPhEU478qqwbI9KqJ4iOOFBHox-J7Ao";
 let idToken    = null;
 let currentUid = null;
@@ -2438,3 +2440,126 @@ document.addEventListener('DOMContentLoaded', function() {
     var logEl = document.getElementById('upLog'); if (logEl) { logEl.innerHTML = ''; logEl.style.display = 'none'; }
   });
 });
+
+// ============================================================
+// GOOGLE SIGN-IN (Session 34)
+// ============================================================
+
+function initGoogleSignIn() {
+  if (typeof google === 'undefined' || !google.accounts) {
+    setTimeout(initGoogleSignIn, 500);
+    return;
+  }
+  google.accounts.id.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+    callback: handleGoogleCredential,
+    auto_select: false,
+    cancel_on_tap_outside: true
+  });
+
+  // თუ localStorage-ში შენახული Google user გვაქვს — UI-ს ვაახლებთ
+  const saved = localStorage.getItem('googleUser');
+  if (saved) {
+    try {
+      googleUser = JSON.parse(saved);
+      updateGoogleUI(true);
+    } catch(e) {
+      localStorage.removeItem('googleUser');
+    }
+  }
+}
+
+async function handleGoogleCredential(response) {
+  const credential = response.credential; // Google ID token
+  try {
+    // Google ID token → Firebase idToken (REST API)
+    const res = await fetch(
+      `${FIREBASE_AUTH}:signInWithIdp?key=${API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          postBody: `id_token=${credential}&providerId=google.com`,
+          requestUri: window.location.origin,
+          returnSecureToken: true
+        })
+      }
+    );
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.error?.message || 'შეცდომა');
+
+    googleUser = {
+      uid: data.localId,
+      displayName: data.displayName || data.email?.split('@')[0] || 'მომხმარებელი',
+      photoURL: data.photoUrl || '',
+      email: data.email || '',
+      firebaseToken: data.idToken
+    };
+    localStorage.setItem('googleUser', JSON.stringify(googleUser));
+    updateGoogleUI(true);
+  } catch(err) {
+    console.error('Google Sign-In error:', err);
+    alert('Google-ით შესვლა ვერ მოხერხდა. სცადე თავიდან.');
+  }
+}
+
+function updateGoogleUI(signedIn) {
+  const signInBtn   = document.getElementById('googleSignInBtn');
+  const userWrap    = document.getElementById('googleUserWrap');
+  const logoutBtn   = document.getElementById('googleLogoutBtn');
+  const avatar      = document.getElementById('googleAvatar');
+
+  if (signedIn && googleUser) {
+    signInBtn.style.display  = 'none';
+    userWrap.style.display   = 'flex';
+    logoutBtn.style.display  = 'flex';
+    if (googleUser.photoURL) {
+      avatar.src = googleUser.photoURL;
+      avatar.title = googleUser.displayName;
+    } else {
+      // ფოტო არ აქვს — ინიციალებით ვაჩვენებთ
+      avatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(googleUser.displayName)}&background=c9a84c&color=1a1610&size=56`;
+      avatar.title = googleUser.displayName;
+    }
+  } else {
+    signInBtn.style.display  = 'flex';
+    userWrap.style.display   = 'none';
+    logoutBtn.style.display  = 'none';
+    googleUser = null;
+  }
+}
+
+function doGoogleSignIn() {
+  if (typeof google === 'undefined' || !google.accounts) {
+    alert('Google სერვისი ჯერ ვერ ჩაიტვირთა. სცადე 2 წამში.');
+    return;
+  }
+  google.accounts.id.prompt((notification) => {
+    if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+      // One Tap-ი დაიბლოკა ბრაუზერმა — popup-ით ვცდილობთ
+      google.accounts.oauth2.initCodeClient({
+        client_id: GOOGLE_CLIENT_ID,
+        scope: 'email profile openid',
+        callback: () => {}
+      });
+    }
+  });
+}
+
+function doGoogleLogout() {
+  if (!confirm('დარწმუნებული ხარ, რომ გსურს გამოსვლა?')) return;
+  if (typeof google !== 'undefined' && google.accounts) {
+    google.accounts.id.disableAutoSelect();
+  }
+  localStorage.removeItem('googleUser');
+  googleUser = null;
+  updateGoogleUI(false);
+}
+
+// Google event listeners
+document.getElementById('googleSignInBtn').addEventListener('click', doGoogleSignIn);
+document.getElementById('googleLogoutBtn').addEventListener('click', doGoogleLogout);
+document.getElementById('googleAvatar').addEventListener('click', doGoogleLogout);
+
+// Google Sign-In-ის ინიციალიზაცია
+initGoogleSignIn();
