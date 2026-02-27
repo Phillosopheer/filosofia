@@ -71,11 +71,11 @@ async function fbFetch(url, options = {}) {
   return fetch(url, options);
 }
 const FIREBASE_AUTH = "https://identitytoolkit.googleapis.com/v1/accounts";
-const GOOGLE_CLIENT_ID = "636166502416-j5pgcn5acglo8luo69mh25991k93ajh4.apps.googleusercontent.com";
-let googleUser = null;
 const API_KEY       = "AIzaSyCcTPhEU478qqwbI9KqJ4iOOFBHox-J7Ao";
-let idToken    = null;
+let idToken    = null;  // admin token
 let currentUid = null;
+let userToken  = null;  // regular user token
+let currentUser = null; // { uid, email, nickname, photoURL }
 let notes      = [];
 let currentCat = null;
 let currentNote = null;
@@ -1236,25 +1236,32 @@ const fab = document.getElementById('fabBtn');
 fab.style.display = (idToken && currentCat) ? 'flex' : 'none';
 }
 function updateHeaderButtons() {
-const submitBtn     = document.getElementById('submitBtn');
-const pendingBtn    = document.getElementById('pendingBtn');
-const googleSignBtn = document.getElementById('googleSignInBtn');
-const googleLogBtn  = document.getElementById('googleLogoutBtn');
-const googleWrap    = document.getElementById('googleUserWrap');
+const submitBtn   = document.getElementById('submitBtn');
+const pendingBtn  = document.getElementById('pendingBtn');
+const registerBtn = document.getElementById('registerBtn');
+const lockBtn     = document.getElementById('lockBtn');
+const avatarBtn   = document.getElementById('userAvatarBtn');
 if (idToken) {
-  // Admin შესულია — Google ღილაკები დამალვა
-  submitBtn.style.display     = 'none';
-  pendingBtn.style.display    = 'flex';
-  if (googleSignBtn) googleSignBtn.style.display = 'none';
-  if (googleLogBtn)  googleLogBtn.style.display  = 'none';
-  if (googleWrap)    googleWrap.style.display     = 'none';
+  // Admin logged in
+  submitBtn.style.display   = 'none';
+  pendingBtn.style.display  = 'flex';
+  registerBtn.style.display = 'none';
+  lockBtn.style.display     = 'none';
+  avatarBtn.style.display   = 'none';
+} else if (currentUser) {
+  // Regular user logged in
+  submitBtn.style.display   = 'flex';
+  pendingBtn.style.display  = 'none';
+  registerBtn.style.display = 'none';
+  lockBtn.style.display     = 'none';
+  avatarBtn.style.display   = 'flex';
 } else {
-  submitBtn.style.display  = 'flex';
-  pendingBtn.style.display = 'none';
-  // Google ღილაკი მხოლოდ მაშინ ვაჩვენოთ, თუ Google user არ არის შესული
-  if (!googleUser) {
-    if (googleSignBtn) googleSignBtn.style.display = 'flex';
-  }
+  // Nobody logged in
+  submitBtn.style.display   = 'flex';
+  pendingBtn.style.display  = 'none';
+  registerBtn.style.display = 'flex';
+  lockBtn.style.display     = 'flex';
+  avatarBtn.style.display   = 'none';
 }
 }
 function showMsg(el, text, show) {
@@ -2453,148 +2460,307 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ============================================================
-// GOOGLE SIGN-IN (Session 34)
+// USER AUTH SYSTEM (Session 35)
 // ============================================================
 
-function initGoogleSignIn() {
-  if (typeof google === 'undefined' || !google.accounts) {
-    setTimeout(initGoogleSignIn, 500);
-    return;
-  }
-  google.accounts.id.initialize({
-    client_id: GOOGLE_CLIENT_ID,
-    callback: handleGoogleCredential,
-    auto_select: false,
-    cancel_on_tap_outside: true
-  });
+// --- Tab switching ---
+document.getElementById('tabLogin').addEventListener('click', () => switchAuthTab('login'));
+document.getElementById('tabRegister').addEventListener('click', () => switchAuthTab('register'));
+document.getElementById('registerBtn').addEventListener('click', () => {
+  switchAuthTab('register');
+  openModal('loginModal');
+});
 
-  // თუ localStorage-ში შენახული Google user გვაქვს — UI-ს ვაახლებთ
-  const saved = localStorage.getItem('googleUser');
-  if (saved) {
-    try {
-      googleUser = JSON.parse(saved);
-      updateGoogleUI(true);
-    } catch(e) {
-      localStorage.removeItem('googleUser');
-    }
-  }
-}
-
-async function handleGoogleCredential(response) {
-  const credential = response.credential; // Google ID token
-  try {
-    // Google ID token → Firebase idToken (REST API)
-    const res = await fetch(
-      `${FIREBASE_AUTH}:signInWithIdp?key=${API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          postBody: `id_token=${credential}&providerId=google.com`,
-          requestUri: window.location.origin,
-          returnSecureToken: true
-        })
-      }
-    );
-    const data = await res.json();
-    if (!res.ok) throw new Error(data?.error?.message || 'შეცდომა');
-
-    googleUser = {
-      uid: data.localId,
-      displayName: data.displayName || data.email?.split('@')[0] || 'მომხმარებელი',
-      photoURL: data.photoUrl || '',
-      email: data.email || '',
-      firebaseToken: data.idToken
-    };
-    localStorage.setItem('googleUser', JSON.stringify(googleUser));
-    updateGoogleUI(true);
-  } catch(err) {
-    console.error('Google Sign-In error:', err);
-    alert('Google-ით შესვლა ვერ მოხერხდა. სცადე თავიდან.');
-  }
-}
-
-function getAvatarFallback(name) {
-  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name || '?')}&background=c9a84c&color=1a1610&size=56&bold=true`;
-}
-
-function updateGoogleUI(signedIn) {
-  const signInBtn = document.getElementById('googleSignInBtn');
-  const userWrap  = document.getElementById('googleUserWrap');
-  const logoutBtn = document.getElementById('googleLogoutBtn');
-  const avatar    = document.getElementById('googleAvatar');
-
-  if (signedIn && googleUser) {
-    signInBtn.style.display = 'none';
-    userWrap.style.display  = 'flex';
-    logoutBtn.style.display = 'flex';
-    avatar.title = googleUser.displayName || 'პროფილი';
-    avatar.onerror = () => {
-      avatar.onerror = null;
-      avatar.src = getAvatarFallback(googleUser.displayName);
-    };
-    if (googleUser.photoURL) {
-      avatar.referrerPolicy = 'no-referrer';
-      avatar.src = googleUser.photoURL;
-    } else {
-      // ფოტო არ აქვს — ინიციალებით ვაჩვენებთ
-      avatar.src = getAvatarFallback(googleUser.displayName);
-    }
+function switchAuthTab(tab) {
+  const loginForm   = document.getElementById('loginForm');
+  const registerForm = document.getElementById('registerForm');
+  const tabLogin    = document.getElementById('tabLogin');
+  const tabRegister = document.getElementById('tabRegister');
+  const errEl       = document.getElementById('loginError');
+  showMsg(errEl, '', false);
+  if (tab === 'login') {
+    loginForm.style.display   = 'block';
+    registerForm.style.display = 'none';
+    tabLogin.classList.add('active');
+    tabRegister.classList.remove('active');
+    setTimeout(() => document.getElementById('loginEmail').focus(), 100);
   } else {
-    signInBtn.style.display = 'flex';
-    userWrap.style.display  = 'none';
-    logoutBtn.style.display = 'none';
-    googleUser = null;
+    loginForm.style.display   = 'none';
+    registerForm.style.display = 'block';
+    tabLogin.classList.remove('active');
+    tabRegister.classList.add('active');
+    setTimeout(() => document.getElementById('regNickname').focus(), 100);
   }
 }
 
-function doGoogleSignIn() {
-  if (typeof google === 'undefined' || !google.accounts) {
-    // სკრიპტი ჯერ არ ჩაიტვირთა — ველოდებით
-    const btn = document.getElementById('googleSignInBtn');
-    if (btn) { btn.disabled = true; btn.style.opacity = '0.5'; }
-    const wait = setInterval(() => {
-      if (typeof google !== 'undefined' && google.accounts) {
-        clearInterval(wait);
-        if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
-        triggerGooglePopup();
-      }
-    }, 200);
-    setTimeout(() => {
-      clearInterval(wait);
-      if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
-    }, 8000);
+// --- Registration ---
+async function doRegister() {
+  const nickname = document.getElementById('regNickname').value.trim();
+  const email    = document.getElementById('regEmail').value.trim();
+  const password = document.getElementById('regPassword').value;
+  const errEl    = document.getElementById('loginError');
+  const btn      = document.getElementById('regBtn');
+  showMsg(errEl, '', false);
+  if (!nickname) { showMsg(errEl, 'სახელი (nickname) შეიყვანე', true); return; }
+  if (!email)    { showMsg(errEl, 'ელ. ფოსტა შეიყვანე', true); return; }
+  if (password.length < 6) { showMsg(errEl, 'პაროლი მინიმუმ 6 სიმბოლო უნდა იყოს', true); return; }
+  btn.disabled = true; btn.innerText = 'იტვირთება...';
+  try {
+    const res = await fetch(`${FIREBASE_AUTH}:signUp?key=${API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, returnSecureToken: true })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      const msg = data?.error?.message || '';
+      if (msg.includes('EMAIL_EXISTS')) { showMsg(errEl, 'ეს ელ. ფოსტა უკვე რეგისტრირებულია', true); }
+      else if (msg.includes('WEAK_PASSWORD')) { showMsg(errEl, 'პაროლი სუსტია — მინ. 6 სიმბოლო', true); }
+      else { showMsg(errEl, 'შეცდომა, სცადე თავიდან', true); }
+      return;
+    }
+    // Save user profile to Firebase DB
+    const uid = data.localId;
+    const token = data.idToken;
+    await fbFetch(`${FIREBASE_DB}/users/${uid}.json?auth=${token}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nickname,
+        email,
+        photoURL: '',
+        articlesCount: 0,
+        topicsCount: 0,
+        createdAt: Date.now()
+      })
+    });
+    // Save locally and log in
+    saveUserSession(data, nickname);
+    closeModal('loginModal');
+    await loadUserProfile(uid, token);
+    updateUserUI(true);
+    showMsg(errEl, '', false);
+  } catch(e) {
+    showMsg(errEl, '📡 კავშირის შეცდომა, სცადე თავიდან', true);
+  } finally {
+    btn.disabled = false; btn.innerText = 'რეგისტრაცია';
+  }
+}
+
+// --- User Login (no TOTP — check if admin after) ---
+async function doUserLogin() {
+  const email    = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errEl    = document.getElementById('loginError');
+  const btn      = document.getElementById('loginBtn');
+  showMsg(errEl, '', false);
+  const lockUntil = parseInt(localStorage.getItem('lockUntil') || '0');
+  const failCount = parseInt(localStorage.getItem('loginFails') || '0');
+  if (lockUntil && Date.now() < lockUntil) {
+    const remaining = Math.ceil((lockUntil - Date.now()) / 1000 / 60 / 60);
+    showMsg(errEl, `🔒 დაბლოკილია. სცადე ${remaining} საათში.`, true);
     return;
   }
-  triggerGooglePopup();
-}
-
-function triggerGooglePopup() {
-  google.accounts.id.prompt((notification) => {
-    if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-      // One Tap დაიბლოკა — popup window-ით ვცდილობთ
-      const popup = window.open(
-        `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(window.location.origin)}&response_type=token&scope=email%20profile&prompt=select_account`,
-        'googleSignIn', 'width=500,height=600'
-      );
+  if (!email || !password) { showMsg(errEl, 'შეიყვანეთ ელ. ფოსტა და პაროლი', true); return; }
+  btn.disabled = true; btn.innerText = 'იტვირთება...';
+  try {
+    const res = await fetch(`${FIREBASE_AUTH}:signInWithPassword?key=${API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, returnSecureToken: true })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      const newFails = failCount + 1;
+      localStorage.setItem('loginFails', newFails);
+      if (newFails >= 2) {
+        const until = Date.now() + 24 * 60 * 60 * 1000;
+        localStorage.setItem('lockUntil', until);
+        localStorage.removeItem('loginFails');
+        showMsg(errEl, '🔒 2-ჯერ ცდა ვერ გამოგივიდა — დაბლოკილია 24 საათით!', true);
+        btn.disabled = true;
+        return;
+      }
+      showMsg(errEl, `პაროლი ან ელფოსტა არასწორია (დარჩენილია ${2 - newFails} მცდელობა)`, true);
+      return;
     }
-  });
-}
-
-function doGoogleLogout() {
-  if (!confirm('დარწმუნებული ხარ, რომ გსურს გამოსვლა?')) return;
-  if (typeof google !== 'undefined' && google.accounts) {
-    google.accounts.id.disableAutoSelect();
+    localStorage.removeItem('loginFails');
+    localStorage.removeItem('lockUntil');
+    const uid   = data.localId;
+    const token = data.idToken;
+    // Check if admin
+    const adminRes = await fbFetch(`${FIREBASE_DB}/admins/${uid}.json?auth=${token}`);
+    const isAdmin  = adminRes.ok && (await adminRes.json()) === true;
+    if (isAdmin) {
+      // Admin flow → TOTP
+      window._pendingAuthData = data;
+      closeModal('loginModal');
+      openModal('totpModal');
+      document.getElementById('totpInput').value = '';
+      document.getElementById('totpError').innerText = '';
+      setTimeout(() => document.getElementById('totpInput').focus(), 300);
+    } else {
+      // Regular user
+      saveUserSession(data, null);
+      closeModal('loginModal');
+      await loadUserProfile(uid, token);
+      updateUserUI(true);
+    }
+  } catch(e) {
+    showMsg(errEl, '📡 კავშირის შეცდომა, სცადე თავიდან', true);
+  } finally {
+    btn.disabled = false; btn.innerText = 'შესვლა';
   }
-  localStorage.removeItem('googleUser');
-  googleUser = null;
-  updateGoogleUI(false);
 }
 
-// Google event listeners
-document.getElementById('googleSignInBtn').addEventListener('click', doGoogleSignIn);
-document.getElementById('googleLogoutBtn').addEventListener('click', doGoogleLogout);
-document.getElementById('googleAvatar').addEventListener('click', doGoogleLogout);
+function saveUserSession(data, nickname) {
+  localStorage.setItem('userToken', data.idToken);
+  localStorage.setItem('userRefreshToken', data.refreshToken);
+  localStorage.setItem('userUid', data.localId);
+  localStorage.setItem('userEmail', data.email || '');
+  if (nickname) localStorage.setItem('userNickname', nickname);
+  userToken = data.idToken;
+  currentUser = {
+    uid: data.localId,
+    email: data.email || '',
+    nickname: nickname || localStorage.getItem('userNickname') || data.email?.split('@')[0] || 'მომხმარებელი',
+    photoURL: ''
+  };
+}
 
-// Google Sign-In-ის ინიციალიზაცია
-initGoogleSignIn();
+async function loadUserProfile(uid, token) {
+  try {
+    const res = await fbFetch(`${FIREBASE_DB}/users/${uid}.json?auth=${token}`);
+    if (res.ok) {
+      const profile = await res.json();
+      if (profile) {
+        currentUser.nickname = profile.nickname || currentUser.nickname;
+        currentUser.photoURL = profile.photoURL || '';
+        currentUser.articlesCount = profile.articlesCount || 0;
+        currentUser.topicsCount   = profile.topicsCount   || 0;
+        localStorage.setItem('userNickname', currentUser.nickname);
+      }
+    }
+  } catch(e) { /* silent */ }
+}
+
+function updateUserUI(loggedIn) {
+  const avatarBtn  = document.getElementById('userAvatarBtn');
+  const avatarImg  = document.getElementById('userAvatarImg');
+  const registerBtn = document.getElementById('registerBtn');
+  const lockBtn    = document.getElementById('lockBtn');
+  const profilePanel = document.getElementById('userProfilePanel');
+  const sidebarAvatar = document.getElementById('sidebarAvatar');
+  const sidebarNickname = document.getElementById('sidebarNickname');
+  const sidebarEmail = document.getElementById('sidebarEmail');
+  const statArticles = document.getElementById('statArticles');
+  const statTopics   = document.getElementById('statTopics');
+
+  if (loggedIn && currentUser) {
+    avatarBtn.style.display  = 'flex';
+    registerBtn.style.display = 'none';
+    lockBtn.style.display    = 'none';
+    profilePanel.style.display = 'block';
+    // Avatar
+    const avatarSrc = currentUser.photoURL ||
+      `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.nickname)}&background=c9a84c&color=1a1610&size=64&bold=true`;
+    avatarImg.src = avatarSrc;
+    avatarImg.referrerPolicy = 'no-referrer';
+    sidebarAvatar.src = avatarSrc;
+    sidebarAvatar.referrerPolicy = 'no-referrer';
+    sidebarNickname.textContent  = currentUser.nickname;
+    sidebarEmail.textContent     = currentUser.email;
+    if (statArticles) statArticles.textContent = currentUser.articlesCount || 0;
+    if (statTopics)   statTopics.textContent   = currentUser.topicsCount   || 0;
+  } else {
+    avatarBtn.style.display   = 'none';
+    registerBtn.style.display = 'flex';
+    if (!idToken) lockBtn.style.display = 'flex';
+    profilePanel.style.display = 'none';
+    currentUser = null;
+    userToken   = null;
+  }
+}
+
+function doUserLogout() {
+  if (!confirm('დარწმუნებული ხარ, რომ გსურს გამოსვლა?')) return;
+  localStorage.removeItem('userToken');
+  localStorage.removeItem('userRefreshToken');
+  localStorage.removeItem('userUid');
+  localStorage.removeItem('userEmail');
+  localStorage.removeItem('userNickname');
+  updateUserUI(false);
+}
+
+// --- Nickname edit ---
+document.getElementById('nicknameEditBtn').addEventListener('click', async () => {
+  if (!currentUser || !userToken) return;
+  const newName = prompt('ახალი სახელი:', currentUser.nickname);
+  if (!newName || !newName.trim() || newName.trim() === currentUser.nickname) return;
+  const trimmed = newName.trim().slice(0, 30);
+  try {
+    await fbFetch(`${FIREBASE_DB}/users/${currentUser.uid}/nickname.json?auth=${userToken}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(trimmed)
+    });
+    currentUser.nickname = trimmed;
+    localStorage.setItem('userNickname', trimmed);
+    document.getElementById('sidebarNickname').textContent = trimmed;
+    document.getElementById('userAvatarImg').src =
+      `https://ui-avatars.com/api/?name=${encodeURIComponent(trimmed)}&background=c9a84c&color=1a1610&size=64&bold=true`;
+  } catch(e) { alert('შეცდომა, სცადე თავიდან'); }
+});
+
+// --- Avatar upload ---
+document.getElementById('avatarFileInput').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file || !currentUser || !userToken) return;
+  if (file.size > 2 * 1024 * 1024) { alert('ფოტო მაქს. 2MB უნდა იყოს'); return; }
+  // Convert to base64 data URL and store in Firebase DB (Storage-ის გარეშე ჯერ)
+  const reader = new FileReader();
+  reader.onload = async (ev) => {
+    const dataURL = ev.target.result;
+    try {
+      await fbFetch(`${FIREBASE_DB}/users/${currentUser.uid}/photoURL.json?auth=${userToken}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dataURL)
+      });
+      currentUser.photoURL = dataURL;
+      document.getElementById('sidebarAvatar').src = dataURL;
+      document.getElementById('userAvatarImg').src = dataURL;
+    } catch(e) { alert('ფოტოს ატვირთვა ვერ მოხერხდა'); }
+  };
+  reader.readAsDataURL(file);
+});
+
+// --- Avatar button opens sidebar ---
+document.getElementById('userAvatarBtn').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sidebarOverlay').classList.add('active');
+});
+
+// --- User logout button ---
+document.getElementById('userLogoutBtn').addEventListener('click', doUserLogout);
+
+// --- Override loginBtn to use new doUserLogin ---
+document.getElementById('loginBtn').removeEventListener('click', doLogin);
+document.getElementById('loginBtn').addEventListener('click', doUserLogin);
+document.getElementById('regBtn').addEventListener('click', doRegister);
+document.getElementById('regPassword').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') doRegister();
+});
+
+// --- Restore user session on page load ---
+(async function restoreUserSession() {
+  const savedToken = localStorage.getItem('userToken');
+  const savedUid   = localStorage.getItem('userUid');
+  const savedEmail = localStorage.getItem('userEmail');
+  const savedNick  = localStorage.getItem('userNickname');
+  if (!savedToken || !savedUid) return;
+  userToken = savedToken;
+  currentUser = { uid: savedUid, email: savedEmail || '', nickname: savedNick || 'მომხმარებელი', photoURL: '' };
+  await loadUserProfile(savedUid, savedToken);
+  updateUserUI(true);
+})();
