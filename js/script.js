@@ -2737,7 +2737,7 @@ document.getElementById('avatarFileInput').addEventListener('change', async (e) 
 
 // --- Avatar button opens sidebar ---
 document.getElementById('userAvatarBtn').addEventListener('click', () => {
-  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sidebar').classList.add('active');
   document.getElementById('sidebarOverlay').classList.add('active');
 });
 
