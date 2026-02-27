@@ -146,9 +146,16 @@
                             </label>
                         </div>
                         <div class="profile-popup-info">
-                            <div class="user-nickname-wrap">
+                            <div class="user-nickname-wrap" id="nicknameDisplay">
                                 <span id="sidebarNickname" class="user-nickname">მომხმარებელი</span>
-                                <button class="nickname-edit-btn" id="nicknameEditBtn" title="სახელის შეცვლა">&#x270F;&#xFE0F;</button>
+                                <button class="nickname-edit-btn" id="nicknameEditBtn" title="სახელის შეცვლა">✏️</button>
+                            </div>
+                            <div class="nickname-edit-wrap" id="nicknameEditWrap" style="display:none;">
+                                <input type="text" id="nicknameInput" class="nickname-input" maxlength="30" />
+                                <div class="nickname-edit-btns">
+                                    <button class="nick-save-btn" id="nicknameSaveBtn">✓</button>
+                                    <button class="nick-cancel-btn" id="nicknameCancelBtn">✕</button>
+                                </div>
                             </div>
                             <span id="sidebarEmail" class="user-email"></span>
                         </div>
