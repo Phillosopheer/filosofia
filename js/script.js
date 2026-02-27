@@ -2490,6 +2490,7 @@ function switchAuthTab(tab) {
     registerForm.style.display = 'block';
     tabLogin.classList.remove('active');
     tabRegister.classList.add('active');
+    generateCaptcha();
     setTimeout(() => document.getElementById('regNickname').focus(), 100);
   }
 }
@@ -2512,11 +2513,7 @@ function generateCaptcha() {
 }
 
 // Generate captcha when tab switches to register
-const _origSwitchAuthTab = switchAuthTab;
-function switchAuthTab(tab) {
-  _origSwitchAuthTab(tab);
-  if (tab === 'register') generateCaptcha();
-}
+
 
 // --- Registration Step 1: validate + send email code ---
 async function doRegStep1() {
