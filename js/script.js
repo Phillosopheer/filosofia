@@ -2494,19 +2494,103 @@ function switchAuthTab(tab) {
   }
 }
 
-// --- Registration ---
-async function doRegister() {
+// --- Registration helpers ---
+const FORBIDDEN_NICK = ['admin','administrator','moderator','mod','owner','nodar','nodiko',
+  'superuser','root','system','support','help','staff','filosof','filosofia','philosoph'];
+const PROFANITY = ['shit','fuck','bitch','damn','ass','hell','sex','porn'];
+
+function generateCaptcha() {
+  const ops = ['+', '-', '*'];
+  const op  = ops[Math.floor(Math.random() * 2)]; // only + and -
+  let a, b;
+  if (op === '+') { a = Math.floor(Math.random()*20)+1; b = Math.floor(Math.random()*20)+1; }
+  else            { a = Math.floor(Math.random()*20)+10; b = Math.floor(Math.random()*10)+1; }
+  const answer = op === '+' ? a + b : a - b;
+  const el = document.getElementById('captchaQuestion');
+  if (el) el.textContent = `${a} ${op} ${b} = ?`;
+  window._captchaAnswer = answer;
+}
+
+// Generate captcha when tab switches to register
+const _origSwitchAuthTab = switchAuthTab;
+function switchAuthTab(tab) {
+  _origSwitchAuthTab(tab);
+  if (tab === 'register') generateCaptcha();
+}
+
+// --- Registration Step 1: validate + send email code ---
+async function doRegStep1() {
   const nickname = document.getElementById('regNickname').value.trim();
   const email    = document.getElementById('regEmail').value.trim();
   const password = document.getElementById('regPassword').value;
+  const pass2    = document.getElementById('regPassword2').value;
+  const captcha  = parseInt(document.getElementById('captchaAnswer').value);
+  const errEl    = document.getElementById('loginError');
+  const btn      = document.getElementById('regStep1Btn');
+  showMsg(errEl, '', false);
+
+  // Nickname validation
+  if (!nickname || nickname.length < 3) { showMsg(errEl, 'სახელი მინიმუმ 3 სიმბოლო უნდა იყოს', true); return; }
+  if (!/^[\wა-ჿ]+$/.test(nickname)) { showMsg(errEl, 'სახელში მხოლოდ ასოები და ციფრები დასაშვებია', true); return; }
+  if (/^\d+$/.test(nickname)) { showMsg(errEl, 'სახელი მხოლოდ ციფრებისგან ვერ შედგება', true); return; }
+  if (FORBIDDEN_NICK.some(f => nickname.toLowerCase().includes(f))) { showMsg(errEl, 'ეს სახელი დაუშვებელია', true); return; }
+  if (PROFANITY.some(p => nickname.toLowerCase().includes(p))) { showMsg(errEl, 'ეს სახელი დაუშვებელია', true); return; }
+
+  // Email
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showMsg(errEl, 'ელ. ფოსტა არასწორია', true); return; }
+
+  // Password
+  if (password.length < 6) { showMsg(errEl, 'პაროლი მინიმუმ 6 სიმბოლო', true); return; }
+  if (password !== pass2)  { showMsg(errEl, 'პაროლები არ ემთხვევა', true); return; }
+
+  // Captcha
+  if (isNaN(captcha) || captcha !== window._captchaAnswer) { showMsg(errEl, 'მათემატიკური პასუხი არასწორია', true); generateCaptcha(); return; }
+
+  btn.disabled = true; btn.innerText = 'იგზავნება...';
+  try {
+    const r = await fetch('/api/send-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const d = await r.json();
+    if (!r.ok) { showMsg(errEl, d.error || 'გაგზავნა ვერ მოხერხდა', true); return; }
+
+    // Go to step 2
+    document.getElementById('regEmailShow').textContent = email;
+    document.getElementById('regStep1').style.display = 'none';
+    document.getElementById('regStep2').style.display = 'block';
+    setTimeout(() => document.getElementById('regCode').focus(), 100);
+  } catch(e) {
+    showMsg(errEl, '📡 კავშირის შეცდომა', true);
+  } finally {
+    btn.disabled = false; btn.innerText = 'კოდის გაგზავნა →';
+  }
+}
+
+// --- Registration Step 2: verify code + create account ---
+async function doRegister() {
+  const code     = document.getElementById('regCode').value.trim();
+  const email    = document.getElementById('regEmail').value.trim();
+  const password = document.getElementById('regPassword').value;
+  const nickname = document.getElementById('regNickname').value.trim();
   const errEl    = document.getElementById('loginError');
   const btn      = document.getElementById('regBtn');
   showMsg(errEl, '', false);
-  if (!nickname) { showMsg(errEl, 'სახელი (nickname) შეიყვანე', true); return; }
-  if (!email)    { showMsg(errEl, 'ელ. ფოსტა შეიყვანე', true); return; }
-  if (password.length < 6) { showMsg(errEl, 'პაროლი მინიმუმ 6 სიმბოლო უნდა იყოს', true); return; }
-  btn.disabled = true; btn.innerText = 'იტვირთება...';
+  if (!code || code.length !== 6) { showMsg(errEl, '6-ნიშნა კოდი შეიყვანე', true); return; }
+
+  btn.disabled = true; btn.innerText = 'შემოწმება...';
   try {
+    // Verify code
+    const vr = await fetch('/api/send-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, code, action: 'verify' })
+    });
+    const vd = await vr.json();
+    if (!vd.ok) { showMsg(errEl, vd.error || 'კოდი არასწორია', true); return; }
+
+    // Register in Firebase Auth
     const res = await fetch(`${FIREBASE_AUTH}:signUp?key=${API_KEY}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -2515,36 +2599,25 @@ async function doRegister() {
     const data = await res.json();
     if (!res.ok) {
       const msg = data?.error?.message || '';
-      if (msg.includes('EMAIL_EXISTS')) { showMsg(errEl, 'ეს ელ. ფოსტა უკვე რეგისტრირებულია', true); }
-      else if (msg.includes('WEAK_PASSWORD')) { showMsg(errEl, 'პაროლი სუსტია — მინ. 6 სიმბოლო', true); }
-      else { showMsg(errEl, 'შეცდომა, სცადე თავიდან', true); }
+      if (msg.includes('EMAIL_EXISTS')) showMsg(errEl, 'ეს ელ. ფოსტა უკვე რეგისტრირებულია', true);
+      else showMsg(errEl, 'შეცდომა, სცადე თავიდან', true);
       return;
     }
-    // Save user profile to Firebase DB
-    const uid = data.localId;
-    const token = data.idToken;
+    // Save profile
+    const uid = data.localId; const token = data.idToken;
     await fbFetch(`${FIREBASE_DB}/users/${uid}.json?auth=${token}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        nickname,
-        email,
-        photoURL: '',
-        articlesCount: 0,
-        topicsCount: 0,
-        createdAt: Date.now()
-      })
+      body: JSON.stringify({ nickname, email, photoURL: '', articlesCount: 0, topicsCount: 0, createdAt: Date.now() })
     });
-    // Save locally and log in
     saveUserSession(data, nickname);
     closeModal('loginModal');
     await loadUserProfile(uid, token);
     updateUserUI(true);
-    showMsg(errEl, '', false);
   } catch(e) {
-    showMsg(errEl, '📡 კავშირის შეცდომა, სცადე თავიდან', true);
+    showMsg(errEl, '📡 კავშირის შეცდომა', true);
   } finally {
-    btn.disabled = false; btn.innerText = 'რეგისტრაცია';
+    btn.disabled = false; btn.innerText = 'დარეგისტრირდი ✓';
   }
 }
 
@@ -2834,9 +2907,13 @@ document.getElementById('userLogoutBtn').addEventListener('click', doUserLogout)
 // --- Override loginBtn to use new doUserLogin ---
 document.getElementById('loginBtn').removeEventListener('click', doLogin);
 document.getElementById('loginBtn').addEventListener('click', doUserLogin);
+document.getElementById('regStep1Btn').addEventListener('click', doRegStep1);
 document.getElementById('regBtn').addEventListener('click', doRegister);
-document.getElementById('regPassword').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') doRegister();
+document.getElementById('regCode').addEventListener('keydown', (e) => { if (e.key === 'Enter') doRegister(); });
+document.getElementById('regBackBtn').addEventListener('click', () => {
+  document.getElementById('regStep1').style.display = 'block';
+  document.getElementById('regStep2').style.display = 'none';
+  generateCaptcha();
 });
 
 // --- Restore user session on page load ---
