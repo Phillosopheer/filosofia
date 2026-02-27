@@ -1072,3 +1072,53 @@ select.tb-btn option { background:var(--surface); color:var(--text); }
   display: block;
 }
 .profile-popup-info { flex: 1; min-width: 0; }
+
+/* ===== NICKNAME INLINE EDIT ===== */
+.nickname-edit-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+.nickname-input {
+  background: rgba(201,168,76,0.08);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  color: var(--accent);
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.85rem;
+  padding: 5px 10px;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+.nickname-edit-btns {
+  display: flex;
+  gap: 6px;
+}
+.nick-save-btn, .nick-cancel-btn {
+  flex: 1;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 4px 0;
+  transition: opacity 0.2s;
+}
+.nick-save-btn {
+  background: var(--accent);
+  color: #1a1610;
+  font-weight: 700;
+}
+.nick-cancel-btn {
+  background: rgba(255,255,255,0.08);
+  color: var(--ivory-dim);
+}
+.nick-save-btn:hover, .nick-cancel-btn:hover { opacity: 0.8; }
+
+/* Hide browser "choose file" text on avatar upload */
+.avatar-upload-label input[type="file"] {
+  position: absolute;
+  width: 1px; height: 1px;
+  opacity: 0; overflow: hidden;
+}
