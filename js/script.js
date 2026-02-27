@@ -1447,23 +1447,59 @@ const errEl = document.getElementById('loginError');
 showMsg(errEl, '✅ განბლოკილია! სცადე თავიდან.', false);
 }
 });
-async function fetchGlossary() {
+const GLOSSARY_CACHE_KEY = 'filosof_glossary_cache';
+const GLOSSARY_CACHE_TTL  = 24 * 60 * 60 * 1000; // 24 საათი
+
+async function fetchGlossary(forceRefresh = false) {
 const countEl = document.getElementById('glossaryCount');
 if (countEl) countEl.innerText = 'იტვირთება...';
 try {
-const res = await fbFetch(`${FIREBASE_DB}/glossary.json`);
-if (!res.ok) throw new Error('Failed to fetch glossary');
-const data = await res.json();
-allGlossaryTerms = data ? Object.keys(data).map(key => ({
-...data[key],
-fbId: key
-})) : [];
-allGlossaryTerms.sort((a, b) => a.term.localeCompare(b.term, 'ka'));
-updateGlossaryCount();
+  // ===== Cache შემოწმება =====
+  if (!forceRefresh) {
+    try {
+      const cached = localStorage.getItem(GLOSSARY_CACHE_KEY);
+      if (cached) {
+        const { data, timestamp } = JSON.parse(cached);
+        if (Date.now() - timestamp < GLOSSARY_CACHE_TTL && data) {
+          allGlossaryTerms = data;
+          updateGlossaryCount();
+          return;
+        }
+      }
+    } catch { /* cache წაკითხვის შეცდომა — Firebase-ს ვეკითხებით */ }
+  }
+
+  // ===== Firebase-იდან ჩამოტვირთვა =====
+  const res = await fbFetch(`${FIREBASE_DB}/glossary.json`);
+  if (!res.ok) throw new Error('Failed to fetch glossary');
+  const data = await res.json();
+  allGlossaryTerms = data ? Object.keys(data).map(key => ({
+    ...data[key],
+    fbId: key
+  })) : [];
+  allGlossaryTerms.sort((a, b) => a.term.localeCompare(b.term, 'ka'));
+
+  // ===== Cache-ში შენახვა =====
+  try {
+    localStorage.setItem(GLOSSARY_CACHE_KEY, JSON.stringify({
+      data: allGlossaryTerms,
+      timestamp: Date.now()
+    }));
+  } catch { /* localStorage სავსეა — ვაგრძელებთ cache-ის გარეშე */ }
+
+  updateGlossaryCount();
 } catch (err) {
-console.error('Error fetching glossary:', err);
-allGlossaryTerms = [];
-if (countEl) countEl.innerText = '0';
+  console.error('Error fetching glossary:', err);
+  // Cache-დან ვცდილობთ თუ ინტერნეტი არ არის
+  try {
+    const cached = localStorage.getItem(GLOSSARY_CACHE_KEY);
+    if (cached) {
+      const { data } = JSON.parse(cached);
+      if (data) { allGlossaryTerms = data; updateGlossaryCount(); return; }
+    }
+  } catch {}
+  allGlossaryTerms = [];
+  if (countEl) countEl.innerText = '0';
 }
 }
 function updateGlossaryCount() {
@@ -1590,7 +1626,8 @@ body: JSON.stringify(newTerm)
 });
 if (!res.ok) throw new Error('Firebase error');
 showMsg(sucEl, '✓ ტერმინი დაემატა!', true);
-await fetchGlossary();
+try { localStorage.removeItem(GLOSSARY_CACHE_KEY); } catch {}
+await fetchGlossary(true);
 setTimeout(() => {
 closeModal('addGlossaryModal');
 }, 1000);
@@ -1670,7 +1707,8 @@ const res = await fbFetch(`${FIREBASE_DB}/glossary/${currentGlossaryTerm.fbId}.j
 method: 'DELETE'
 });
 if (!res.ok) throw new Error('Firebase error');
-await fetchGlossary();
+try { localStorage.removeItem(GLOSSARY_CACHE_KEY); } catch {}
+await fetchGlossary(true);
 backToGlossarySearch();
 } catch (err) {
 alert('წაშლა ვერ მოხერხდა: ' + err.message);
