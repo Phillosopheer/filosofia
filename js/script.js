@@ -2607,6 +2607,11 @@ async function doRegister() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ nickname, email, photoURL: '', articlesCount: 0, topicsCount: 0, createdAt: Date.now() })
     });
+    // Reserve nickname
+    await fbFetch(`${FIREBASE_DB}/usernames/${nickname.toLowerCase()}.json?auth=${token}`, {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(uid)
+    }).catch(()=>{});
     saveUserSession(data, nickname);
     closeModal('loginModal');
     await loadUserProfile(uid, token);
@@ -2726,7 +2731,7 @@ function updateAdminSidebar() {
   const nicknameEditBtn = document.getElementById('nicknameEditBtn');
 
   const adminEmail    = localStorage.getItem('userEmail') || 'admin';
-  const adminNickname = localStorage.getItem('adminNickname') || 'ნოდარ კებაძე';
+  const adminNickname = localStorage.getItem('adminDisplayName') || 'ნოდარ კებაძე';
   const adminPhoto    = localStorage.getItem('adminPhoto') || '';
   const fallback      = `https://ui-avatars.com/api/?name=${encodeURIComponent(adminNickname[0])}&background=c9a84c&color=1a1610&size=64&bold=true`;
   const avatarSrc     = adminPhoto || fallback;
@@ -2814,7 +2819,7 @@ async function saveNickname() {
 
   if (idToken) {
     // Admin — save to localStorage only
-    localStorage.setItem('adminNickname', trimmed);
+    localStorage.setItem('adminDisplayName', trimmed);
     const nick = document.getElementById('sidebarNickname');
     if (nick) nick.innerHTML = trimmed + ' <span class="admin-owner-badge">👑 Owner</span>';
     const adminPhoto = localStorage.getItem('adminPhoto') || '';
@@ -2829,6 +2834,24 @@ async function saveNickname() {
 
   if (!currentUser || !userToken) return;
   if (trimmed === currentUser.nickname) { hideNicknameEdit(); return; }
+
+  // 60-day limit check
+  const lastChange = parseInt(localStorage.getItem('nicknameLastChanged') || '0');
+  const days60 = 60 * 24 * 60 * 60 * 1000;
+  if (lastChange && Date.now() - lastChange < days60) {
+    const daysLeft = Math.ceil((days60 - (Date.now() - lastChange)) / (24*60*60*1000));
+    alert(`სახელის შეცვლა შეგიძლია ${daysLeft} დღეში`);
+    hideNicknameEdit();
+    return;
+  }
+
+  // Check if nickname taken in Firebase
+  try {
+    const checkRes = await fbFetch(`${FIREBASE_DB}/usernames/${trimmed.toLowerCase()}.json?auth=${userToken}`);
+    const taken = checkRes.ok && (await checkRes.json()) !== null;
+    if (taken) { alert('ეს სახელი უკვე დაკავებულია'); return; }
+  } catch(e) {}
+
   try {
     await fbFetch(`${FIREBASE_DB}/users/${currentUser.uid}/nickname.json?auth=${userToken}`, {
       method: 'PUT',
@@ -2837,6 +2860,12 @@ async function saveNickname() {
     });
     currentUser.nickname = trimmed;
     localStorage.setItem('userNickname', trimmed);
+    localStorage.setItem('nicknameLastChanged', Date.now().toString());
+    // Reserve nickname in DB
+    await fbFetch(`${FIREBASE_DB}/usernames/${trimmed.toLowerCase()}.json?auth=${userToken}`, {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(currentUser.uid)
+    }).catch(()=>{});
     document.getElementById('sidebarNickname').textContent = trimmed;
     if (!currentUser.photoURL) {
       const newSrc = `https://ui-avatars.com/api/?name=${encodeURIComponent(trimmed)}&background=c9a84c&color=1a1610&size=64&bold=true`;
@@ -2887,7 +2916,9 @@ document.getElementById('avatarFileInput').addEventListener('change', async (e) 
 // --- Avatar button opens profile popup ---
 document.getElementById('userAvatarBtn').addEventListener('click', (e) => {
   e.stopPropagation();
-  document.getElementById('profilePopup').classList.toggle('open');
+  const popup = document.getElementById('profilePopup');
+  popup.classList.toggle('open');
+  if (popup.classList.contains('open')) hideNicknameEdit();
 });
 // Close popup when clicking outside
 document.addEventListener('click', (e) => {
