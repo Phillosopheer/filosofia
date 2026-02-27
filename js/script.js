@@ -1236,14 +1236,25 @@ const fab = document.getElementById('fabBtn');
 fab.style.display = (idToken && currentCat) ? 'flex' : 'none';
 }
 function updateHeaderButtons() {
-const submitBtn = document.getElementById('submitBtn');
-const pendingBtn = document.getElementById('pendingBtn');
+const submitBtn     = document.getElementById('submitBtn');
+const pendingBtn    = document.getElementById('pendingBtn');
+const googleSignBtn = document.getElementById('googleSignInBtn');
+const googleLogBtn  = document.getElementById('googleLogoutBtn');
+const googleWrap    = document.getElementById('googleUserWrap');
 if (idToken) {
-submitBtn.style.display = 'none';
-pendingBtn.style.display = 'flex';
+  // Admin შესულია — Google ღილაკები დამალვა
+  submitBtn.style.display     = 'none';
+  pendingBtn.style.display    = 'flex';
+  if (googleSignBtn) googleSignBtn.style.display = 'none';
+  if (googleLogBtn)  googleLogBtn.style.display  = 'none';
+  if (googleWrap)    googleWrap.style.display     = 'none';
 } else {
-submitBtn.style.display = 'flex';
-pendingBtn.style.display = 'none';
+  submitBtn.style.display  = 'flex';
+  pendingBtn.style.display = 'none';
+  // Google ღილაკი მხოლოდ მაშინ ვაჩვენოთ, თუ Google user არ არის შესული
+  if (!googleUser) {
+    if (googleSignBtn) googleSignBtn.style.display = 'flex';
+  }
 }
 }
 function showMsg(el, text, show) {
@@ -2503,45 +2514,69 @@ async function handleGoogleCredential(response) {
   }
 }
 
+function getAvatarFallback(name) {
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name || '?')}&background=c9a84c&color=1a1610&size=56&bold=true`;
+}
+
 function updateGoogleUI(signedIn) {
-  const signInBtn   = document.getElementById('googleSignInBtn');
-  const userWrap    = document.getElementById('googleUserWrap');
-  const logoutBtn   = document.getElementById('googleLogoutBtn');
-  const avatar      = document.getElementById('googleAvatar');
+  const signInBtn = document.getElementById('googleSignInBtn');
+  const userWrap  = document.getElementById('googleUserWrap');
+  const logoutBtn = document.getElementById('googleLogoutBtn');
+  const avatar    = document.getElementById('googleAvatar');
 
   if (signedIn && googleUser) {
-    signInBtn.style.display  = 'none';
-    userWrap.style.display   = 'flex';
-    logoutBtn.style.display  = 'flex';
+    signInBtn.style.display = 'none';
+    userWrap.style.display  = 'flex';
+    logoutBtn.style.display = 'flex';
+    avatar.title = googleUser.displayName || 'პროფილი';
+    avatar.onerror = () => {
+      avatar.onerror = null;
+      avatar.src = getAvatarFallback(googleUser.displayName);
+    };
     if (googleUser.photoURL) {
+      avatar.referrerPolicy = 'no-referrer';
       avatar.src = googleUser.photoURL;
-      avatar.title = googleUser.displayName;
     } else {
       // ფოტო არ აქვს — ინიციალებით ვაჩვენებთ
-      avatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(googleUser.displayName)}&background=c9a84c&color=1a1610&size=56`;
-      avatar.title = googleUser.displayName;
+      avatar.src = getAvatarFallback(googleUser.displayName);
     }
   } else {
-    signInBtn.style.display  = 'flex';
-    userWrap.style.display   = 'none';
-    logoutBtn.style.display  = 'none';
+    signInBtn.style.display = 'flex';
+    userWrap.style.display  = 'none';
+    logoutBtn.style.display = 'none';
     googleUser = null;
   }
 }
 
 function doGoogleSignIn() {
   if (typeof google === 'undefined' || !google.accounts) {
-    alert('Google სერვისი ჯერ ვერ ჩაიტვირთა. სცადე 2 წამში.');
+    // სკრიპტი ჯერ არ ჩაიტვირთა — ველოდებით
+    const btn = document.getElementById('googleSignInBtn');
+    if (btn) { btn.disabled = true; btn.style.opacity = '0.5'; }
+    const wait = setInterval(() => {
+      if (typeof google !== 'undefined' && google.accounts) {
+        clearInterval(wait);
+        if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+        triggerGooglePopup();
+      }
+    }, 200);
+    setTimeout(() => {
+      clearInterval(wait);
+      if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+    }, 8000);
     return;
   }
+  triggerGooglePopup();
+}
+
+function triggerGooglePopup() {
   google.accounts.id.prompt((notification) => {
     if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-      // One Tap-ი დაიბლოკა ბრაუზერმა — popup-ით ვცდილობთ
-      google.accounts.oauth2.initCodeClient({
-        client_id: GOOGLE_CLIENT_ID,
-        scope: 'email profile openid',
-        callback: () => {}
-      });
+      // One Tap დაიბლოკა — popup window-ით ვცდილობთ
+      const popup = window.open(
+        `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(window.location.origin)}&response_type=token&scope=email%20profile&prompt=select_account`,
+        'googleSignIn', 'width=500,height=600'
+      );
     }
   });
 }
