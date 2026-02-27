@@ -1020,3 +1020,55 @@ select.tb-btn option { background:var(--surface); color:var(--text); }
   transition: border-color 0.2s, color 0.2s;
 }
 .btn-user-logout:hover { border-color: var(--accent); color: var(--accent); }
+
+.admin-owner-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #c9a84c, #f0d080);
+  color: #1a1610;
+  font-size: 0.6rem;
+  font-family: 'Cinzel', Georgia, serif;
+  letter-spacing: 1px;
+  padding: 2px 7px;
+  border-radius: 20px;
+  font-weight: 700;
+  vertical-align: middle;
+  margin-left: 4px;
+  white-space: nowrap;
+}
+
+/* ===== PROFILE POPUP ===== */
+.avatar-wrap { display: inline-flex; align-items: center; }
+.profile-popup {
+  display: none;
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 240px;
+  background: linear-gradient(160deg, rgba(20,17,12,0.99), rgba(14,12,10,0.99));
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  z-index: 5000;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.7);
+  animation: popupIn 0.2s ease;
+}
+.profile-popup.open { display: block; }
+@keyframes popupIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.profile-popup-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.profile-popup-avatar-wrap { position: relative; flex-shrink: 0; }
+.popup-avatar {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--accent);
+  display: block;
+}
+.profile-popup-info { flex: 1; min-width: 0; }
