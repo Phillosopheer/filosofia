@@ -9,6 +9,7 @@ let _agoraReplyPage   = 1;
 let _agoraTotalPages  = 1;
 let _agoraReplyTotal  = 1;
 let _agoraCurrentThread = null; // { id, ...threadData }
+let _agoraQuote       = null;   // { id, num, author, body } — ციტატა
 
 // ===== DOM refs (ინიციალიზაციის შემდეგ) =====
 let _agoraView, _agoraListView, _agoraThreadView, _agoraTopbarTitle, _agoraBackBtn, _agoraNewBtn;
@@ -33,15 +34,20 @@ function agoraTimeAgo(ts) {
 // helper: user token
 // ============================================================
 function agoraGetToken() {
-  return window.userToken || localStorage.getItem('userToken') || localStorage.getItem('idToken') || null;
+  // window.userToken — let-ითაა script.js-ში, ამიტომ პირდაპირ global-ს ვიყენებთ
+  if (typeof userToken !== 'undefined' && userToken) return userToken;
+  return localStorage.getItem('userToken') || localStorage.getItem('idToken') || null;
 }
 
 function agoraGetUser() {
-  return window.currentUser || null;
+  // window.currentUser გამოუსადეგარია (let), პირდაპირ global currentUser
+  if (typeof currentUser !== 'undefined' && currentUser) return currentUser;
+  return null;
 }
 
 function agoraIsAdmin() {
-  return !!(window.idToken);
+  if (typeof idToken !== 'undefined' && idToken) return true;
+  return false;
 }
 
 // ============================================================
@@ -268,11 +274,16 @@ function agoraThreadHeader(t) {
   const inWin  = (Date.now() - t.createdAt) < 3600000;
   const canEdit = canAct && (isAdm || inWin);
 
+  const avatarHtml = t.authorAvatar
+    ? `<img class="agora-author-avatar" src="${agoraEscape(t.authorAvatar)}" alt="" loading="lazy">`
+    : `<div class="agora-author-avatar agora-author-avatar-placeholder">${agoraEscape((t.authorName||'?')[0].toUpperCase())}</div>`;
+
   return `
     <div class="agora-thread-header">
       <div class="agora-thread-header-title">${agoraEscape(t.title)}</div>
       <div class="agora-thread-header-meta">
-        <span>${agoraEscape(t.authorName)}</span>
+        ${avatarHtml}
+        <span class="agora-reply-author">${agoraEscape(t.authorName)}</span>
         <span>·</span>
         <span>${agoraTimeAgo(t.createdAt)}</span>
         ${t.editedAt ? `<span class="agora-edited-tag">(რედ. ${agoraTimeAgo(t.editedAt)})</span>` : ''}
@@ -381,23 +392,47 @@ function agoraReplyCard(r, num) {
   const inWin  = (Date.now() - r.createdAt) < 3600000;
   const canEdit = canAct && (isAdm || inWin);
 
+  // avatar
+  const avatarHtml = r.authorAvatar
+    ? `<img class="agora-author-avatar" src="${agoraEscape(r.authorAvatar)}" alt="" loading="lazy">`
+    : `<div class="agora-author-avatar agora-author-avatar-placeholder">${agoraEscape((r.authorName||'?')[0].toUpperCase())}</div>`;
+
+  // quote block (თუ ეს კომენტარი სხვის ციტატაა)
+  const quoteHtml = r.quotedBody
+    ? `<div class="agora-quote-block">
+        <div class="agora-quote-author">↩ ${agoraEscape(r.quotedAuthor || '?')} ${r.quotedNum ? `<span>#${r.quotedNum}</span>` : ''}</div>
+        <div class="agora-quote-body">${agoraEscape(r.quotedBody.length > 150 ? r.quotedBody.substring(0,150)+'…' : r.quotedBody)}</div>
+      </div>`
+    : '';
+
+  // quote button — ჩანს logged-in user-ებს
+  const canReply = !!(agoraGetToken() || agoraIsAdmin());
+  const quoteBtnHtml = canReply
+    ? `<button class="agora-action-btn agora-quote-btn" data-act="quote-reply" title="ციტირება">↩ ციტირება</button>`
+    : '';
+
   return `
-    <div class="agora-reply-item" data-reply-id="${agoraEscape(r.id)}">
+    <div class="agora-reply-item" data-reply-id="${agoraEscape(r.id)}" data-reply-num="${num}" data-reply-author="${agoraEscape(r.authorName)}" data-reply-body="${agoraEscape((r.body||'').substring(0,200))}">
       <div class="agora-reply-meta">
         <span class="agora-reply-num">#${num}</span>
+        ${avatarHtml}
         <span class="agora-reply-author">${agoraEscape(r.authorName)}</span>
         <span>·</span>
         <span>${agoraTimeAgo(r.createdAt)}</span>
         ${r.editedAt ? `<span class="agora-edited-tag">(რედ. ${agoraTimeAgo(r.editedAt)})</span>` : ''}
       </div>
+      ${quoteHtml}
       <div class="agora-reply-body" id="replyBody_${agoraEscape(r.id)}">${agoraEscape(r.body)}</div>
-      ${canEdit ? `
-        <div class="agora-item-actions" style="margin-top:8px">
+      <div class="agora-item-actions" style="margin-top:8px">
+        ${quoteBtnHtml}
+        ${canEdit ? `
           <button class="agora-action-btn" data-act="edit-reply">✏️</button>
           <button class="agora-action-btn danger" data-act="delete-reply">🗑</button>
-        </div>
+        ` : ''}
+      </div>
+      ${canEdit ? `
         <div class="agora-inline-edit" id="replyEdit_${agoraEscape(r.id)}" style="display:none">
-          <textarea class="agora-textarea reply-edit-textarea" maxlength="1000">${agoraEscape(r.body)}</textarea>
+          <textarea class="agora-textarea reply-edit-textarea" maxlength="2000">${agoraEscape(r.body)}</textarea>
           <div class="agora-inline-edit-btns">
             <button class="agora-reply-submit reply-save-btn" data-reply-id="${agoraEscape(r.id)}">შენახვა</button>
             <button class="agora-action-btn reply-cancel-btn">გაუქმება</button>
@@ -414,10 +449,28 @@ function agoraBindReplyActions(el) {
   const replyId  = el.dataset.replyId;
   const editBtn  = el.querySelector('[data-act="edit-reply"]');
   const delBtn   = el.querySelector('[data-act="delete-reply"]');
+  const quoteBtn = el.querySelector('[data-act="quote-reply"]');
   const saveBtn  = el.querySelector('.reply-save-btn');
   const cancelBtn = el.querySelector('.reply-cancel-btn');
   const editDiv  = document.getElementById(`replyEdit_${replyId}`);
   const bodyDiv  = document.getElementById(`replyBody_${replyId}`);
+
+  // ── ციტირება ──
+  if (quoteBtn) {
+    quoteBtn.addEventListener('click', function() {
+      const num    = parseInt(el.dataset.replyNum) || '';
+      const author = el.dataset.replyAuthor || '';
+      const body   = el.dataset.replyBody   || '';
+      _agoraQuote = { id: replyId, num, author, body };
+      agoraUpdateQuotePreview();
+      // scroll to reply form
+      const form = document.getElementById('agoraReplyFormWrap');
+      if (form) form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // focus textarea
+      const ta = document.getElementById('replyTextarea');
+      if (ta) ta.focus();
+    });
+  }
 
   if (editBtn && editDiv) {
     editBtn.addEventListener('click', function() {
@@ -447,7 +500,8 @@ function agoraBindReplyActions(el) {
   if (cancelBtn && editDiv) {
     cancelBtn.addEventListener('click', function() {
       editDiv.style.display = 'none';
-      editDiv.closest('.agora-reply-item').querySelector('.agora-item-actions').style.display = 'flex';
+      const actDiv = editDiv.closest('.agora-reply-item').querySelector('.agora-item-actions');
+      if (actDiv) actDiv.style.display = 'flex';
       bodyDiv.style.display = 'block';
     });
   }
@@ -463,7 +517,7 @@ function agoraRenderReplyForm(container, thread) {
   const isAdm = agoraIsAdmin();
 
   if (thread.status === 'locked') {
-    container.innerHTML = `<div class="agora-locked-notice">🔒 ეს თემა დახურულია — 1000 კომენტარს მიაღწია</div>`;
+    container.innerHTML = `<div class="agora-locked-notice">🔒 ეს თემა დახურულია</div>`;
     return;
   }
 
@@ -489,20 +543,37 @@ function agoraRenderReplyForm(container, thread) {
     <div class="agora-reply-form">
       <div class="agora-reply-form-title">შენი პასუხი</div>
       <div class="agora-error" id="replyError"></div>
-      <textarea class="agora-textarea" id="replyTextarea" maxlength="1000" placeholder="დაწერე კომენტარი..."></textarea>
-      <div class="agora-char-count"><span id="replyCharCount">0</span>/1000</div>
+      <div id="agoraQuotePreview" class="agora-quote-preview" style="display:none">
+        <div class="agora-quote-preview-inner">
+          <div id="agoraQuotePreviewText"></div>
+          <button class="agora-quote-clear" id="agoraQuoteClear" title="ციტატის გაუქმება">✕</button>
+        </div>
+      </div>
+      <textarea class="agora-textarea" id="replyTextarea" maxlength="2000" placeholder="დაწერე კომენტარი..."></textarea>
+      <div class="agora-char-count"><span id="replyCharCount">0</span>/2000</div>
       <button class="agora-reply-submit" id="replySubmitBtn">გამოქვეყნება ↑</button>
     </div>`;
 
   const ta      = container.querySelector('#replyTextarea');
   const countEl = container.querySelector('#replyCharCount');
   const btn     = container.querySelector('#replySubmitBtn');
+  const clearBtn = container.querySelector('#agoraQuoteClear');
+
+  // ციტატის preview განახლება
+  agoraUpdateQuotePreview();
 
   ta.addEventListener('input', function() {
     const len = ta.value.length;
     countEl.textContent = len;
-    countEl.parentElement.classList.toggle('warn', len > 900);
+    countEl.parentElement.classList.toggle('warn', len > 1800);
   });
+
+  if (clearBtn) {
+    clearBtn.addEventListener('click', function() {
+      _agoraQuote = null;
+      agoraUpdateQuotePreview();
+    });
+  }
 
   btn.addEventListener('click', async function() {
     await agoraSubmitReply(thread.id, ta, btn);
@@ -513,6 +584,26 @@ function agoraRenderReplyForm(container, thread) {
       agoraSubmitReply(thread.id, ta, btn);
     }
   });
+}
+
+// ============================================================
+// quote preview-ს განახლება
+// ============================================================
+function agoraUpdateQuotePreview() {
+  const preview = document.getElementById('agoraQuotePreview');
+  const text    = document.getElementById('agoraQuotePreviewText');
+  if (!preview || !text) return;
+
+  if (_agoraQuote) {
+    const snippet = _agoraQuote.body.length > 120
+      ? _agoraQuote.body.substring(0, 120) + '…'
+      : _agoraQuote.body;
+    text.innerHTML = `<strong>↩ ${agoraEscape(_agoraQuote.author)} #${_agoraQuote.num}:</strong> ${agoraEscape(snippet)}`;
+    preview.style.display = 'block';
+  } else {
+    preview.style.display = 'none';
+    text.innerHTML = '';
+  }
 }
 
 // ============================================================
@@ -629,7 +720,8 @@ async function agoraSubmitNewThread() {
 
   const token    = agoraGetToken();
   const user     = agoraGetUser();
-  const authorName = user?.nickname || user?.email?.split('@')[0] || 'მომხმარებელი';
+  const authorName   = user?.nickname || localStorage.getItem('userNickname') || 'მომხმარებელი';
+  const authorAvatar = user?.photoURL || null;
 
   try {
     const { ok, data } = await agoraFetch({
@@ -637,7 +729,8 @@ async function agoraSubmitNewThread() {
       title,
       threadBody: body,
       userToken:  token,
-      authorName
+      authorName,
+      authorAvatar
     });
 
     if (!ok) {
@@ -678,19 +771,31 @@ async function agoraSubmitReply(threadId, ta, btn) {
 
   const token  = agoraGetToken();
   const user   = agoraGetUser();
-  const authorName = user?.nickname || user?.email?.split('@')[0] || 'მომხმარებელი';
+  const authorName   = user?.nickname || localStorage.getItem('userNickname') || 'მომხმარებელი';
+  const authorAvatar = user?.photoURL || null;
 
   btn.disabled = true;
-  btn.textContent = 'იგზავნება...';
+  btn.textContent = 'AI ამოწმებს...';
 
   try {
-    const { ok, data } = await agoraFetch({
-      action:     'create-reply',
+    const payload = {
+      action:       'create-reply',
       threadId,
-      replyBody:  body,
-      userToken:  token,
-      authorName
-    });
+      replyBody:    body,
+      userToken:    token,
+      authorName,
+      authorAvatar
+    };
+
+    // ციტატა
+    if (_agoraQuote) {
+      payload.quotedReplyId = _agoraQuote.id;
+      payload.quotedBody    = _agoraQuote.body;
+      payload.quotedAuthor  = _agoraQuote.author;
+      payload.quotedNum     = _agoraQuote.num;
+    }
+
+    const { ok, data } = await agoraFetch(payload);
 
     if (!ok) {
       if (data.warned) {
@@ -702,24 +807,27 @@ async function agoraSubmitReply(threadId, ta, btn) {
     }
 
     ta.value = '';
-    document.getElementById('replyCharCount').textContent = '0';
+    const countEl = document.getElementById('replyCharCount');
+    if (countEl) countEl.textContent = '0';
+
+    // ციტატის გასუფთავება
+    _agoraQuote = null;
+    agoraUpdateQuotePreview();
+
     showToast('✅ კომენტარი გამოქვეყნდა!', 'success');
 
-    // გვერდის ბოლო გვერდზე გადასვლა და reload
+    // ბოლო გვერდზე გადასვლა და reload
     const { ok: ok2, data: d2 } = await agoraFetch({ action: 'get-thread', threadId });
     if (ok2) {
       _agoraCurrentThread = d2.thread;
       const repliesEl = document.getElementById('agoraReplies');
-      const totalReplies = d2.replies.total;
-      const lastPage = d2.replies.totalPages;
+      const lastPage  = d2.replies.totalPages;
       _agoraReplyPage  = lastPage;
       _agoraReplyTotal = lastPage;
 
-      // reply form-ის განახლება (locked შემოწმება)
       const replyFEl = document.getElementById('agoraReplyFormWrap');
       agoraRenderReplyForm(replyFEl, d2.thread);
 
-      // ბოლო გვერდი
       if (lastPage > 1) {
         await agoraLoadReplyPage(threadId, lastPage);
       } else {
@@ -885,6 +993,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const backBtn = document.getElementById('agoraBackBtn');
   if (backBtn) {
     backBtn.addEventListener('click', function() {
+      _agoraQuote = null;
       agoraShowList(_agoraListPage);
     });
   }
