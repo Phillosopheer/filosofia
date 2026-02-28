@@ -1,5 +1,5 @@
-// api/ban-user.js — მომხმარებლის დაბლოკვა (Admin Only)
-// Session 37: Firebase Auth disable + fpHash ban + banned-users log
+// api/ban-user.js — მომხმარებლების მართვა (Admin Only)
+// Session 37: ban + unban + delete + days support + list users
 
 const FIREBASE_DB  = "https://gen-lang-client-0339684222-default-rtdb.firebaseio.com";
 const PROJECT_ID   = "gen-lang-client-0339684222";
@@ -66,6 +66,14 @@ async function fbSet(path, data) {
   return res.ok;
 }
 
+async function fbDelete(path) {
+  const token = await getAdminToken();
+  const res = await fetch(`${FIREBASE_DB}${path}.json?access_token=${token}`, {
+    method: "DELETE"
+  });
+  return res.ok;
+}
+
 // ===== Verify idToken + Check Admin =====
 async function verifyAdmin(idToken) {
   const res = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${API_KEY}`, {
@@ -80,18 +88,29 @@ async function verifyAdmin(idToken) {
   return uid;
 }
 
-// ===== Disable Firebase Auth User =====
-async function disableAuthUser(targetUid) {
+// ===== Firebase Auth: Disable User =====
+async function setAuthDisabled(targetUid, disabled) {
   const token = await getAdminToken();
   const res = await fetch(
     `https://identitytoolkit.googleapis.com/v1/projects/${PROJECT_ID}/accounts:update`,
     {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      },
-      body: JSON.stringify({ localId: targetUid, disableUser: true })
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+      body: JSON.stringify({ localId: targetUid, disableUser: disabled })
+    }
+  );
+  return res.ok;
+}
+
+// ===== Firebase Auth: Delete User =====
+async function deleteAuthUser(targetUid) {
+  const token = await getAdminToken();
+  const res = await fetch(
+    `https://identitytoolkit.googleapis.com/v1/projects/${PROJECT_ID}/accounts:delete`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+      body: JSON.stringify({ localId: targetUid })
     }
   );
   return res.ok;
@@ -108,57 +127,116 @@ export default async function handler(req, res) {
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  const { idToken, targetUid, reason } = req.body || {};
+  const { idToken, action, targetUid, reason, days } = req.body || {};
 
-  if (!idToken || !targetUid) {
-    return res.status(400).json({ error: "idToken და targetUid სავალდებულოა" });
-  }
+  if (!idToken) return res.status(400).json({ error: "idToken სავალდებულოა" });
 
   try {
-    // 1. Verify admin
+    // Verify admin
     const adminUid = await verifyAdmin(idToken);
-    if (!adminUid) {
-      return res.status(403).json({ error: "არაავტორიზებული" });
+    if (!adminUid) return res.status(403).json({ error: "არაავტორიზებული" });
+
+    // ===== LIST USERS =====
+    if (action === "list") {
+      const usersData = await fbGet("/users");
+      if (!usersData) return res.json({ ok: true, users: [] });
+
+      const bannedData = await fbGet("/banned-users") || {};
+
+      const users = Object.entries(usersData)
+        .filter(([uid]) => uid !== ADMIN_UID)
+        .map(([uid, u]) => ({
+          uid,
+          nickname: u.nickname || "უცნობი",
+          email: u.email || "",
+          articlesCount: u.articlesCount || 0,
+          createdAt: u.createdAt || 0,
+          banned: !!bannedData[uid],
+          bannedUntil: bannedData[uid]?.bannedUntil || null,
+          banReason: bannedData[uid]?.reason || null
+        }))
+        .sort((a, b) => b.createdAt - a.createdAt);
+
+      return res.json({ ok: true, users });
     }
 
-    // 2. Cannot ban yourself
-    if (targetUid === ADMIN_UID) {
-      return res.status(400).json({ error: "საკუთარი თავის დაბლოკვა შეუძლებელია" });
-    }
+    // Actions below require targetUid
+    if (!targetUid) return res.status(400).json({ error: "targetUid სავალდებულოა" });
+    if (targetUid === ADMIN_UID) return res.status(400).json({ error: "ადმინის შეცვლა შეუძლებელია" });
 
-    // 3. Get user data (fpHash, nickname, email)
     const userData = await fbGet(`/users/${targetUid}`);
-    const fpHash   = userData?.fpHash || null;
 
-    // 4. Ban fingerprint if available
-    if (fpHash) {
-      await fbSet(`/banned-fingerprints/${fpHash}`, {
-        bannedAt: Date.now(),
+    // ===== BAN =====
+    if (action === "ban") {
+      const banDays   = parseInt(days) || 999;
+      const banUntil  = Date.now() + banDays * 24 * 60 * 60 * 1000;
+      const fpHash    = userData?.fpHash || null;
+
+      // Block fingerprint
+      if (fpHash) {
+        await fbSet(`/banned-fingerprints/${fpHash}`, {
+          bannedAt: Date.now(), bannedUntil, reason: reason || "admin ban", uid: targetUid
+        });
+      }
+
+      // Log in banned-users
+      await fbSet(`/banned-users/${targetUid}`, {
+        bannedAt: Date.now(), bannedUntil, banDays,
         reason: reason || "admin ban",
-        uid: targetUid
+        nickname: userData?.nickname || "unknown",
+        email: userData?.email || "unknown",
+        fpHash: fpHash || null
+      });
+
+      // Disable Firebase Auth
+      await setAuthDisabled(targetUid, true);
+
+      return res.json({
+        ok: true,
+        message: `✅ დაბლოკილია ${banDays} დღით`
       });
     }
 
-    // 5. Log banned user
-    await fbSet(`/banned-users/${targetUid}`, {
-      bannedAt: Date.now(),
-      reason: reason || "admin ban",
-      nickname: userData?.nickname || "unknown",
-      email: userData?.email || "unknown",
-      fpHash: fpHash || null
-    });
+    // ===== UNBAN =====
+    if (action === "unban") {
+      const fpHash = userData?.fpHash || null;
 
-    // 6. Disable Firebase Auth account
-    const authDisabled = await disableAuthUser(targetUid);
+      // Remove fingerprint ban
+      if (fpHash) await fbDelete(`/banned-fingerprints/${fpHash}`);
 
-    return res.json({
-      ok: true,
-      fpHash: fpHash,
-      authDisabled,
-      message: fpHash
-        ? "✅ დაბლოკილია: Auth + fingerprint + DB"
-        : "✅ დაბლოკილია: Auth + DB (fpHash არ ჰქონდა)"
-    });
+      // Remove from banned-users
+      await fbDelete(`/banned-users/${targetUid}`);
+
+      // Enable Firebase Auth
+      await setAuthDisabled(targetUid, false);
+
+      return res.json({ ok: true, message: "✅ განბლოკილია" });
+    }
+
+    // ===== DELETE =====
+    if (action === "delete") {
+      const fpHash = userData?.fpHash || null;
+
+      // Remove fingerprint ban entry if exists
+      if (fpHash) await fbDelete(`/banned-fingerprints/${fpHash}`);
+
+      // Remove user data
+      await fbDelete(`/users/${targetUid}`);
+
+      // Remove from banned-users if exists
+      await fbDelete(`/banned-users/${targetUid}`);
+
+      // Remove from usernames
+      const nick = userData?.nickname;
+      if (nick) await fbDelete(`/usernames/${nick.toLowerCase()}`);
+
+      // Delete Firebase Auth account
+      await deleteAuthUser(targetUid);
+
+      return res.json({ ok: true, message: "✅ მომხმარებელი წაშლილია" });
+    }
+
+    return res.status(400).json({ error: "უცნობი action" });
 
   } catch (e) {
     console.error("ban-user error:", e);
