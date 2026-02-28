@@ -80,20 +80,18 @@
 .agora-topbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   margin-bottom: 28px;
   padding-bottom: 18px;
   border-bottom: 1px solid var(--border);
+  position: relative;
 }
 .agora-topbar-title {
   font-family: 'Cinzel', Georgia, serif;
-  font-size: 1.1rem;
-  letter-spacing: 3px;
+  font-size: 1.6rem;
+  letter-spacing: 12px;
   color: var(--ivory);
-}
-.agora-topbar-title span {
-  color: var(--gold);
-  margin-right: 6px;
+  text-align: center;
 }
 .agora-back-btn {
   background: none;
@@ -107,6 +105,8 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  position: absolute;
+  left: 0;
 }
 .agora-back-btn:hover { color: var(--ivory); }
 .agora-back-btn.hidden { visibility: hidden; pointer-events: none; }
@@ -120,6 +120,8 @@
   padding: 8px 16px;
   cursor: pointer;
   transition: background 0.2s, border-color 0.2s;
+  position: absolute;
+  right: 0;
 }
 .agora-new-btn:hover {
   background: var(--gold);
