@@ -562,6 +562,101 @@
 }
 
 
+/* ===== AUTHOR AVATAR ===== */
+.agora-author-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+}
+.agora-author-avatar-placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--gold-dim);
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+/* ===== QUOTE BLOCK (displayed in reply) ===== */
+.agora-quote-block {
+  background: rgba(201,168,76,0.06);
+  border-left: 2px solid var(--gold-dim);
+  padding: 8px 12px;
+  margin-bottom: 10px;
+  border-radius: 0 2px 2px 0;
+}
+.agora-quote-author {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.5px;
+  color: var(--gold-dim);
+  margin-bottom: 4px;
+}
+.agora-quote-author span {
+  opacity: 0.7;
+  margin-left: 4px;
+}
+.agora-quote-body {
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 0.88rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+  font-style: italic;
+}
+
+/* ===== QUOTE PREVIEW (in reply form) ===== */
+.agora-quote-preview {
+  background: rgba(201,168,76,0.06);
+  border: 1px solid rgba(201,168,76,0.25);
+  border-left: 2px solid var(--gold-dim);
+  padding: 8px 12px;
+  margin-bottom: 10px;
+}
+.agora-quote-preview-inner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 0.88rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+.agora-quote-clear {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+  flex-shrink: 0;
+  opacity: 0.6;
+  transition: opacity 0.2s, color 0.2s;
+}
+.agora-quote-clear:hover { opacity: 1; color: #f87171; }
+
+/* ===== QUOTE BUTTON ===== */
+.agora-quote-btn {
+  color: var(--gold-dim);
+  border-color: rgba(201,168,76,0.2) !important;
+  font-size: 0.76rem;
+}
+.agora-quote-btn:hover {
+  color: var(--gold) !important;
+  border-color: var(--gold-dim) !important;
+}
+
 /* ===== ERROR MESSAGE ===== */
 .agora-error {
   background: rgba(139,32,32,0.1);
