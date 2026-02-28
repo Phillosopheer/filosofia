@@ -2905,6 +2905,10 @@ async function doRegister() {
     const vd = await vr.json();
     if (!vd.ok) { showMsg(errEl, vd.error || 'კოდი არასწორია', true); return; }
 
+    // IP ვინახავთ — send-code.js-მა verify-ზე დაგვიბრუნა
+    // მოგვიანებით ბანისას ban-user.js ამ IP-ს /banned-ips/-ში ჩაწერს
+    const userIp = vd.ip || null;
+
     // Register in Firebase Auth
     const res = await fetch(`${FIREBASE_AUTH}:signUp?key=${API_KEY}`, {
       method: 'POST',
@@ -2914,16 +2918,25 @@ async function doRegister() {
     const data = await res.json();
     if (!res.ok) {
       const msg = data?.error?.message || '';
-      if (msg.includes('EMAIL_EXISTS')) showMsg(errEl, 'ეს ელ. ფოსტა უკვე რეგისტრირებულია', true);
-      else showMsg(errEl, 'შეცდომა, სცადე თავიდან', true);
+      if (msg.includes('EMAIL_EXISTS')) {
+        // ეს email უკვე Firebase-ში არსებობს — შესაძლოა ბანი ედოს
+        showMsg(errEl, '⚠️ ეს ელ. ფოსტა უკვე გამოყენებულია. თუ შენი აქაუნთი დაიბლოკა — ამ email-ით ვეღარ დარეგისტრირდები.', true);
+      } else {
+        showMsg(errEl, 'შეცდომა, სცადე თავიდან', true);
+      }
       return;
     }
-    // Save profile
+    // Save profile — lastIp ვინახავთ პროფილში ბანის სისტემისთვის
     const uid = data.localId; const token = data.idToken;
     await fbFetch(`${FIREBASE_DB}/users/${uid}.json?auth=${token}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nickname, email, photoURL: '', articlesCount: 0, topicsCount: 0, createdAt: Date.now(), fpHash: (await getBrowserFingerprint()) || null })
+      body: JSON.stringify({
+        nickname, email, photoURL: '', articlesCount: 0, topicsCount: 0,
+        createdAt: Date.now(),
+        fpHash:  (await getBrowserFingerprint()) || null,
+        lastIp:  userIp  // IP მისამართი — ბანისას ban-user.js გამოიყენებს
+      })
     });
     // Reserve nickname
     await fbFetch(`${FIREBASE_DB}/usernames/${nickname.toLowerCase()}.json?auth=${token}`, {
