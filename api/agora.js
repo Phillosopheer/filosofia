@@ -483,7 +483,7 @@ export default async function handler(req, res) {
       body:         threadBody.trim(),
       authorUid:    user.uid,
       authorName:   body.authorName || "მომხმარებელი",
-      authorAvatar: userData?.avatar || null,
+      authorAvatar: body.authorAvatar || userData?.photoURL || null,
       createdAt:    now,
       editedAt:     null,
       replyCount:   0,
@@ -562,9 +562,8 @@ export default async function handler(req, res) {
       });
     }
 
-    // ავტარი
-    const userData = await fbGet(`/users/${user.uid}`);
-    const authorAvatar = userData?.avatar || null;
+    // ავტარი — frontend-დან
+    const authorAvatar = body.authorAvatar || null;
 
     // Reply-ს შექმნა
     const replyData = {
