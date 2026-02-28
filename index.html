@@ -341,9 +341,11 @@
     <div id="agoraView" class="agora-view">
         <div class="agora-inner">
             <div class="agora-topbar">
-                <button class="agora-back-btn hidden" id="agoraBackBtn">← უკან</button>
+                <div class="agora-topbar-row">
+                    <button class="agora-back-btn hidden" id="agoraBackBtn">← უკან</button>
+                    <button class="agora-new-btn hidden" id="agoraNewBtn">+ ახალი თემა</button>
+                </div>
                 <div class="agora-topbar-title" id="agoraTopbarTitle">🏛 ა გ ო რ ა</div>
-                <button class="agora-new-btn hidden" id="agoraNewBtn">+ ახალი თემა</button>
             </div>
             <!-- Thread List -->
             <div id="agoraListView">
@@ -375,8 +377,7 @@
             </div>
             <div class="agora-modal-group">
                 <label class="agora-modal-label">შინაარსი</label>
-                <textarea id="newThreadBody" class="agora-modal-textarea" maxlength="2000" placeholder="შენი მოსაზრება... (მინ. 10 სიმბოლო)"></textarea>
-                <div class="agora-char-count"><span id="newThreadBodyCount">0</span> / 2000</div>
+                <textarea id="newThreadBody" class="agora-modal-textarea" placeholder="შენი მოსაზრება... (მინ. 10 სიმბოლო)"></textarea>
             </div>
             <button class="btn btn-primary" id="newThreadSubmitBtn" style="width:100%;margin-top:4px">გამოქვეყნება</button>
         </div>
