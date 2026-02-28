@@ -409,6 +409,7 @@ ${note.author ? `<p style="color:var(--accent); font-size:0.8rem; font-weight:60
 <button class="pnote-edit" style="display:flex;align-items:center;gap:6px;padding:9px 15px;background:rgba(180,145,60,0.08);border:1px solid rgba(180,145,60,0.3);border-radius:8px;color:var(--accent);cursor:pointer;font-size:0.82rem;font-family:inherit;letter-spacing:0.5px;transition:all 0.2s;">✏️ რედაქტირება</button>
 <button class="pnote-approve" style="display:flex;align-items:center;gap:6px;padding:9px 15px;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.35);border-radius:8px;color:#4ade80;cursor:pointer;font-size:0.82rem;font-family:inherit;font-weight:600;letter-spacing:0.5px;transition:all 0.2s;">✅ დადასტურება</button>
 <button class="pnote-reject" style="display:flex;align-items:center;gap:6px;padding:9px 15px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.35);border-radius:8px;color:#f87171;cursor:pointer;font-size:0.82rem;font-family:inherit;letter-spacing:0.5px;transition:all 0.2s;">❌ უარყოფა</button>
+${note.submitterUid ? `<button class="pnote-ban" style="display:flex;align-items:center;gap:6px;padding:9px 15px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.6);border-radius:8px;color:#ff6b6b;cursor:pointer;font-size:0.82rem;font-family:inherit;font-weight:600;letter-spacing:0.5px;transition:all 0.2s;">🚫 დაბლოკვა</button>` : ""}
 </div>
 `;
 card.querySelector('.pnote-preview').addEventListener('click', () => previewPendingNote(note.fbId));
@@ -417,6 +418,14 @@ const approveBtn = card.querySelector('.pnote-approve');
 approveBtn.addEventListener('click', () => confirmPendingAction('approve', note.fbId, approveBtn));
 const rejectBtn = card.querySelector('.pnote-reject');
 rejectBtn.addEventListener('click', () => confirmPendingAction('reject', note.fbId, rejectBtn));
+const banBtn = card.querySelector('.pnote-ban');
+if (banBtn) {
+  banBtn.addEventListener('click', () => {
+    if (confirm('⚠️ დარწმუნებული ხარ? მომხმარებელი დაიბლოკება და ახალ აქაუნთს ვერ გახსნის.')) {
+      banUserByUid(note.submitterUid, note.fbId, banBtn);
+    }
+  });
+}
 list.appendChild(card);
 });
 }
@@ -543,6 +552,31 @@ openPendingPanel();
 console.error('rejectPendingNote error:', err);
 alert('შეცდომა: ' + err.message);
 if (btn) { btn.disabled = false; btn.innerText = '❌ უარყოფა'; }
+}
+}
+async function banUserByUid(targetUid, noteId, btn) {
+if (btn) { btn.disabled = true; btn.innerText = '⏳...'; }
+try {
+  const token = await getValidIdToken();
+  const res = await fetch('/api/ban-user', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ idToken: token, targetUid, reason: 'admin ban from pending panel' })
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'ban failed');
+  // Also reject the pending note
+  if (noteId) {
+    const delRes = await fbFetch(`${FIREBASE_DB}/pending-notes/${noteId}.json?auth=${token}`, { method: 'DELETE' });
+    if (!delRes.ok) console.warn('pending note delete failed');
+  }
+  await fetchPendingNotes();
+  openPendingPanel();
+  alert(data.message || '✅ მომხმარებელი დაიბლოკა');
+} catch (err) {
+  console.error('banUserByUid error:', err);
+  alert('❌ შეცდომა: ' + err.message);
+  if (btn) { btn.disabled = false; btn.innerText = '🚫 დაბლოკვა'; }
 }
 }
 function init() {
@@ -2585,10 +2619,11 @@ async function doRegStep1() {
 
   btn.disabled = true; btn.innerText = 'იგზავნება...';
   try {
+    const fpHash = await getBrowserFingerprint();
     const r = await fetch('/api/send-code', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email })
+      body: JSON.stringify({ email, fpHash })
     });
     const d = await r.json();
     if (!r.ok) { showMsg(errEl, d.error || 'გაგზავნა ვერ მოხერხდა', true); return; }
@@ -2645,7 +2680,7 @@ async function doRegister() {
     await fbFetch(`${FIREBASE_DB}/users/${uid}.json?auth=${token}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nickname, email, photoURL: '', articlesCount: 0, topicsCount: 0, createdAt: Date.now() })
+      body: JSON.stringify({ nickname, email, photoURL: '', articlesCount: 0, topicsCount: 0, createdAt: Date.now(), fpHash: (await getBrowserFingerprint()) || null })
     });
     // Reserve nickname
     await fbFetch(`${FIREBASE_DB}/usernames/${nickname.toLowerCase()}.json?auth=${token}`, {
