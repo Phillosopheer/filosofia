@@ -340,7 +340,12 @@ export default async function handler(req, res) {
         });
 
       const result = paginate(threads, page, THREADS_PER_PAGE);
-      return res.json(result);
+      return res.json({
+        threads:    result.items,
+        page:       result.page,
+        totalPages: result.totalPages,
+        total:      result.total
+      });
     } catch (e) {
       return res.status(500).json({ error: e.message });
     }
