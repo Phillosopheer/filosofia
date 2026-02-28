@@ -106,6 +106,24 @@ async function fbPush(path, data) {
 }
 
 // ============================================================
+// Notification helpers
+// ============================================================
+async function writeNotification(uid, data) {
+  try {
+    await fbPush(`/notifications/${uid}`, { ...data, read: false, createdAt: Date.now() });
+  } catch { /* silent */ }
+}
+
+async function notifyAllUsers(excludeUid, notifData) {
+  try {
+    const users = await fbGet('/users');
+    if (!users) return;
+    const uids = Object.keys(users).filter(uid => uid !== excludeUid);
+    await Promise.all(uids.map(uid => writeNotification(uid, notifData)));
+  } catch { /* silent */ }
+}
+
+// ============================================================
 // მომხმარებლის token-ის შემოწმება
 // ============================================================
 async function verifyUserToken(token) {
@@ -499,6 +517,15 @@ export default async function handler(req, res) {
     const threadId = await fbPush("/agora-threads", threadData);
     if (!threadId) return res.status(500).json({ error: "თემის შექმნა ვერ მოხერხდა" });
 
+    // ყველა user-ს აცნობე ახალ თემაზე (fire & forget)
+    notifyAllUsers(user.uid, {
+      type: "new-thread",
+      threadId,
+      threadTitle: title.trim(),
+      fromName: threadData.authorName,
+      fromAvatar: threadData.authorAvatar || null
+    }).catch(() => {});
+
     // მომხმარებლის topicsCount + 1
     try {
       const newCount = (userData?.topicsCount || 0) + 1;
@@ -593,6 +620,26 @@ export default async function handler(req, res) {
     // replyCount + 1
     const newCount = (thread.replyCount || 0) + 1;
     await fbPatch(`/agora-threads/${threadId}`, { replyCount: newCount });
+
+    // 🔔 შეტყობინებები (fire & forget)
+    const notifBase = { threadId, threadTitle: thread.title, fromName: replyData.authorName, fromAvatar: replyData.authorAvatar || null };
+
+    // thread-ის ავტორს (თუ სხვა ადამიანია)
+    if (thread.authorUid && thread.authorUid !== user.uid) {
+      writeNotification(thread.authorUid, { ...notifBase, type: "reply" }).catch(() => {});
+    }
+
+    // ციტირებული კომენტარის ავტორს (თუ განსხვავებული)
+    if (quotedReplyId) {
+      try {
+        const quotedReply = await fbGet(`/agora-replies/${threadId}/${quotedReplyId}`);
+        if (quotedReply && quotedReply.authorUid &&
+            quotedReply.authorUid !== user.uid &&
+            quotedReply.authorUid !== thread.authorUid) {
+          writeNotification(quotedReply.authorUid, { ...notifBase, type: "quote" }).catch(() => {});
+        }
+      } catch { /* silent */ }
+    }
 
     return res.json({
       ok: true,
@@ -725,6 +772,46 @@ export default async function handler(req, res) {
     } catch { /* silent */ }
 
     return res.json({ ok: true });
+  }
+
+
+  // ============================================================
+  // action: 'get-notifications' — შეტყობინებების სია
+  // ============================================================
+  if (action === "get-notifications") {
+    try {
+      const raw = await fbGet(`/notifications/${user.uid}`);
+      if (!raw) return res.json({ notifications: [], unread: 0 });
+
+      const notifications = Object.entries(raw)
+        .map(([id, d]) => ({ id, ...d }))
+        .sort((a, b) => b.createdAt - a.createdAt)
+        .slice(0, 30);
+
+      const unread = notifications.filter(n => !n.read).length;
+      return res.json({ notifications, unread });
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
+    }
+  }
+
+
+  // ============================================================
+  // action: 'mark-notifications-read' — ყველა წაკითხულად მოხატვა
+  // ============================================================
+  if (action === "mark-notifications-read") {
+    try {
+      const raw = await fbGet(`/notifications/${user.uid}`);
+      if (!raw) return res.json({ ok: true });
+
+      const unreadIds = Object.keys(raw).filter(id => !raw[id].read);
+      await Promise.all(
+        unreadIds.map(id => fbPatch(`/notifications/${user.uid}/${id}`, { read: true }))
+      );
+      return res.json({ ok: true });
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
+    }
   }
 
 
