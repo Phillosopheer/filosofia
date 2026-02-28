@@ -3,6 +3,21 @@
    Session 41
    ============================================= */
 
+/* ===== AGORA DESCRIPTION ===== */
+.agora-desc {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding: 18px 20px;
+  margin-bottom: 22px;
+}
+.agora-desc p {
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 0.95rem;
+  color: var(--text-dim);
+  line-height: 1.7;
+  font-style: italic;
+}
+
 /* ===== AGORA HEADER BUTTON ===== */
 .agora-header-btn {
   display: flex !important;
