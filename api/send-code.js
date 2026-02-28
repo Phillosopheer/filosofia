@@ -1,14 +1,24 @@
 // api/send-code.js — ვერიფიკაციის კოდის გაგზავნა Resend-ით
+// Session 37: + VPN/Proxy/Tor ბლოკი + fpHash ბანი + Incognito ბლოკი
 
-const RESEND_KEY   = process.env.RESEND_KEY;
-const FIREBASE_DB  = "https://gen-lang-client-0339684222-default-rtdb.firebaseio.com";
+const RESEND_KEY  = process.env.RESEND_KEY;
+const FIREBASE_DB = "https://gen-lang-client-0339684222-default-rtdb.firebaseio.com";
+
+// ===== VPN / Proxy / Tor შემოწმება =====
+async function isVPN(ip) {
+  if (!ip || ip === 'unknown' || ip === '::1' || ip.startsWith('127.')) return false;
+  try {
+    const res  = await fetch(`http://ip-api.com/json/${ip}?fields=status,proxy,hosting`);
+    const data = await res.json();
+    return data.status === 'success' && (data.proxy === true || data.hosting === true);
+  } catch { return false; }
+}
 
 // ===== fpHash ბანის შემოწმება =====
 async function isFpBanned(fpHash) {
   if (!fpHash) return false;
   try {
-    // banned-fingerprints — public read
-    const res = await fetch(`${FIREBASE_DB}/banned-fingerprints/${fpHash}.json`);
+    const res  = await fetch(`${FIREBASE_DB}/banned-fingerprints/${fpHash}.json`);
     if (!res.ok) return false;
     const data = await res.json();
     return data !== null;
@@ -25,9 +35,9 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { email, action } = req.body || {};
+  const { email, action, fpHash, incognito } = req.body || {};
 
-  // ===== კოდის შემოწმება =====
+  // ===== კოდის შემოწმება (verify) =====
   if (action === 'verify') {
     const { code } = req.body;
     const entry = codes.get(email);
@@ -50,8 +60,23 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Email არასწორია' });
   }
 
-  // fpHash ბანის შემოწმება
-  const { fpHash } = req.body || {};
+  // 1. Incognito შემოწმება
+  if (incognito === true) {
+    return res.status(403).json({ error: '🔒 Incognito რეჟიმში რეგისტრაცია დაუშვებელია. გთხოვ გახსენი ჩვეულებრივი ბრაუზერი.' });
+  }
+
+  // 2. VPN / Proxy / Tor შემოწმება
+  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim()
+          || req.headers['x-real-ip']
+          || req.socket?.remoteAddress
+          || 'unknown';
+
+  const vpn = await isVPN(ip);
+  if (vpn) {
+    return res.status(403).json({ error: '🚫 VPN, Proxy ან Tor-ის გამოყენება რეგისტრაციისას დაუშვებელია.' });
+  }
+
+  // 3. fpHash ბანის შემოწმება
   if (fpHash && await isFpBanned(fpHash)) {
     return res.status(403).json({ error: '🚫 შენი მოწყობილობა დაბლოკილია.' });
   }
