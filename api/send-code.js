@@ -11,6 +11,51 @@ const BREVO_KEY   = process.env.BREVO_KEY;
 // Firebase Realtime Database-ის მისამართი
 const FIREBASE_DB = "https://gen-lang-client-0339684222-default-rtdb.firebaseio.com";
 
+// ============================================================
+// Service Account Token (App Check ENFORCED — ავტორიზებული კითხვა)
+// ============================================================
+let _cachedToken = null;
+let _tokenExpiry = 0;
+
+async function getAdminToken() {
+  if (_cachedToken && Date.now() < _tokenExpiry - 60000) return _cachedToken;
+  const sa = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+  const now = Math.floor(Date.now() / 1000);
+  const payload = {
+    iss: sa.client_email, sub: sa.client_email,
+    aud: "https://oauth2.googleapis.com/token",
+    iat: now, exp: now + 3600,
+    scope: "https://www.googleapis.com/auth/firebase.database https://www.googleapis.com/auth/userinfo.email"
+  };
+  const header = { alg: "RS256", typ: "JWT" };
+  const enc = (obj) => btoa(JSON.stringify(obj)).replace(/=/g,"").replace(/\+/g,"-").replace(/\//g,"_");
+  const signingInput = `${enc(header)}.${enc(payload)}`;
+  const pemBody  = sa.private_key.replace(/-----[^-]+-----/g,"").replace(/\s/g,"");
+  const keyBytes = Uint8Array.from(atob(pemBody), c => c.charCodeAt(0));
+  const cryptoKey = await crypto.subtle.importKey(
+    "pkcs8", keyBytes, { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["sign"]
+  );
+  const sig = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", cryptoKey, new TextEncoder().encode(signingInput));
+  const sigB64 = btoa(String.fromCharCode(...new Uint8Array(sig))).replace(/=/g,"").replace(/\+/g,"-").replace(/\//g,"_");
+  const jwt = `${signingInput}.${sigB64}`;
+  const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${jwt}`
+  });
+  const tokenData = await tokenRes.json();
+  _cachedToken = tokenData.access_token;
+  _tokenExpiry  = Date.now() + 3600000;
+  return _cachedToken;
+}
+
+async function fbGet(path) {
+  const token = await getAdminToken();
+  const res = await fetch(`${FIREBASE_DB}${path}.json?access_token=${token}`);
+  if (!res.ok) return null;
+  return await res.json();
+}
+
 
 // ============================================================
 // ფუნქცია: isVPN(ip)
@@ -37,9 +82,7 @@ async function isVPN(ip) {
 async function isFpBanned(fpHash) {
   if (!fpHash) return false;
   try {
-    const res  = await fetch(`${FIREBASE_DB}/banned-fingerprints/${fpHash}.json`);
-    if (!res.ok) return false;
-    const data = await res.json();
+    const data = await fbGet(`/banned-fingerprints/${fpHash}`);
     return data !== null;
   } catch {
     return false;
@@ -56,12 +99,8 @@ async function isFpBanned(fpHash) {
 async function isIpBanned(ip) {
   if (!ip || ip === 'unknown' || ip === '::1' || ip.startsWith('127.')) return false;
   try {
-    // IP-ში წერტილებს ვანაცვლებთ _-ით, Firebase key-ისთვის
-    // მაგ: 192.168.1.1 → 192_168_1_1
     const safeIp = ip.replace(/\./g, '_').replace(/:/g, '_');
-    const res    = await fetch(`${FIREBASE_DB}/banned-ips/${safeIp}.json`);
-    if (!res.ok) return false;
-    const data = await res.json();
+    const data   = await fbGet(`/banned-ips/${safeIp}`);
     return data !== null;
   } catch {
     return false;
