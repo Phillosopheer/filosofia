@@ -235,6 +235,35 @@ document.execCommand('formatBlock', false, 'blockquote');
 }
 }
 // ===== Browser Fingerprint =====
+// ===== Incognito / Private Mode Detection =====
+async function detectIncognito() {
+  // Method 1: Storage quota (ყველაზე საიმედო)
+  try {
+    if (navigator.storage && navigator.storage.estimate) {
+      const { quota } = await navigator.storage.estimate();
+      // Incognito-ში quota ძალიან მცირეა (~120MB)
+      if (quota < 200 * 1024 * 1024) return true;
+    }
+  } catch {}
+
+  // Method 2: FileSystem API (Chrome incognito-ში ბლოკია)
+  try {
+    await new Promise((resolve, reject) => {
+      const db = indexedDB.open('__incognito_test__');
+      db.onsuccess = () => { db.result.close(); indexedDB.deleteDatabase('__incognito_test__'); resolve(false); };
+      db.onerror  = () => resolve(true);
+    });
+  } catch { return true; }
+
+  // Method 3: Safari private mode
+  try {
+    localStorage.setItem('__priv_test__', '1');
+    localStorage.removeItem('__priv_test__');
+  } catch { return true; }
+
+  return false;
+}
+
 async function getBrowserFingerprint() {
   try {
     const raw = [
@@ -2620,10 +2649,11 @@ async function doRegStep1() {
   btn.disabled = true; btn.innerText = 'იგზავნება...';
   try {
     const fpHash = await getBrowserFingerprint();
+    const incognito = await detectIncognito();
     const r = await fetch('/api/send-code', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, fpHash })
+      body: JSON.stringify({ email, fpHash, incognito })
     });
     const d = await r.json();
     if (!r.ok) { showMsg(errEl, d.error || 'გაგზავნა ვერ მოხერხდა', true); return; }
