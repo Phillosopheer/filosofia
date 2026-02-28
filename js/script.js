@@ -563,7 +563,7 @@ await fetchNotes();
 openPendingPanel();
 } catch (err) {
 console.error('approvePendingNote error:', err);
-alert('შეცდომა: ' + err.message);
+showToast(err.message, 'error');
 if (btn) { btn.disabled = false; btn.innerText = '✅ დადასტურება'; }
 }
 }
@@ -579,7 +579,7 @@ await fetchPendingNotes();
 openPendingPanel();
 } catch (err) {
 console.error('rejectPendingNote error:', err);
-alert('შეცდომა: ' + err.message);
+showToast(err.message, 'error');
 if (btn) { btn.disabled = false; btn.innerText = '❌ უარყოფა'; }
 }
 }
@@ -601,10 +601,10 @@ try {
   }
   await fetchPendingNotes();
   openPendingPanel();
-  alert(data.message || '✅ მომხმარებელი დაიბლოკა');
+  showToast(data.message || '✅ მომხმარებელი დაიბლოკა', 'success');
 } catch (err) {
   console.error('banUserByUid error:', err);
-  alert('❌ შეცდომა: ' + err.message);
+  showToast(err.message, 'error');
   if (btn) { btn.disabled = false; btn.innerText = '🚫 დაბლოკვა'; }
 }
 }
@@ -684,7 +684,7 @@ function showUserMenu(anchorBtn, uid, isBanned) {
     items.push({ icon: '✅', label: 'განბლოკვა', color: '#4ade80', action: function() { userAction('unban', uid, null); } });
   }
   items.push({ icon: '🗑', label: 'წაშლა', color: '#f87171', action: function() {
-    if (confirm('დარწმუნებული ხარ? მომხმარებელი სამუდამოდ წაიშლება!')) userAction('delete', uid, null);
+    showConfirmToast('დარწმუნებული ხარ? მომხმარებელი სამუდამოდ წაიშლება!', function() { userAction('delete', uid, null); });
   }});
   items.push({ icon: '✕', label: 'გაუქმება', color: 'var(--text-dim)', action: function() { menu.remove(); _activeUserMenu = null; } });
 
@@ -729,11 +729,11 @@ async function userAction(action, uid, days) {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'შეცდომა');
-    alert(data.message);
+    showToast(data.message, data.message && data.message.includes('✅') ? 'success' : 'error');
     closeModal('banDaysModal');
     await openUsersPanel();
   } catch(e) {
-    alert('\u274c ' + e.message);
+    showToast(e.message, 'error');
   }
 }
 
@@ -1041,7 +1041,7 @@ if (!res.ok) throw new Error('წაშლა ვერ მოხერხდა
 closeReader();
 await fetchNotes();
 } catch (err) {
-alert(err.message);
+showToast(err.message, 'error');
 }
 }
 function handleAuthBtn() {
@@ -1183,7 +1183,7 @@ console.log('🔒 Token validation failed - forcing logout');
 idToken = null;
 currentUid = null;
 clearSession();
-alert('⚠️ სესია არავალიდურია. გთხოვთ ხელახლა შეხვიდეთ.');
+showToast('სესია ვადაგასულია. გთხოვ ხელახლა შეხვიდე.', 'error');
 fetchNotes();
 }
 } catch (err) {
@@ -1481,6 +1481,67 @@ if (idToken) {
   if (avatarWrap2) avatarWrap2.style.display = 'none';
 }
 }
+
+// ===== Toast Notification (alert-ის ნაცვლად) =====
+function showToast(msg, type) {
+  // type: 'success' | 'error' | 'info'
+  const existing = document.getElementById('__toast__');
+  if (existing) existing.remove();
+  const colors = {
+    success: { bg: 'rgba(34,197,94,0.12)', border: 'rgba(34,197,94,0.4)', icon: '✅' },
+    error:   { bg: 'rgba(239,68,68,0.12)', border: 'rgba(239,68,68,0.45)', icon: '❌' },
+    info:    { bg: 'rgba(180,145,60,0.12)', border: 'rgba(180,145,60,0.4)', icon: 'ℹ️' }
+  };
+  const c = colors[type] || colors.info;
+  const t = document.createElement('div');
+  t.id = '__toast__';
+  t.style.cssText = [
+    'position:fixed','bottom:28px','left:50%','transform:translateX(-50%) translateY(20px)',
+    'z-index:99999','background:' + c.bg,'border:1px solid ' + c.border,
+    'border-radius:12px','padding:14px 22px','color:#e8e0d0','font-size:0.92rem',
+    'font-family:Georgia,serif','max-width:88vw','text-align:center',
+    'box-shadow:0 8px 32px rgba(0,0,0,0.6)','backdrop-filter:blur(10px)',
+    'display:flex','align-items:center','gap:10px','white-space:pre-line',
+    'opacity:0','transition:all 0.3s ease'
+  ].join(';');
+  t.innerHTML = '<span style="font-size:1.1rem;">' + c.icon + '</span><span>' + msg + '</span>';
+  document.body.appendChild(t);
+  requestAnimationFrame(() => {
+    t.style.opacity = '1';
+    t.style.transform = 'translateX(-50%) translateY(0)';
+  });
+  setTimeout(() => {
+    t.style.opacity = '0';
+    t.style.transform = 'translateX(-50%) translateY(20px)';
+    setTimeout(() => t.remove(), 350);
+  }, 3500);
+}
+
+
+// ===== Confirm Dialog (confirm()-ის ნაცვლად) =====
+function showConfirmToast(msg, onConfirm) {
+  const existing = document.getElementById('__confirm__');
+  if (existing) existing.remove();
+  const overlay = document.createElement('div');
+  overlay.id = '__confirm__';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:99998;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);';
+  overlay.innerHTML =
+    '<div style="background:#1a1610;border:1px solid rgba(239,68,68,0.4);border-radius:14px;padding:28px 28px 22px;max-width:340px;width:90%;text-align:center;box-shadow:0 16px 48px rgba(0,0,0,0.7);">' +
+      '<div style="font-size:2rem;margin-bottom:12px;">⚠️</div>' +
+      '<p style="color:#e8e0d0;font-size:0.92rem;line-height:1.6;margin-bottom:22px;">' + msg + '</p>' +
+      '<div style="display:flex;gap:10px;">' +
+        '<button id="__confirm_yes__" style="flex:1;padding:11px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.5);border-radius:8px;color:#f87171;cursor:pointer;font-size:0.88rem;font-family:inherit;font-weight:600;">დიახ, წაშლა</button>' +
+        '<button id="__confirm_no__"  style="flex:1;padding:11px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:var(--text-dim);cursor:pointer;font-size:0.88rem;font-family:inherit;">გაუქმება</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(overlay);
+  document.getElementById('__confirm_yes__').addEventListener('click', function() {
+    overlay.remove(); onConfirm();
+  });
+  document.getElementById('__confirm_no__').addEventListener('click', function() { overlay.remove(); });
+  overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); });
+}
+
 function showMsg(el, text, show) {
 el.innerText = text;
 if (show) el.classList.add('active');
@@ -1957,7 +2018,7 @@ try { localStorage.removeItem(GLOSSARY_CACHE_KEY); } catch {}
 await fetchGlossary(true);
 backToGlossarySearch();
 } catch (err) {
-alert('წაშლა ვერ მოხერხდა: ' + err.message);
+showToast('წაშლა ვერ მოხერხდა: ' + err.message, 'error');
 }
 }
 setupEventListeners();
@@ -1988,7 +2049,7 @@ btn.innerText = '🔓 ბლოკის მოხსნა (ადმინი)
 } catch (err) {
 btn.disabled = false;
 btn.innerText = '🔓 ბლოკის მოხსნა (ადმინი)';
-alert('შეცდომა: ' + err.message);
+showToast(err.message, 'error');
 }
 }
 function generateFingerprint() {
@@ -2243,7 +2304,7 @@ document.getElementById('closeUsersModalBtn').addEventListener('click', function
 document.getElementById('closeBanDaysModalBtn').addEventListener('click', function() { closeModal('banDaysModal'); });
 document.getElementById('banDaysConfirmBtn').addEventListener('click', function() {
   const days = parseInt(document.getElementById('banDaysInput').value);
-  if (!days || days < 1) { alert('შეიყვანე სწორი დღეების რაოდენობა'); return; }
+  if (!days || days < 1) { showToast('შეიყვანე სწორი დღეების რაოდენობა', 'error'); return; }
   if (_banTargetUid) userAction('ban', _banTargetUid, days);
 });
 document.getElementById('banDaysCancelBtn').addEventListener('click', function() { closeModal('banDaysModal'); });
@@ -2662,7 +2723,7 @@ document.addEventListener('DOMContentLoaded', function() {
   var uploadBtn = document.getElementById('upUploadBtn');
   if (uploadBtn) uploadBtn.addEventListener('click', async function() {
     var token = (document.getElementById('upToken').value || '').trim();
-    if (!token) { alert('Token შეიყვანე!'); return; }
+    if (!token) { showToast('Token შეიყვანე!', 'error'); return; }
     var logEl = document.getElementById('upLog');
     if (logEl) { logEl.innerHTML = ''; logEl.style.display = 'none'; }
     var slots = Array.from(document.querySelectorAll('#uploaderModal .up-slot')).filter(function(s) {
@@ -3102,7 +3163,7 @@ async function saveNickname() {
   const days60 = 60 * 24 * 60 * 60 * 1000;
   if (lastChange && Date.now() - lastChange < days60) {
     const daysLeft = Math.ceil((days60 - (Date.now() - lastChange)) / (24*60*60*1000));
-    alert(`სახელის შეცვლა შეგიძლია ${daysLeft} დღეში`);
+    showToast('სახელის შეცვლა შეგიძლია ' + daysLeft + ' დღეში', 'info');
     hideNicknameEdit();
     return;
   }
@@ -3151,7 +3212,7 @@ async function saveNickname() {
       document.getElementById('sidebarAvatar').src = newSrc;
     }
     hideNicknameEdit();
-  } catch(e) { alert('შეცდომა, სცადე თავიდან'); }
+  } catch(e) { showToast('შეცდომა, სცადე თავიდან', 'error'); }
 }
 document.getElementById('nicknameEditBtn').addEventListener('click', showNicknameEdit);
 document.getElementById('nicknameSaveBtn').addEventListener('click', saveNickname);
@@ -3165,7 +3226,7 @@ document.getElementById('nicknameInput').addEventListener('keydown', (e) => {
 document.getElementById('avatarFileInput').addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (!file) return;
-  if (file.size > 2 * 1024 * 1024) { alert('ფოტო მაქს. 2MB უნდა იყოს'); return; }
+  if (file.size > 2 * 1024 * 1024) { showToast('ფოტო მაქს. 2MB უნდა იყოს', 'error'); return; }
   const reader = new FileReader();
   reader.onload = async (ev) => {
     const dataURL = ev.target.result;
@@ -3188,7 +3249,7 @@ document.getElementById('avatarFileInput').addEventListener('change', async (e) 
       document.getElementById('sidebarAvatar').src = dataURL;
       document.getElementById('userAvatarImg').src = dataURL;
       updateAvatarDeleteBtn();
-    } catch(e) { alert('ფოტოს ატვირთვა ვერ მოხერხდა'); }
+    } catch(e) { showToast('ფოტოს ატვირთვა ვერ მოხერხდა', 'error'); }
   };
   reader.readAsDataURL(file);
 });
@@ -3229,7 +3290,7 @@ document.getElementById('avatarDeleteBtn').addEventListener('click', async (e) =
     document.getElementById('sidebarAvatar').src = src;
     document.getElementById('userAvatarImg').src = src;
     updateAvatarDeleteBtn();
-  } catch(e) { alert('ფოტოს წაშლა ვერ მოხერხდა'); }
+  } catch(e) { showToast('ფოტოს წაშლა ვერ მოხერხდა', 'error'); }
 });
 
 // --- Avatar button opens profile popup ---
