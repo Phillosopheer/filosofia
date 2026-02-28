@@ -819,6 +819,11 @@ function init() {
 const addBtn = document.getElementById('glossaryAddBtn');
 if (addBtn) addBtn.style.display = 'none';
 const savedToken = localStorage.getItem('idToken');
+// Google Auth-ის ძველი ფოტო — adminPhoto-დან გავასუფთავოთ
+const _savedAdminPhoto = localStorage.getItem('adminPhoto') || '';
+if (_savedAdminPhoto.includes('googleusercontent.com')) {
+  localStorage.removeItem('adminPhoto');
+}
 const savedUid = localStorage.getItem('currentUid');
 const savedEmail = localStorage.getItem('userEmail');
 const sessionTimestamp = parseInt(localStorage.getItem('sessionTimestamp') || '0');
