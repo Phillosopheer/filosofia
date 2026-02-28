@@ -1,6 +1,19 @@
 // api/send-code.js — ვერიფიკაციის კოდის გაგზავნა Resend-ით
 
-const RESEND_KEY = process.env.RESEND_KEY;
+const RESEND_KEY   = process.env.RESEND_KEY;
+const FIREBASE_DB  = "https://gen-lang-client-0339684222-default-rtdb.firebaseio.com";
+
+// ===== fpHash ბანის შემოწმება =====
+async function isFpBanned(fpHash) {
+  if (!fpHash) return false;
+  try {
+    // banned-fingerprints — public read
+    const res = await fetch(`${FIREBASE_DB}/banned-fingerprints/${fpHash}.json`);
+    if (!res.ok) return false;
+    const data = await res.json();
+    return data !== null;
+  } catch { return false; }
+}
 
 // კოდების in-memory შენახვა (5 წუთი)
 const codes = new Map();
@@ -35,6 +48,12 @@ export default async function handler(req, res) {
   // ===== კოდის გაგზავნა =====
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return res.status(400).json({ error: 'Email არასწორია' });
+  }
+
+  // fpHash ბანის შემოწმება
+  const { fpHash } = req.body || {};
+  if (fpHash && await isFpBanned(fpHash)) {
+    return res.status(403).json({ error: '🚫 შენი მოწყობილობა დაბლოკილია.' });
   }
 
   // Rate limit — ერთ email-ზე 1 კოდი 1 წუთში
