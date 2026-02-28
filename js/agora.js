@@ -115,7 +115,7 @@ async function agoraShowList(page) {
 
   listView.style.display   = 'block';
   threadView.style.display = 'none';
-  topTitle.innerHTML = '🏛 აგორა';
+  topTitle.innerHTML = '🏛 ა გ ო რ ა';
   backBtn.classList.add('hidden');
 
   // ახალი თემა — მხოლოდ logged-in user-ებს
@@ -230,7 +230,7 @@ async function agoraOpenThread(threadId) {
     if (!ok) throw new Error(data.error || 'შეცდომა');
 
     _agoraCurrentThread = data.thread;
-    topTitle.innerHTML = '<span>🏛</span> ΑΓΟΡΑ';
+    topTitle.innerHTML = '🏛 ა გ ო რ ა';
 
     // thread header
     contentEl.innerHTML = agoraThreadHeader(data.thread);
