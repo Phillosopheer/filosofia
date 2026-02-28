@@ -315,6 +315,9 @@ pending: true,
 submittedDate: Date.now()
 };
 if (author) submission.author = author;
+// Track who submitted (for articlesCount)
+const submitterUid = localStorage.getItem('userUid') || localStorage.getItem('currentUid');
+if (submitterUid) submission.submitterUid = submitterUid;
 const res = await fbFetch(`${FIREBASE_DB}/pending-notes.json`, {
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
@@ -506,6 +509,17 @@ const delRes = await fbFetch(`${FIREBASE_DB}/pending-notes/${noteId}.json?auth=$
 method: 'DELETE'
 });
 if (!delRes.ok) throw new Error('წაშლა pending-დან ვერ მოხერხდა');
+// Increment submitter's articlesCount
+if (note.submitterUid) {
+  try {
+    const uRes = await fbFetch(`${FIREBASE_DB}/users/${note.submitterUid}/articlesCount.json?auth=${token}`);
+    const cur = uRes.ok ? (await uRes.json() || 0) : 0;
+    await fbFetch(`${FIREBASE_DB}/users/${note.submitterUid}/articlesCount.json?auth=${token}`, {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(cur + 1)
+    });
+  } catch(e) { console.warn('articlesCount increment failed', e); }
+}
 await fetchPendingNotes();
 await fetchNotes();
 openPendingPanel();
@@ -2553,8 +2567,9 @@ async function doRegStep1() {
 
   // Nickname validation
   if (!nickname || nickname.length < 3) { showMsg(errEl, 'სახელი მინიმუმ 3 სიმბოლო უნდა იყოს', true); return; }
-  if (!/^[\wა-ჿ]+$/.test(nickname)) { showMsg(errEl, 'სახელში მხოლოდ ასოები და ციფრები დასაშვებია', true); return; }
-  if (/^\d+$/.test(nickname)) { showMsg(errEl, 'სახელი მხოლოდ ციფრებისგან ვერ შედგება', true); return; }
+  if (!/^[a-zA-Zა-ჿ][a-zA-Zა-ჿ_]*[a-zA-Zა-ჿ]$|^[a-zA-Zა-ჿ]{2,}$/.test(nickname)) { showMsg(errEl, 'სახელი მხოლოდ ასოებს შეიცავდეს (და _ შუაში). მაგ: Nodo_Qebadze', true); return; }
+  if (/\d/.test(nickname)) { showMsg(errEl, 'სახელში ციფრები დაუშვებელია', true); return; }
+  if (/__/.test(nickname)) { showMsg(errEl, 'ზედიზედ ორი _ დაუშვებელია', true); return; }
   if (FORBIDDEN_NICK.some(f => nickname.toLowerCase() === f)) { showMsg(errEl, 'ეს სახელი დაუშვებელია', true); return; }
   if (PROFANITY.some(p => nickname.toLowerCase().includes(p))) { showMsg(errEl, 'ეს სახელი დაუშვებელია', true); return; }
 
@@ -2765,9 +2780,23 @@ function updateAdminSidebar() {
   if (sidebarAvatar) sidebarAvatar.src = avatarSrc;
   if (sidebarNickname) sidebarNickname.innerHTML = adminNickname + ' <span class="admin-owner-badge">👑 Owner</span>';
   if (sidebarEmail) sidebarEmail.textContent = adminEmail;
-  if (statsEl) statsEl.style.display = 'none';
   if (userLogoutBtn) userLogoutBtn.style.display = 'none';
   if (avatarWrap) avatarWrap.style.display = 'flex';
+  // Show stats for admin (fetch real count)
+  if (statsEl) {
+    statsEl.style.display = 'flex';
+    const statA = document.getElementById('statArticles');
+    const statT = document.getElementById('statTopics');
+    // Fetch notes count from Firebase
+    fbFetch(`${FIREBASE_DB}/notes.json?shallow=true`).then(async r => {
+      if (r.ok) {
+        const d = await r.json();
+        const count = d ? Object.keys(d).length : 0;
+        if (statA) statA.textContent = count;
+      }
+    }).catch(()=>{});
+    if (statT) statT.textContent = '0';
+  }
 }
 
 function updateUserUI(loggedIn) {
@@ -2874,7 +2903,23 @@ async function saveNickname() {
   try {
     const checkRes = await fbFetch(`${FIREBASE_DB}/usernames/${trimmed.toLowerCase()}.json?auth=${userToken}`);
     const taken = checkRes.ok && (await checkRes.json()) !== null;
-    if (taken) { alert('ეს სახელი უკვე დაკავებულია'); return; }
+    if (taken) {
+      // show inline under nickname input
+      const errEl = document.getElementById('loginError') || document.createElement('div');
+      const nickEl = document.getElementById('sidebarNickname');
+      if (nickEl) {
+        let hint = document.getElementById('nicknameErrHint');
+        if (!hint) {
+          hint = document.createElement('div');
+          hint.id = 'nicknameErrHint';
+          hint.style.cssText = 'color:#e05;font-size:0.75rem;margin-top:4px;';
+          nickEl.closest('.user-nickname-wrap').after(hint);
+        }
+        hint.textContent = `"${trimmed}" დაკავებულია`;
+        setTimeout(() => { hint.textContent = ''; }, 3000);
+      }
+      return;
+    }
   } catch(e) {}
 
   try {
