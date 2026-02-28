@@ -124,22 +124,60 @@ export default async function handler(req, res) {
   // ============================================================
   if (action === "send") {
 
-    // Rate limit: 1 კოდი 2 წუთში
     const existing = resetCodes.get(email);
-    if (existing && Date.now() < existing.sentAt + 120000) {
-      const secs = Math.ceil((existing.sentAt + 120000 - Date.now()) / 1000);
+
+    // ---- ლიმიტი: მაქსიმუმ 2 გაგზავნა 24 საათში ----
+    const MAX_SENDS    = 2;
+    const WINDOW_MS    = 24 * 60 * 60 * 1000; // 24 სთ
+    const now          = Date.now();
+    if (existing && existing.firstSentAt && (now - existing.firstSentAt) < WINDOW_MS) {
+      if ((existing.sendCount || 0) >= MAX_SENDS) {
+        const resetIn = Math.ceil((existing.firstSentAt + WINDOW_MS - now) / 1000 / 60 / 60);
+        return res.status(429).json({
+          error: `🚫 დღის ლიმიტი ამოიწურა (${MAX_SENDS}/${MAX_SENDS}). სცადე ${resetIn} საათში.`
+        });
+      }
+    }
+
+    // ---- Rate limit: 1 კოდი 2 წუთში ----
+    if (existing && now < existing.sentAt + 120000) {
+      const secs = Math.ceil((existing.sentAt + 120000 - now) / 1000);
       return res.status(429).json({ error: `⏳ გთხოვ ${secs} წამი დაიცადო` });
+    }
+
+    // ---- შემოწმება: ანგარიში რეგისტრირებულია? ----
+    let uid;
+    try {
+      uid = await lookupUidByEmail(email);
+    } catch (e) {
+      console.error("lookupUidByEmail (send) error:", e.message);
+      return res.status(500).json({ error: "📡 სერვერის შეცდომა. სცადე ხელახლა." });
+    }
+    if (!uid) {
+      // ანგარიში არ არსებობს — ზუსტ პასუხს არ ვაძლევთ (უსაფრთხოება)
+      // მაგრამ ემაილს არ ვგზავნით
+      return res.status(404).json({
+        error: "🔍 ამ ელ. ფოსტით ანგარიში ვერ მოიძებნა."
+      });
     }
 
     // 6-ნიშნა კოდი
     const code6 = String(Math.floor(100000 + Math.random() * 900000));
 
-    // Map-ში ვინახავთ — 10 წუთი ვადა
+    // Map-ში ვინახავთ — 10 წუთი ვადა + sendCount
+    const prevSendCount  = (existing && (now - (existing.firstSentAt || 0)) < WINDOW_MS)
+                           ? (existing.sendCount || 0)
+                           : 0;
+    const prevFirstSent  = (existing && (now - (existing.firstSentAt || 0)) < WINDOW_MS)
+                           ? (existing.firstSentAt || now)
+                           : now;
     resetCodes.set(email, {
-      code:     code6,
-      expires:  Date.now() + 10 * 60 * 1000,
-      sentAt:   Date.now(),
-      attempts: 0
+      code:        code6,
+      expires:     now + 10 * 60 * 1000,
+      sentAt:      now,
+      attempts:    0,
+      sendCount:   prevSendCount + 1,
+      firstSentAt: prevFirstSent
     });
 
     // Brevo-ით კოდის გაგზავნა
