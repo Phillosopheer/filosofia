@@ -1,1076 +1,727 @@
 // ============================================================
-// js/agora.js — ΑΓΟΡΑ ფორუმი (Frontend)
-// Session 41
+// api/agora.js — ΑΓΟΡΑ ფორუმი
+// Session 41: თემები, კომენტარები, AI მოდერაცია
 // ============================================================
 
-// ===== state =====
-let _agoraListPage    = 1;
-let _agoraReplyPage   = 1;
-let _agoraTotalPages  = 1;
-let _agoraReplyTotal  = 1;
-let _agoraCurrentThread = null; // { id, ...threadData }
-let _agoraQuote       = null;   // { id, num, author, body } — ციტატა
+const FIREBASE_DB  = "https://gen-lang-client-0339684222-default-rtdb.firebaseio.com";
+const PROJECT_ID   = "gen-lang-client-0339684222";
+const API_KEY      = "AIzaSyCcTPhEU478qqwbI9KqJ4iOOFBHox-J7Ao";
+const ADMIN_UID    = "bOZ9pQ95e6RwQ6ZD6p5MUzzEvld2";
 
-// ===== DOM refs (ინიციალიზაციის შემდეგ) =====
-let _agoraView, _agoraListView, _agoraThreadView, _agoraTopbarTitle, _agoraBackBtn, _agoraNewBtn;
+const ALLOWED_ORIGINS = [
+  "https://philosoph.vercel.app",
+  "https://filosofia-xi.vercel.app"
+];
+
+const THREADS_PER_PAGE = 20;
+const REPLIES_PER_PAGE = 20;
+const EDIT_WINDOW_MS   = 60 * 60 * 1000;             // 1 საათი
+const MAX_WARNINGS     = 3;
+const BAN_DAYS         = 60;
+const MAX_THREAD_BODY  = 50000;  // პრაქტიკულად ულიმიტო
+const MAX_REPLY_BODY   = 50000;  // პრაქტიკულად ულიმიტო
+const MAX_TITLE_LEN    = 120;
+
 
 // ============================================================
-// helper: დროის ფორმატი — "2 საათის წინ"
+// Service Account Token (identitytoolkit scope ჩართულია)
 // ============================================================
-function agoraTimeAgo(ts) {
-  const diff = Date.now() - ts;
-  const m = Math.floor(diff / 60000);
-  const h = Math.floor(diff / 3600000);
-  const d = Math.floor(diff / 86400000);
-  if (m < 1)   return 'ახლა';
-  if (m < 60)  return `${m} წუთის წინ`;
-  if (h < 24)  return `${h} საათის წინ`;
-  if (d < 30)  return `${d} დღის წინ`;
-  const date = new Date(ts);
-  return `${date.getDate()}.${date.getMonth()+1}.${date.getFullYear()}`;
+let _cachedToken = null;
+let _tokenExpiry = 0;
+
+async function getAdminToken() {
+  if (_cachedToken && Date.now() < _tokenExpiry - 60000) return _cachedToken;
+  const sa  = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+  const now = Math.floor(Date.now() / 1000);
+  const payload = {
+    iss: sa.client_email, sub: sa.client_email,
+    aud: "https://oauth2.googleapis.com/token",
+    iat: now, exp: now + 3600,
+    scope: [
+      "https://www.googleapis.com/auth/firebase.database",
+      "https://www.googleapis.com/auth/userinfo.email",
+      "https://www.googleapis.com/auth/identitytoolkit"
+    ].join(" ")
+  };
+  const header = { alg: "RS256", typ: "JWT" };
+  const enc = (o) => btoa(JSON.stringify(o)).replace(/=/g,"").replace(/\+/g,"-").replace(/\//g,"_");
+  const sigInput  = `${enc(header)}.${enc(payload)}`;
+  const pemBody   = sa.private_key.replace(/-----[^-]+-----/g,"").replace(/\s/g,"");
+  const keyBytes  = Uint8Array.from(atob(pemBody), c => c.charCodeAt(0));
+  const cryptoKey = await crypto.subtle.importKey("pkcs8", keyBytes, { name:"RSASSA-PKCS1-v1_5", hash:"SHA-256" }, false, ["sign"]);
+  const sig    = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", cryptoKey, new TextEncoder().encode(sigInput));
+  const sigB64 = btoa(String.fromCharCode(...new Uint8Array(sig))).replace(/=/g,"").replace(/\+/g,"-").replace(/\//g,"_");
+  const jwt    = `${sigInput}.${sigB64}`;
+  const tokenRes  = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${jwt}`
+  });
+  const td    = await tokenRes.json();
+  _cachedToken = td.access_token;
+  _tokenExpiry  = Date.now() + 3600000;
+  return _cachedToken;
 }
 
 // ============================================================
-// helper: user token
+// Firebase REST helpers
 // ============================================================
-function agoraGetToken() {
-  // sync ვერსია — UI-სთვის (hidden/visible ღილაკები)
-  if (typeof idToken !== 'undefined' && idToken) return idToken;
-  if (typeof userToken !== 'undefined' && userToken) return userToken;
-  return localStorage.getItem('idToken') || localStorage.getItem('userToken') || null;
+async function fbGet(path) {
+  const token = await getAdminToken();
+  const res   = await fetch(`${FIREBASE_DB}${path}.json?access_token=${token}`);
+  if (!res.ok) return null;
+  return await res.json();
 }
 
-// async ვერსია submit-ებისთვის — ამოწმებს expiry-ს და refresh-ავს
-async function agoraGetValidToken() {
-  // ადმინი: getValidIdToken() refresh-ავს ავტომატურად
-  if (typeof idToken !== 'undefined' && idToken) {
-    try {
-      if (typeof getValidIdToken === 'function') return await getValidIdToken();
-    } catch (e) { /* expired/invalid */ }
-    return idToken;
-  }
-  // ჩვეულებრივი user
-  let tok = (typeof userToken !== 'undefined' && userToken)
-    ? userToken : localStorage.getItem('userToken');
-  if (!tok) return null;
+async function fbSet(path, data) {
+  const token = await getAdminToken();
+  const res   = await fetch(`${FIREBASE_DB}${path}.json?access_token=${token}`, {
+    method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data)
+  });
+  return res.ok;
+}
+
+async function fbPatch(path, data) {
+  const token = await getAdminToken();
+  const res   = await fetch(`${FIREBASE_DB}${path}.json?access_token=${token}`, {
+    method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data)
+  });
+  return res.ok;
+}
+
+async function fbDelete(path) {
+  const token = await getAdminToken();
+  const res   = await fetch(`${FIREBASE_DB}${path}.json?access_token=${token}`, { method: "DELETE" });
+  return res.ok;
+}
+
+async function fbPush(path, data) {
+  const token = await getAdminToken();
+  const res   = await fetch(`${FIREBASE_DB}${path}.json?access_token=${token}`, {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data)
+  });
+  if (!res.ok) return null;
+  const result = await res.json();
+  return result.name; // Firebase-ის მიერ გენერირებული ID
+}
+
+// ============================================================
+// მომხმარებლის token-ის შემოწმება
+// ============================================================
+async function verifyUserToken(token) {
   try {
-    const p = JSON.parse(atob(tok.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
-    if ((p.exp * 1000) < Date.now()) {
-      const rt = localStorage.getItem('userRefreshToken');
-      if (!rt) return tok;
-      const FKEY = typeof API_KEY !== 'undefined'
-        ? API_KEY : 'AIzaSyCcTPhEU478qqwbI9KqJ4iOOFBHox-J7Ao';
-      const r = await fetch(
-        `https://securetoken.googleapis.com/v1/token?key=${FKEY}`,
-        { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'},
-          body:`grant_type=refresh_token&refresh_token=${encodeURIComponent(rt)}` }
-      );
-      const d = await r.json();
-      if (r.ok && d.id_token) {
-        if (typeof userToken !== 'undefined') userToken = d.id_token;
-        localStorage.setItem('userToken', d.id_token);
-        if (d.refresh_token) localStorage.setItem('userRefreshToken', d.refresh_token);
-        return d.id_token;
-      }
-    }
-  } catch (e) { /* ignore */ }
-  return tok;
+    const res = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${API_KEY}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idToken: token })
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const user = data?.users?.[0];
+    if (!user) return null;
+    return { uid: user.localId, email: user.email };
+  } catch {
+    return null;
+  }
 }
 
-function agoraGetUser() {
-  // ჩვეულებრივი user
-  if (typeof currentUser !== 'undefined' && currentUser) return currentUser;
-  // ადმინი — currentUser null-ია, მაგრამ idToken გვაქვს
-  if (typeof idToken !== 'undefined' && idToken) {
-    return {
-      uid:      'bOZ9pQ95e6RwQ6ZD6p5MUzzEvld2',
-      nickname: localStorage.getItem('adminDisplayName') || 'ნოდარ კებაძე',
-      photoURL: localStorage.getItem('adminPhoto') || null
-    };
+// ============================================================
+// UID-ით email-ის მოძიება (ბანისთვის)
+// ============================================================
+async function lookupEmailByUid(uid) {
+  try {
+    const adminTok = await getAdminToken();
+    const res = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/projects/${PROJECT_ID}/accounts:lookup`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${adminTok}` },
+        body: JSON.stringify({ localId: [uid] })
+      }
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data?.users?.[0]?.email || null;
+  } catch {
+    return null;
+  }
+}
+
+// ============================================================
+// Firebase Auth-ში მომხმარებლის გათიშვა
+// ============================================================
+async function disableAuthUser(uid) {
+  try {
+    const adminTok = await getAdminToken();
+    const res = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/projects/${PROJECT_ID}/accounts:update`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${adminTok}` },
+        body: JSON.stringify({ localId: uid, disableUser: true })
+      }
+    );
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+// ============================================================
+// ბანის სისტემა — 60 დღე
+// ============================================================
+async function banUserForAbuse(uid) {
+  const email = await lookupEmailByUid(uid);
+  const bannedUntil = Date.now() + BAN_DAYS * 86400000;
+
+  // Firebase Auth-ში გათიშვა
+  await disableAuthUser(uid);
+
+  // /agora-warnings/{uid}/banned = true
+  await fbPatch(`/agora-warnings/${uid}`, { banned: true, bannedAt: Date.now() });
+
+  // banned-emails-ში ჩაწერა
+  if (email) {
+    const safeEmail = email.replace(/[.#$[\]@]/g, '_');
+    await fbSet(`/banned-emails/${safeEmail}`, {
+      bannedUntil,
+      banDays: BAN_DAYS,
+      reason: "agora_abuse"
+    });
+  }
+}
+
+// ============================================================
+// Gemini AI მოდერაცია
+// ============================================================
+async function callGemini(prompt) {
+  const keys = Object.keys(process.env)
+    .filter(k => k.startsWith("GEMINI_KEY_"))
+    .sort()
+    .map(k => process.env[k])
+    .filter(Boolean);
+
+  if (!keys.length) return null;
+
+  for (const key of keys) {
+    try {
+      const r = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemma-3-27b-it:generateContent?key=${key}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.1, maxOutputTokens: 350 }
+          })
+        }
+      );
+      if (r.status === 429 || r.status === 403) continue;
+      const d = await r.json();
+      if (r.ok) return d?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    } catch { continue; }
   }
   return null;
 }
 
-function agoraIsAdmin() {
-  if (typeof idToken !== 'undefined' && idToken) return true;
-  return false;
-}
+async function moderateThread(title, body) {
+  const prompt = `შენ ხარ ფილოსოფიური ფორუმის AI მოდერატორი. ფორუმი მხოლოდ ფილოსოფიური თემებისთვისაა.
 
-// ============================================================
-// helper: XSS-ის თავიდან აცილება
-// ============================================================
-function agoraEscape(str) {
-  return String(str)
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;');
-}
+მომხმარებელი ხსნის ახალ თემას:
+სათაური: ${title}
+შინაარსი: ${body}
 
-// ============================================================
-// helper: error div
-// ============================================================
-function agoraShowError(id, msg) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.textContent = msg;
-  el.classList.add('active');
-}
-function agoraClearError(id) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.textContent = '';
-  el.classList.remove('active');
-}
+შეამოწმე:
+1. "philosophical": true — თუ ეს ეთიკას, მეტაფიზიკას, ლოგიკას, ეპისტემოლოგიას, ონტოლოგიას, ეგზისტენციალიზმს, ესთეტიკას, ფილოსოფიის ისტორიას, რელიგიის ფილოსოფიას, პოლიტიკურ ფილოსოფიას, ღირებულებათა ფილოსოფიას ან ნებისმიერ სხვა ფილოსოფიურ დარგს ეხება. ძალიან ფართო გაგება — ფილოსოფიური კითხვა ყოველდღიური ცხოვრებაზეც კი "philosophical":true-ა.
+2. "abuse": true — მხოლოდ მკაფიო გინება, ლანძღვა, ძალადობრივი ენა, რასიზმი.
 
-// ============================================================
-// API call
-// ============================================================
-async function agoraFetch(data) {
-  const res  = await fetch('/api/agora', {
-    method:  'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify(data)
-  });
-  const json = await res.json();
-  return { ok: res.ok, status: res.status, data: json };
-}
+უპასუხე მხოლოდ JSON, სხვა არაფერი:
+{"philosophical":true/false,"abuse":true/false,"message":"მიზეზი ქართულად"}`;
 
-// ============================================================
-// აგორას გახსნა / დახურვა
-// ============================================================
-function openAgora() {
-  _agoraView = document.getElementById('agoraView');
-  _agoraView.classList.add('active');
-  document.body.style.overflow = 'hidden';
-  agoraShowList(1);
-}
-
-function closeAgora() {
-  const view = document.getElementById('agoraView');
-  if (view) view.classList.remove('active');
-  document.body.style.overflow = '';
-  _agoraCurrentThread = null;
-}
-
-// ============================================================
-// thread list გვერდი
-// ============================================================
-async function agoraShowList(page) {
-  _agoraCurrentThread = null;
-
-  const listView   = document.getElementById('agoraListView');
-  const threadView = document.getElementById('agoraThreadView');
-  const topTitle   = document.getElementById('agoraTopbarTitle');
-  const backBtn    = document.getElementById('agoraBackBtn');
-  const newBtn     = document.getElementById('agoraNewBtn');
-
-  listView.style.display   = 'block';
-  threadView.style.display = 'none';
-  topTitle.innerHTML = '🏛 ა გ ო რ ა';
-  backBtn.classList.add('hidden');
-
-  // ახალი თემა — მხოლოდ logged-in user-ებს
-  const canCreate = !!(agoraGetToken() || agoraIsAdmin());
-  if (newBtn) {
-    newBtn.classList.toggle('hidden', !canCreate);
-  }
-
-  // განმარტება — სტატიკური, ერთხელ ჩნდება
-  const descEl = document.getElementById('agoraDescription');
-  if (descEl) {
-    descEl.style.display = page === 1 ? 'block' : 'none';
-  }
-
-  const listEl = document.getElementById('agoraThreadList');
-  listEl.innerHTML = '<div class="agora-loading">იტვირთება</div>';
+  const text = await callGemini(prompt);
+  if (!text) return { philosophical: true, abuse: false, message: "" };
 
   try {
-    const { ok, data } = await agoraFetch({ action: 'get-threads', page });
-    if (!ok) throw new Error(data.error || 'შეცდომა');
+    const m = text.match(/\{[\s\S]*?\}/);
+    return JSON.parse(m ? m[0] : text);
+  } catch {
+    return { philosophical: true, abuse: false, message: "" };
+  }
+}
 
-    _agoraListPage   = data.page;
-    _agoraTotalPages = data.totalPages;
+async function moderateReply(replyBody, threadTitle, threadBodySnippet) {
+  const topicCtx = threadTitle
+    ? `თემა: "${threadTitle}"\nთემის შინაარსი: ${(threadBodySnippet || "").substring(0, 300)}\n\n`
+    : "";
 
-    if (!data.threads || data.threads.length === 0) {
-      listEl.innerHTML = `
-        <div class="agora-empty">
-          <div class="agora-empty-icon">🏛</div>
-          <div class="agora-empty-text">პირველი იყავი — გახსენი თემა</div>
-        </div>`;
-      document.getElementById('agoraListPagination').innerHTML = '';
-      return;
+  const prompt = `შენ ხარ ფილოსოფიური ფორუმის AI მოდერატორი.
+
+${topicCtx}მომხმარებლის კომენტარი:
+${replyBody}
+
+შეამოწმე ორი რამ:
+1. "ontopic": true — კომენტარი ეხება ამ თემას (სულ მცირე 50% კავშირი). false — მხოლოდ თუ სრულიად გამოუსადეგარი, არ ეხება ("ამინდი კარგია", "ვინ გაიმარჯვა ფეხბურთში" და მსგ.). ფილოსოფიური განზოგადება ყოველთვის ontopic-ია.
+2. "abuse": true — მხოლოდ მკაფიო გინება, ლანძღვა, ძალადობრივი ენა, სპამი.
+
+უპასუხე მხოლოდ JSON, სხვა არაფერი:
+{"ontopic":true/false,"abuse":true/false,"message":"მიზეზი ქართულად"}`;
+
+  const text = await callGemini(prompt);
+  if (!text) return { ontopic: true, abuse: false, message: "" };
+
+  try {
+    const m = text.match(/\{[\s\S]*?\}/);
+    const parsed = JSON.parse(m ? m[0] : text);
+    // backward compat — ok field
+    if (parsed.ok !== undefined && parsed.ontopic === undefined) {
+      parsed.ontopic = parsed.ok;
     }
-
-    listEl.innerHTML = data.threads.map(t => agoraThreadCard(t)).join('');
-
-    // event listeners — click on thread card
-    listEl.querySelectorAll('.agora-thread-item').forEach(el => {
-      el.addEventListener('click', function() {
-        agoraOpenThread(this.dataset.id);
-      });
-    });
-
-    // pagination
-    agoraRenderPagination(
-      'agoraListPagination',
-      data.page,
-      data.totalPages,
-      p => agoraShowList(p)
-    );
-
-  } catch (e) {
-    listEl.innerHTML = `<div class="agora-empty"><div class="agora-empty-text">❌ ${agoraEscape(e.message)}</div></div>`;
+    return parsed;
+  } catch {
+    return { ontopic: true, abuse: false, message: "" };
   }
 }
 
 // ============================================================
-// thread card HTML
+// პაგინაციის helper
 // ============================================================
-function agoraThreadCard(t) {
-  const locked  = t.status === 'locked';
-  const pinned  = t.pinned;
-  const classes = ['agora-thread-item',
-    locked ? 'agora-thread-locked' : '',
-    pinned ? 'pinned' : ''
-  ].filter(Boolean).join(' ');
-
-  return `
-    <div class="${classes}" data-id="${agoraEscape(t.id)}">
-      ${pinned ? '<div class="agora-thread-pin">📌 PINNED</div>' : ''}
-      <div class="agora-thread-title">${agoraEscape(t.title)}</div>
-      <div class="agora-thread-meta">
-        <div class="agora-thread-author">
-          <span>${agoraEscape(t.authorName)}</span>
-          <span>·</span>
-          <span>${agoraTimeAgo(t.createdAt)}</span>
-        </div>
-        <div class="agora-thread-replies">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-          <span>${t.replyCount || 0}</span>
-        </div>
-      </div>
-    </div>`;
+function paginate(arr, page, perPage) {
+  const total      = arr.length;
+  const totalPages = Math.ceil(total / perPage) || 1;
+  const safePage   = Math.max(1, Math.min(page, totalPages));
+  const start      = (safePage - 1) * perPage;
+  const items      = arr.slice(start, start + perPage);
+  return { items, page: safePage, totalPages, total };
 }
 
 // ============================================================
-// thread detail view
+// მთავარი HANDLER
 // ============================================================
-async function agoraOpenThread(threadId) {
-  const listView   = document.getElementById('agoraListView');
-  const threadView = document.getElementById('agoraThreadView');
-  const topTitle   = document.getElementById('agoraTopbarTitle');
-  const backBtn    = document.getElementById('agoraBackBtn');
-  const newBtn     = document.getElementById('agoraNewBtn');
+export default async function handler(req, res) {
+  // CORS
+  const origin    = req.headers["origin"]  || "";
+  const referer   = req.headers["referer"] || "";
+  const isAllowed = ALLOWED_ORIGINS.some(o => origin.startsWith(o) || referer.startsWith(o));
 
-  listView.style.display   = 'none';
-  threadView.style.display = 'block';
-  backBtn.classList.remove('hidden');
-  if (newBtn) newBtn.classList.add('hidden');
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  const contentEl  = document.getElementById('agoraThreadContent');
-  const repliesEl  = document.getElementById('agoraReplies');
-  const paginEl    = document.getElementById('agoraRepliesPagination');
-  const replyFEl   = document.getElementById('agoraReplyFormWrap');
-  contentEl.innerHTML  = '<div class="agora-loading">იტვირთება</div>';
-  repliesEl.innerHTML  = '';
-  paginEl.innerHTML    = '';
-  if (replyFEl) replyFEl.innerHTML = '';
-
-  try {
-    const { ok, data } = await agoraFetch({ action: 'get-thread', threadId });
-    if (!ok) throw new Error(data.error || 'შეცდომა');
-
-    _agoraCurrentThread = data.thread;
-    topTitle.innerHTML = '🏛 ა გ ო რ ა';
-
-    // thread header
-    contentEl.innerHTML = agoraThreadHeader(data.thread);
-
-    // action buttons on thread (edit/delete)
-    const actionsEl = contentEl.querySelector('.agora-thread-actions');
-    if (actionsEl) agoraBindThreadActions(actionsEl, data.thread);
-
-    // replies
-    _agoraReplyPage  = data.replies.page;
-    _agoraReplyTotal = data.replies.totalPages;
-    agoraRenderReplies(repliesEl, data.replies.items, data.replies);
-
-    // pagination
-    agoraRenderPagination('agoraRepliesPagination', data.replies.page, data.replies.totalPages, p => {
-      agoraLoadReplyPage(threadId, p);
-    });
-
-    // reply form
-    agoraRenderReplyForm(replyFEl, data.thread);
-
-  } catch (e) {
-    contentEl.innerHTML = `<div class="agora-empty"><div class="agora-empty-text">❌ ${agoraEscape(e.message)}</div></div>`;
+  if (req.method === "OPTIONS") {
+    if (isAllowed) res.setHeader("Access-Control-Allow-Origin", origin || ALLOWED_ORIGINS[0]);
+    return res.status(200).end();
   }
-}
+  if (!isAllowed)            return res.status(403).json({ error: "Forbidden" });
+  res.setHeader("Access-Control-Allow-Origin", origin);
+  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-// ============================================================
-// thread header HTML
-// ============================================================
-function agoraThreadHeader(t) {
-  const user   = agoraGetUser();
-  const isMe   = user && user.uid === t.authorUid;
-  const isAdm  = agoraIsAdmin();
-  const canAct = isMe || isAdm;
-  const inWin  = (Date.now() - t.createdAt) < 3600000;
-  const canEdit = canAct && (isAdm || inWin);
+  const body   = typeof req.body === "string" ? JSON.parse(req.body) : (req.body || {});
+  const { action } = body;
+  const now = Date.now();
 
-  const avatarHtml = t.authorAvatar
-    ? `<img class="agora-author-avatar" src="${agoraEscape(t.authorAvatar)}" alt="" loading="lazy">`
-    : `<div class="agora-author-avatar agora-author-avatar-placeholder">${agoraEscape((t.authorName||'?')[0].toUpperCase())}</div>`;
 
-  return `
-    <div class="agora-thread-header">
-      <div class="agora-thread-header-title">${agoraEscape(t.title)}</div>
-      <div class="agora-thread-header-meta">
-        ${avatarHtml}
-        <span class="agora-reply-author">${agoraEscape(t.authorName)}</span>
-        <span>·</span>
-        <span>${agoraTimeAgo(t.createdAt)}</span>
-        ${t.editedAt ? `<span class="agora-edited-tag">(რედ. ${agoraTimeAgo(t.editedAt)})</span>` : ''}
-        ${t.status === 'locked' ? '<span>· 🔒 დახურულია</span>' : ''}
-      </div>
-      <div class="agora-thread-header-body" id="threadBodyDisplay">${agoraEscape(t.body)}</div>
-      ${canEdit ? `
-        <div class="agora-item-actions agora-thread-actions" data-thread-id="${agoraEscape(t.id)}">
-          <button class="agora-action-btn" data-act="edit-thread">✏️ რედაქტირება</button>
-          <button class="agora-action-btn danger" data-act="delete-thread">🗑 წაშლა</button>
-        </div>
-        <div id="threadInlineEdit" class="agora-inline-edit" style="display:none">
-          <input type="text" id="editThreadTitle" class="agora-modal-input" maxlength="120" value="${agoraEscape(t.title)}" />
-          <textarea id="editThreadBody" class="agora-textarea" style="margin-top:8px" maxlength="2000">${agoraEscape(t.body)}</textarea>
-          <div class="agora-inline-edit-btns">
-            <button class="agora-reply-submit" id="editThreadSaveBtn">შენახვა</button>
-            <button class="agora-action-btn" id="editThreadCancelBtn">გაუქმება</button>
-          </div>
-        </div>
-      ` : ''}
-    </div>`;
-}
+  // ============================================================
+  // action: 'get-threads' — თემების სია (pagination)
+  // ============================================================
+  if (action === "get-threads") {
+    const page = parseInt(body.page) || 1;
+    try {
+      const raw = await fbGet("/agora-threads");
+      if (!raw) return res.json({ threads: [], page: 1, totalPages: 1, total: 0 });
 
-// ============================================================
-// thread action buttons binding
-// ============================================================
-function agoraBindThreadActions(actionsEl, thread) {
-  const editBtn   = actionsEl.querySelector('[data-act="edit-thread"]');
-  const deleteBtn = actionsEl.querySelector('[data-act="delete-thread"]');
+      // object → array, დელეტ-ებული გამოვრიცხოთ
+      const threads = Object.entries(raw)
+        .map(([id, d]) => ({ id, ...d }))
+        .filter(t => t.status !== "deleted")
+        .sort((a, b) => {
+          // pinned-ები ზევით
+          if (a.pinned && !b.pinned) return -1;
+          if (!a.pinned && b.pinned) return  1;
+          return b.createdAt - a.createdAt;
+        });
 
-  if (editBtn) {
-    editBtn.addEventListener('click', function() {
-      const editDiv = document.getElementById('threadInlineEdit');
-      const bodyDiv = document.getElementById('threadBodyDisplay');
-      if (editDiv) {
-        editDiv.style.display = 'block';
-        bodyDiv.style.display = 'none';
-        actionsEl.style.display = 'none';
+      const result = paginate(threads, page, THREADS_PER_PAGE);
+      return res.json(result);
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
+    }
+  }
+
+
+  // ============================================================
+  // action: 'get-thread' — ერთი thread-ის მონაცემები + პირველი გვერდის replies
+  // ============================================================
+  if (action === "get-thread") {
+    const { threadId } = body;
+    if (!threadId) return res.status(400).json({ error: "threadId სავალდებულოა" });
+
+    try {
+      const thread = await fbGet(`/agora-threads/${threadId}`);
+      if (!thread || thread.status === "deleted") {
+        return res.status(404).json({ error: "თემა ვერ მოიძებნა" });
       }
-    });
-  }
 
-  if (deleteBtn) {
-    deleteBtn.addEventListener('click', function() {
-      showConfirmToast('დარწმუნებული ხარ რომ გსურს ამ თემის წაშლა?', async function() {
-        await agoraDeleteThread(thread.id);
-      });
-    });
-  }
+      // replies პირველი გვერდი
+      const rawReplies = await fbGet(`/agora-replies/${threadId}`);
+      const replies = rawReplies
+        ? Object.entries(rawReplies)
+            .map(([id, d]) => ({ id, ...d }))
+            .filter(r => r.status !== "deleted")
+            .sort((a, b) => a.createdAt - b.createdAt)
+        : [];
 
-  // inline edit form
-  const saveBtn   = document.getElementById('editThreadSaveBtn');
-  const cancelBtn = document.getElementById('editThreadCancelBtn');
-
-  if (saveBtn) {
-    saveBtn.addEventListener('click', async function() {
-      const newTitle = document.getElementById('editThreadTitle')?.value.trim();
-      const newBody  = document.getElementById('editThreadBody')?.value.trim();
-      await agoraEditThread(thread.id, newTitle, newBody);
-    });
-  }
-  if (cancelBtn) {
-    cancelBtn.addEventListener('click', function() {
-      document.getElementById('threadInlineEdit').style.display = 'none';
-      document.getElementById('threadBodyDisplay').style.display = 'block';
-      actionsEl.style.display = 'flex';
-    });
-  }
-}
-
-// ============================================================
-// replies render
-// ============================================================
-function agoraRenderReplies(container, items, paginData) {
-  if (!items || items.length === 0) {
-    container.innerHTML = `
-      <div class="agora-replies-divider">კომენტარები</div>
-      <div class="agora-empty" style="padding:24px">
-        <div class="agora-empty-text">კომენტარები არ არის — იყავი პირველი</div>
-      </div>`;
-    return;
-  }
-
-  // კომენტარის ნომერი — გვერდის მიხედვით
-  const offset = ((_agoraReplyPage - 1) * 20);
-
-  const repliesHTML = items.map((r, i) => agoraReplyCard(r, offset + i + 1)).join('');
-  container.innerHTML = `
-    <div class="agora-replies-divider">კომენტარები — ${paginData.total}</div>
-    ${repliesHTML}`;
-
-  // action buttons
-  container.querySelectorAll('.agora-reply-item').forEach(el => {
-    agoraBindReplyActions(el);
-  });
-}
-
-// ============================================================
-// reply card HTML
-// ============================================================
-function agoraReplyCard(r, num) {
-  const user   = agoraGetUser();
-  const isMe   = user && user.uid === r.authorUid;
-  const isAdm  = agoraIsAdmin();
-  const canAct = isMe || isAdm;
-  const inWin  = (Date.now() - r.createdAt) < 3600000;
-  const canEdit = canAct && (isAdm || inWin);
-
-  // avatar
-  const avatarHtml = r.authorAvatar
-    ? `<img class="agora-author-avatar" src="${agoraEscape(r.authorAvatar)}" alt="" loading="lazy">`
-    : `<div class="agora-author-avatar agora-author-avatar-placeholder">${agoraEscape((r.authorName||'?')[0].toUpperCase())}</div>`;
-
-  // quote block (თუ ეს კომენტარი სხვის ციტატაა)
-  const quoteHtml = r.quotedBody
-    ? `<div class="agora-quote-block">
-        <div class="agora-quote-author">↩ ${agoraEscape(r.quotedAuthor || '?')} ${r.quotedNum ? `<span>#${r.quotedNum}</span>` : ''}</div>
-        <div class="agora-quote-body">${agoraEscape(r.quotedBody.length > 150 ? r.quotedBody.substring(0,150)+'…' : r.quotedBody)}</div>
-      </div>`
-    : '';
-
-  // quote button — ჩანს logged-in user-ებს
-  const canReply = !!(agoraGetToken() || agoraIsAdmin());
-  const quoteBtnHtml = canReply
-    ? `<button class="agora-action-btn agora-quote-btn" data-act="quote-reply" title="ციტირება">↩ ციტირება</button>`
-    : '';
-
-  return `
-    <div class="agora-reply-item" data-reply-id="${agoraEscape(r.id)}" data-reply-num="${num}" data-reply-author="${agoraEscape(r.authorName)}" data-reply-body="${agoraEscape((r.body||'').substring(0,200))}">
-      <div class="agora-reply-meta">
-        <span class="agora-reply-num">#${num}</span>
-        ${avatarHtml}
-        <span class="agora-reply-author">${agoraEscape(r.authorName)}</span>
-        <span>·</span>
-        <span>${agoraTimeAgo(r.createdAt)}</span>
-        ${r.editedAt ? `<span class="agora-edited-tag">(რედ. ${agoraTimeAgo(r.editedAt)})</span>` : ''}
-      </div>
-      ${quoteHtml}
-      <div class="agora-reply-body" id="replyBody_${agoraEscape(r.id)}">${agoraEscape(r.body)}</div>
-      <div class="agora-item-actions" style="margin-top:8px">
-        ${quoteBtnHtml}
-        ${canEdit ? `
-          <button class="agora-action-btn" data-act="edit-reply">✏️</button>
-          <button class="agora-action-btn danger" data-act="delete-reply">🗑</button>
-        ` : ''}
-      </div>
-      ${canEdit ? `
-        <div class="agora-inline-edit" id="replyEdit_${agoraEscape(r.id)}" style="display:none">
-          <textarea class="agora-textarea reply-edit-textarea" maxlength="2000">${agoraEscape(r.body)}</textarea>
-          <div class="agora-inline-edit-btns">
-            <button class="agora-reply-submit reply-save-btn" data-reply-id="${agoraEscape(r.id)}">შენახვა</button>
-            <button class="agora-action-btn reply-cancel-btn">გაუქმება</button>
-          </div>
-        </div>
-      ` : ''}
-    </div>`;
-}
-
-// ============================================================
-// reply action binding
-// ============================================================
-function agoraBindReplyActions(el) {
-  const replyId  = el.dataset.replyId;
-  const editBtn  = el.querySelector('[data-act="edit-reply"]');
-  const delBtn   = el.querySelector('[data-act="delete-reply"]');
-  const quoteBtn = el.querySelector('[data-act="quote-reply"]');
-  const saveBtn  = el.querySelector('.reply-save-btn');
-  const cancelBtn = el.querySelector('.reply-cancel-btn');
-  const editDiv  = document.getElementById(`replyEdit_${replyId}`);
-  const bodyDiv  = document.getElementById(`replyBody_${replyId}`);
-
-  // ── ციტირება ──
-  if (quoteBtn) {
-    quoteBtn.addEventListener('click', function() {
-      const num    = parseInt(el.dataset.replyNum) || '';
-      const author = el.dataset.replyAuthor || '';
-      const body   = el.dataset.replyBody   || '';
-      _agoraQuote = { id: replyId, num, author, body };
-      agoraUpdateQuotePreview();
-      // scroll to reply form
-      const form = document.getElementById('agoraReplyFormWrap');
-      if (form) form.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      // focus textarea
-      const ta = document.getElementById('replyTextarea');
-      if (ta) ta.focus();
-    });
-  }
-
-  if (editBtn && editDiv) {
-    editBtn.addEventListener('click', function() {
-      editDiv.style.display = 'block';
-      editBtn.closest('.agora-item-actions').style.display = 'none';
-      bodyDiv.style.display = 'none';
-    });
-  }
-
-  if (delBtn) {
-    delBtn.addEventListener('click', function() {
-      showConfirmToast('კომენტარი წაიშლება. დარწმუნებული ხარ?', async function() {
-        if (!_agoraCurrentThread) return;
-        await agoraDeleteReply(_agoraCurrentThread.id, replyId);
-      });
-    });
-  }
-
-  if (saveBtn && editDiv) {
-    saveBtn.addEventListener('click', async function() {
-      const ta = editDiv.querySelector('textarea');
-      if (!ta || !_agoraCurrentThread) return;
-      await agoraEditReply(_agoraCurrentThread.id, replyId, ta.value.trim());
-    });
-  }
-
-  if (cancelBtn && editDiv) {
-    cancelBtn.addEventListener('click', function() {
-      editDiv.style.display = 'none';
-      const actDiv = editDiv.closest('.agora-reply-item').querySelector('.agora-item-actions');
-      if (actDiv) actDiv.style.display = 'flex';
-      bodyDiv.style.display = 'block';
-    });
-  }
-}
-
-// ============================================================
-// reply form render
-// ============================================================
-function agoraRenderReplyForm(container, thread) {
-  if (!container) return;
-
-  const token = agoraGetToken();
-  const isAdm = agoraIsAdmin();
-
-  if (thread.status === 'locked') {
-    container.innerHTML = `<div class="agora-locked-notice">🔒 ეს თემა დახურულია</div>`;
-    return;
-  }
-
-  if (!token && !isAdm) {
-    container.innerHTML = `
-      <div class="agora-reply-form">
-        <div class="agora-login-notice">
-          კომენტარის დასაწერად <span id="agoraLoginLink">შედი ანგარიშში</span>
-        </div>
-      </div>`;
-    const link = container.querySelector('#agoraLoginLink');
-    if (link) {
-      link.addEventListener('click', function() {
-        closeAgora();
-        openModal('loginModal');
-        switchAuthTab('login');
-      });
-    }
-    return;
-  }
-
-  container.innerHTML = `
-    <div class="agora-reply-form">
-      <div class="agora-reply-form-title">შენი პასუხი</div>
-      <div class="agora-error" id="replyError"></div>
-      <div id="agoraQuotePreview" class="agora-quote-preview" style="display:none">
-        <div class="agora-quote-preview-inner">
-          <div id="agoraQuotePreviewText"></div>
-          <button class="agora-quote-clear" id="agoraQuoteClear" title="ციტატის გაუქმება">✕</button>
-        </div>
-      </div>
-      <textarea class="agora-textarea" id="replyTextarea" placeholder="დაწერე კომენტარი..."></textarea>
-      <div class="agora-char-count"><span id="replyCharCount">0</span></div>
-      <button class="agora-reply-submit" id="replySubmitBtn">გამოქვეყნება ↑</button>
-    </div>`;
-
-  const ta      = container.querySelector('#replyTextarea');
-  const countEl = container.querySelector('#replyCharCount');
-  const btn     = container.querySelector('#replySubmitBtn');
-  const clearBtn = container.querySelector('#agoraQuoteClear');
-
-  // ციტატის preview განახლება
-  agoraUpdateQuotePreview();
-
-  ta.addEventListener('input', function() {
-    countEl.textContent = ta.value.length;
-  });
-
-  if (clearBtn) {
-    clearBtn.addEventListener('click', function() {
-      _agoraQuote = null;
-      agoraUpdateQuotePreview();
-    });
-  }
-
-  btn.addEventListener('click', async function() {
-    await agoraSubmitReply(thread.id, ta, btn);
-  });
-
-  ta.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-      agoraSubmitReply(thread.id, ta, btn);
-    }
-  });
-}
-
-// ============================================================
-// quote preview-ს განახლება
-// ============================================================
-function agoraUpdateQuotePreview() {
-  const preview = document.getElementById('agoraQuotePreview');
-  const text    = document.getElementById('agoraQuotePreviewText');
-  if (!preview || !text) return;
-
-  if (_agoraQuote) {
-    const snippet = _agoraQuote.body.length > 120
-      ? _agoraQuote.body.substring(0, 120) + '…'
-      : _agoraQuote.body;
-    text.innerHTML = `<strong>↩ ${agoraEscape(_agoraQuote.author)} #${_agoraQuote.num}:</strong> ${agoraEscape(snippet)}`;
-    preview.style.display = 'block';
-  } else {
-    preview.style.display = 'none';
-    text.innerHTML = '';
-  }
-}
-
-// ============================================================
-// პაგინაცია
-// ============================================================
-function agoraRenderPagination(containerId, page, totalPages, onPageClick) {
-  const el = document.getElementById(containerId);
-  if (!el) return;
-  if (totalPages <= 1) { el.innerHTML = ''; return; }
-
-  let html = '';
-
-  // ← წინა
-  html += `<button class="agora-page-btn" data-page="${page-1}" ${page <= 1 ? 'disabled' : ''}>←</button>`;
-
-  // გვერდების ღილაკები (max 7 ჩანს)
-  const pages = agoraPageRange(page, totalPages);
-  for (const p of pages) {
-    if (p === '...') {
-      html += `<span class="agora-page-btn" style="border:none;cursor:default;opacity:0.4">…</span>`;
-    } else {
-      html += `<button class="agora-page-btn ${p === page ? 'active' : ''}" data-page="${p}">${p}</button>`;
+      const replyResult = paginate(replies, 1, REPLIES_PER_PAGE);
+      return res.json({ thread: { id: threadId, ...thread }, replies: replyResult });
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
     }
   }
 
-  // → შემდეგი
-  html += `<button class="agora-page-btn" data-page="${page+1}" ${page >= totalPages ? 'disabled' : ''}>→</button>`;
 
-  el.innerHTML = html;
+  // ============================================================
+  // action: 'get-replies' — კომენტარების გვერდი
+  // ============================================================
+  if (action === "get-replies") {
+    const { threadId, page } = body;
+    if (!threadId) return res.status(400).json({ error: "threadId სავალდებულოა" });
 
-  el.querySelectorAll('.agora-page-btn[data-page]').forEach(btn => {
-    if (!btn.disabled && btn.dataset.page) {
-      btn.addEventListener('click', function() {
-        onPageClick(parseInt(this.dataset.page));
-        // scroll up
-        document.getElementById('agoraView')?.scrollTo({ top: 0, behavior: 'smooth' });
-      });
+    try {
+      const rawReplies = await fbGet(`/agora-replies/${threadId}`);
+      const replies = rawReplies
+        ? Object.entries(rawReplies)
+            .map(([id, d]) => ({ id, ...d }))
+            .filter(r => r.status !== "deleted")
+            .sort((a, b) => a.createdAt - b.createdAt)
+        : [];
+
+      const result = paginate(replies, parseInt(page) || 1, REPLIES_PER_PAGE);
+      return res.json(result);
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
     }
-  });
-}
-
-function agoraPageRange(current, total) {
-  if (total <= 7) return Array.from({length: total}, (_, i) => i + 1);
-  if (current <= 4) return [1, 2, 3, 4, 5, '...', total];
-  if (current >= total - 3) return [1, '...', total-4, total-3, total-2, total-1, total];
-  return [1, '...', current-1, current, current+1, '...', total];
-}
-
-// ============================================================
-// reply page load (pagination)
-// ============================================================
-async function agoraLoadReplyPage(threadId, page) {
-  const repliesEl = document.getElementById('agoraReplies');
-  repliesEl.innerHTML = '<div class="agora-loading">იტვირთება</div>';
-
-  try {
-    const { ok, data } = await agoraFetch({ action: 'get-replies', threadId, page });
-    if (!ok) throw new Error(data.error || 'შეცდომა');
-
-    _agoraReplyPage  = data.page;
-    _agoraReplyTotal = data.totalPages;
-
-    agoraRenderReplies(repliesEl, data.items, data);
-    agoraRenderPagination('agoraRepliesPagination', data.page, data.totalPages, p => {
-      agoraLoadReplyPage(threadId, p);
-    });
-  } catch (e) {
-    repliesEl.innerHTML = `<div class="agora-empty"><div class="agora-empty-text">❌ ${agoraEscape(e.message)}</div></div>`;
-  }
-}
-
-// ============================================================
-// ახალი thread-ის modal
-// ============================================================
-function agoraOpenNewThreadModal() {
-  const token = agoraGetToken();
-  const isAdm = agoraIsAdmin();
-  if (!token && !isAdm) {
-    showToast('ახალი თემის გასახსნელად შედი ანგარიშში', 'info');
-    return;
-  }
-  // reset form
-  const titleEl   = document.getElementById('newThreadTitle');
-  const bodyEl    = document.getElementById('newThreadBody');
-  const countEl   = document.getElementById('newThreadBodyCount');
-  const errEl     = document.getElementById('newThreadError');
-  if (titleEl) titleEl.value = '';
-  if (bodyEl)  bodyEl.value  = '';
-  if (countEl) countEl.textContent = '0';
-  if (errEl)   { errEl.textContent = ''; errEl.classList.remove('active'); }
-  openModal('newThreadModal');
-  setTimeout(() => titleEl?.focus(), 100);
-}
-
-async function agoraSubmitNewThread() {
-  const title    = document.getElementById('newThreadTitle')?.value.trim();
-  const body     = document.getElementById('newThreadBody')?.value.trim();
-  const errEl    = document.getElementById('newThreadError');
-  const btn      = document.getElementById('newThreadSubmitBtn');
-
-  agoraClearError('newThreadError');
-
-  if (!title || title.length < 5) {
-    agoraShowError('newThreadError', 'სათაური მინ. 5 სიმბოლო');
-    return;
-  }
-  if (!body || body.length < 10) {
-    agoraShowError('newThreadError', 'შინაარსი მინ. 10 სიმბოლო');
-    return;
   }
 
-  btn.disabled = true;
-  btn.textContent = 'AI ამოწმებს...';
 
-  const token    = await agoraGetValidToken();
-  const user     = agoraGetUser();
-  const authorName   = user?.nickname || localStorage.getItem('userNickname') || 'მომხმარებელი';
-  const authorAvatar = user?.photoURL || null;
+  // ============================================================
+  // დანარჩენი actions-ები — auth სავალდებულოა
+  // ============================================================
+  const { userToken } = body;
+  if (!userToken) return res.status(401).json({ error: "ავტორიზაცია საჭიროა" });
 
-  try {
-    const { ok, data } = await agoraFetch({
-      action: 'create-thread',
-      title,
-      threadBody: body,
-      userToken:  token,
-      authorName,
-      authorAvatar
-    });
+  const user = await verifyUserToken(userToken);
+  if (!user) return res.status(401).json({ error: "სესია ამოიწურა. გთხოვ ხელახლა შეხვიდე." });
 
-    if (!ok) {
-      if (data.warned) {
-        agoraShowWarningToast(data.message, data.banned);
-        if (data.banned) {
-          closeModal('newThreadModal');
-        }
-      } else {
-        agoraShowError('newThreadError', data.error || 'შეცდომა');
+  const isAdmin = user.uid === ADMIN_UID;
+
+  // ---- ბანი შემოწმება ----
+  const safeEmail = user.email.replace(/[.#$[\]@]/g, '_');
+  const banData   = await fbGet(`/banned-emails/${safeEmail}`);
+  if (banData?.bannedUntil && now < banData.bannedUntil) {
+    const daysLeft = Math.ceil((banData.bannedUntil - now) / 86400000);
+    return res.status(403).json({ error: `🚫 შენი ანგარიში დაბლოკილია. დარჩენილია: ${daysLeft} დღე.` });
+  }
+
+
+  // ============================================================
+  // action: 'create-thread' — ახალი თემა
+  // ============================================================
+  if (action === "create-thread") {
+    const { title, threadBody } = body;
+
+    if (!title || title.trim().length < 5) {
+      return res.status(400).json({ error: "სათაური მინ. 5 სიმბოლო უნდა იყოს" });
+    }
+    if (title.trim().length > MAX_TITLE_LEN) {
+      return res.status(400).json({ error: `სათაური მაქს. ${MAX_TITLE_LEN} სიმბოლო` });
+    }
+    if (!threadBody || threadBody.trim().length < 10) {
+      return res.status(400).json({ error: "შინაარსი მინ. 10 სიმბოლო უნდა იყოს" });
+    }
+    if (threadBody.trim().length > MAX_THREAD_BODY) {
+      return res.status(400).json({ error: `შინაარსი მაქს. ${MAX_THREAD_BODY} სიმბოლო` });
+    }
+
+    // AI მოდერაცია
+    const modResult = await moderateThread(title.trim(), threadBody.trim());
+
+    if (modResult.abuse) {
+      // გაფრთხილება ან ბანი
+      const warnData = await fbGet(`/agora-warnings/${user.uid}`);
+      const count    = (warnData?.count || 0) + 1;
+
+      if (count >= MAX_WARNINGS) {
+        await banUserForAbuse(user.uid);
+        return res.status(403).json({
+          warned:  true,
+          banned:  true,
+          count:   MAX_WARNINGS,
+          message: `🚫 3/3 გაფრთხილება. ${BAN_DAYS} დღით დაიბლოკე.`
+        });
       }
-      return;
+
+      await fbSet(`/agora-warnings/${user.uid}`, {
+        count, lastWarningAt: now, reason: "abuse"
+      });
+      return res.status(403).json({
+        warned:  true,
+        banned:  false,
+        count,
+        max:     MAX_WARNINGS,
+        message: `⚠️ გაფრთხილება ${count}/${MAX_WARNINGS}: ${modResult.message || "შეურაცხმყოფელი შინაარსი."}`
+      });
     }
 
-    closeModal('newThreadModal');
-    showToast('✅ თემა გაიხსნა!', 'success');
-    agoraOpenThread(data.threadId);
+    if (!modResult.philosophical) {
+      return res.status(400).json({
+        error: `🏛️ ეს თემა ფილოსოფიასთან არ არის დაკავშირებული. ${modResult.message || ""}`
+      });
+    }
 
-  } catch (e) {
-    agoraShowError('newThreadError', '📡 კავშირის შეცდომა. სცადე ხელახლა.');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'გამოქვეყნება';
-  }
-}
-
-// ============================================================
-// reply submit
-// ============================================================
-async function agoraSubmitReply(threadId, ta, btn) {
-  const body = ta.value.trim();
-  agoraClearError('replyError');
-
-  if (!body || body.length < 2) {
-    agoraShowError('replyError', 'კომენტარი ძალიან მოკლეა');
-    return;
-  }
-
-  const token  = await agoraGetValidToken();
-  const user   = agoraGetUser();
-  const authorName   = user?.nickname || localStorage.getItem('userNickname') || 'მომხმარებელი';
-  const authorAvatar = user?.photoURL || null;
-
-  btn.disabled = true;
-  btn.textContent = 'AI ამოწმებს...';
-
-  try {
-    const payload = {
-      action:       'create-reply',
-      threadId,
-      replyBody:    body,
-      userToken:    token,
-      authorName,
-      authorAvatar
+    // Thread-ის შექმნა
+    const userData = await fbGet(`/users/${user.uid}`);
+    const threadData = {
+      title:        title.trim(),
+      body:         threadBody.trim(),
+      authorUid:    user.uid,
+      authorName:   body.authorName || userData?.nickname || "მომხმარებელი",
+      authorAvatar: body.authorAvatar || userData?.photoURL || null,
+      createdAt:    now,
+      editedAt:     null,
+      replyCount:   0,
+      status:       "open",
+      pinned:       false
     };
 
-    // ციტატა
-    if (_agoraQuote) {
-      payload.quotedReplyId = _agoraQuote.id;
-      payload.quotedBody    = _agoraQuote.body;
-      payload.quotedAuthor  = _agoraQuote.author;
-      payload.quotedNum     = _agoraQuote.num;
+    const threadId = await fbPush("/agora-threads", threadData);
+    if (!threadId) return res.status(500).json({ error: "თემის შექმნა ვერ მოხერხდა" });
+
+    // მომხმარებლის topicsCount + 1
+    try {
+      const newCount = (userData?.topicsCount || 0) + 1;
+      await fbPatch(`/users/${user.uid}`, { topicsCount: newCount });
+    } catch { /* silent */ }
+
+    return res.json({ ok: true, threadId });
+  }
+
+
+  // ============================================================
+  // action: 'create-reply' — კომენტარი
+  // ============================================================
+  if (action === "create-reply") {
+    const { threadId, replyBody, quotedReplyId, quotedBody, quotedAuthor, quotedNum } = body;
+
+    if (!threadId) return res.status(400).json({ error: "threadId სავალდებულოა" });
+    if (!replyBody || replyBody.trim().length < 2) {
+      return res.status(400).json({ error: "კომენტარი ძალიან მოკლეა" });
+    }
+    if (replyBody.trim().length > MAX_REPLY_BODY) {
+      return res.status(400).json({ error: `კომენტარი მაქს. ${MAX_REPLY_BODY} სიმბოლო` });
     }
 
-    const { ok, data } = await agoraFetch(payload);
+    // Thread-ის სტატუსი
+    const thread = await fbGet(`/agora-threads/${threadId}`);
+    if (!thread || thread.status === "deleted") {
+      return res.status(404).json({ error: "თემა ვერ მოიძებნა" });
+    }
+    if (thread.status === "locked") {
+      return res.status(403).json({ error: "🔒 ეს თემა დახურულია" });
+    }
 
-    if (!ok) {
-      if (data.warned) {
-        agoraShowWarningToast(data.message, data.banned);
-      } else {
-        agoraShowError('replyError', data.error || 'შეცდომა');
+    // AI მოდერაცია — abuse + on-topic
+    const modResult = await moderateReply(replyBody.trim(), thread.title, thread.body);
+
+    if (modResult.abuse) {
+      const warnData = await fbGet(`/agora-warnings/${user.uid}`);
+      const count    = (warnData?.count || 0) + 1;
+
+      if (count >= MAX_WARNINGS) {
+        await banUserForAbuse(user.uid);
+        return res.status(403).json({
+          warned:  true,
+          banned:  true,
+          count:   MAX_WARNINGS,
+          message: `🚫 3/3 გაფრთხილება. ${BAN_DAYS} დღით დაიბლოკე.`
+        });
       }
-      return;
+
+      await fbSet(`/agora-warnings/${user.uid}`, {
+        count, lastWarningAt: now, reason: "abuse"
+      });
+      return res.status(403).json({
+        warned:  true,
+        banned:  false,
+        count,
+        max:     MAX_WARNINGS,
+        message: `⚠️ გაფრთხილება ${count}/${MAX_WARNINGS}: ${modResult.message || "შეურაცხმყოფელი შინაარსი."}`
+      });
     }
 
-    ta.value = '';
-    const countEl = document.getElementById('replyCharCount');
-    if (countEl) countEl.textContent = '0';
-
-    // ციტატის გასუფთავება
-    _agoraQuote = null;
-    agoraUpdateQuotePreview();
-
-    showToast('✅ კომენტარი გამოქვეყნდა!', 'success');
-
-    // ბოლო გვერდზე გადასვლა და reload
-    const { ok: ok2, data: d2 } = await agoraFetch({ action: 'get-thread', threadId });
-    if (ok2) {
-      _agoraCurrentThread = d2.thread;
-      const repliesEl = document.getElementById('agoraReplies');
-      const lastPage  = d2.replies.totalPages;
-      _agoraReplyPage  = lastPage;
-      _agoraReplyTotal = lastPage;
-
-      const replyFEl = document.getElementById('agoraReplyFormWrap');
-      agoraRenderReplyForm(replyFEl, d2.thread);
-
-      if (lastPage > 1) {
-        await agoraLoadReplyPage(threadId, lastPage);
-      } else {
-        agoraRenderReplies(repliesEl, d2.replies.items, d2.replies);
-        agoraRenderPagination('agoraRepliesPagination', 1, 1, () => {});
-      }
+    if (modResult.ontopic === false) {
+      return res.status(400).json({
+        error: `🏛️ კომენტარი თემის მიღმაა. ${modResult.message || "შეეცადე, ილაპარაკო ამ თემის შესახებ."}`
+      });
     }
 
-  } catch (e) {
-    agoraShowError('replyError', '📡 კავშირის შეცდომა.');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'გამოქვეყნება ↑';
-  }
-}
+    // ავტარი + nickname — frontend-დან + Firebase fallback
+    const userData = await fbGet(`/users/${user.uid}`);
+    const authorAvatar = body.authorAvatar || userData?.photoURL || null;
 
-// ============================================================
-// edit thread
-// ============================================================
-async function agoraEditThread(threadId, newTitle, newBody) {
-  const token = await agoraGetValidToken();
-  const btn   = document.getElementById('editThreadSaveBtn');
-  if (btn) { btn.disabled = true; btn.textContent = '...'; }
+    // Reply-ს შექმნა
+    const replyData = {
+      body:         replyBody.trim(),
+      authorUid:    user.uid,
+      authorName:   body.authorName || userData?.nickname || "მომხმარებელი",
+      authorAvatar: authorAvatar,
+      createdAt:    now,
+      editedAt:     null,
+      status:       "visible",
+      // Quote (optional)
+      quotedReplyId: quotedReplyId || null,
+      quotedBody:    quotedBody   ? quotedBody.substring(0, 200)   : null,
+      quotedAuthor:  quotedAuthor || null,
+      quotedNum:     quotedNum    || null
+    };
 
-  try {
-    const { ok, data } = await agoraFetch({
-      action: 'edit-thread',
-      threadId,
-      title: newTitle,
-      threadBody: newBody,
-      userToken: token
-    });
+    const replyId = await fbPush(`/agora-replies/${threadId}`, replyData);
+    if (!replyId) return res.status(500).json({ error: "კომენტარის გამოქვეყნება ვერ მოხერხდა" });
 
-    if (!ok) {
-      showToast(data.error || 'შეცდომა', 'error');
-      return;
-    }
+    // replyCount + 1
+    const newCount = (thread.replyCount || 0) + 1;
+    await fbPatch(`/agora-threads/${threadId}`, { replyCount: newCount });
 
-    showToast('✅ თემა განახლდა!', 'success');
-    agoraOpenThread(threadId); // reload
-
-  } catch (e) {
-    showToast('📡 კავშირის შეცდომა.', 'error');
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = 'შენახვა'; }
-  }
-}
-
-// ============================================================
-// delete thread
-// ============================================================
-async function agoraDeleteThread(threadId) {
-  const token = await agoraGetValidToken();
-  try {
-    const { ok, data } = await agoraFetch({
-      action: 'delete-thread',
-      threadId,
-      userToken: token
-    });
-
-    if (!ok) {
-      showToast(data.error || 'შეცდომა', 'error');
-      return;
-    }
-
-    showToast('🗑 თემა წაიშალა', 'info');
-    agoraShowList(1);
-  } catch (e) {
-    showToast('📡 კავშირის შეცდომა.', 'error');
-  }
-}
-
-// ============================================================
-// edit reply
-// ============================================================
-async function agoraEditReply(threadId, replyId, newBody) {
-  const token = await agoraGetValidToken();
-  const btn   = document.querySelector(`.reply-save-btn[data-reply-id="${replyId}"]`);
-  if (btn) { btn.disabled = true; btn.textContent = '...'; }
-
-  try {
-    const { ok, data } = await agoraFetch({
-      action: 'edit-reply',
-      threadId,
-      replyId,
-      replyBody: newBody,
-      userToken: token
-    });
-
-    if (!ok) {
-      showToast(data.error || 'შეცდომა', 'error');
-      return;
-    }
-
-    showToast('✅ კომენტარი განახლდა!', 'success');
-    agoraLoadReplyPage(threadId, _agoraReplyPage);
-  } catch (e) {
-    showToast('📡 კავშირის შეცდომა.', 'error');
-  }
-}
-
-// ============================================================
-// delete reply
-// ============================================================
-async function agoraDeleteReply(threadId, replyId) {
-  const token = await agoraGetValidToken();
-  try {
-    const { ok, data } = await agoraFetch({
-      action: 'delete-reply',
-      threadId,
-      replyId,
-      userToken: token
-    });
-
-    if (!ok) {
-      showToast(data.error || 'შეცდომა', 'error');
-      return;
-    }
-
-    showToast('🗑 კომენტარი წაიშალა', 'info');
-    agoraLoadReplyPage(threadId, _agoraReplyPage);
-  } catch (e) {
-    showToast('📡 კავშირის შეცდომა.', 'error');
-  }
-}
-
-// ============================================================
-// AI warning toast
-// ============================================================
-function agoraShowWarningToast(message, isBanned) {
-  // ადრინდელი ტოსტი წაშლა
-  const old = document.getElementById('__agora_warn__');
-  if (old) old.remove();
-
-  const el = document.createElement('div');
-  el.id = '__agora_warn__';
-  el.className = 'agora-warn-toast';
-  el.textContent = message;
-  document.body.appendChild(el);
-
-  const timeout = isBanned ? 8000 : 5000;
-  setTimeout(() => el.remove(), timeout);
-
-  if (isBanned) {
-    // 60 დღიანი ბანი — სესიის გასუფთავება
-    setTimeout(() => {
-      if (window._doLogoutConfirmed) window._doLogoutConfirmed();
-    }, 3000);
-  }
-}
-
-// ============================================================
-// INIT — event listeners
-// ============================================================
-document.addEventListener('DOMContentLoaded', function() {
-  // header agora button
-  const agoraBtn = document.getElementById('agoraBtn');
-  if (agoraBtn) {
-    agoraBtn.addEventListener('click', openAgora);
-  }
-
-  // back button — სიაზე დაბრუნება
-  const backBtn = document.getElementById('agoraBackBtn');
-  if (backBtn) {
-    backBtn.addEventListener('click', function() {
-      _agoraQuote = null;
-      agoraShowList(_agoraListPage);
+    return res.json({
+      ok: true,
+      replyId
     });
   }
 
-  // new thread button
-  const newBtn = document.getElementById('agoraNewBtn');
-  if (newBtn) {
-    newBtn.addEventListener('click', agoraOpenNewThreadModal);
-  }
 
-  // new thread modal submit
-  const submitBtn = document.getElementById('newThreadSubmitBtn');
-  if (submitBtn) {
-    submitBtn.addEventListener('click', agoraSubmitNewThread);
-  }
+  // ============================================================
+  // action: 'edit-thread' — thread-ის რედაქტირება
+  // ============================================================
+  if (action === "edit-thread") {
+    const { threadId, title, threadBody } = body;
+    if (!threadId) return res.status(400).json({ error: "threadId სავალდებულოა" });
 
-  // new thread modal close
-  const closeBtn = document.getElementById('closeNewThreadModalBtn');
-  if (closeBtn) {
-    closeBtn.addEventListener('click', function() {
-      closeModal('newThreadModal');
-    });
-  }
-
-  // new thread body char count — ლიმიტი არ არის
-
-  // Escape key closes agora
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-      const agoraView = document.getElementById('agoraView');
-      if (agoraView && agoraView.classList.contains('active')) {
-        closeAgora();
-      }
+    const thread = await fbGet(`/agora-threads/${threadId}`);
+    if (!thread || thread.status === "deleted") {
+      return res.status(404).json({ error: "თემა ვერ მოიძებნა" });
     }
-  });
-});
+
+    // უფლება: ავტორი (1სთ) ან Admin
+    const isAuthor = thread.authorUid === user.uid;
+    const inWindow = (now - thread.createdAt) < EDIT_WINDOW_MS;
+    if (!isAdmin && !(isAuthor && inWindow)) {
+      return res.status(403).json({ error: "⏰ რედაქტირების 1-საათიანი ვადა ამოიწურა" });
+    }
+
+    if (!title || title.trim().length < 5) {
+      return res.status(400).json({ error: "სათაური მინ. 5 სიმბოლო" });
+    }
+    if (!threadBody || threadBody.trim().length < 10) {
+      return res.status(400).json({ error: "შინაარსი მინ. 10 სიმბოლო" });
+    }
+
+    await fbPatch(`/agora-threads/${threadId}`, {
+      title:    title.trim(),
+      body:     threadBody.trim(),
+      editedAt: now
+    });
+    return res.json({ ok: true });
+  }
+
+
+  // ============================================================
+  // action: 'edit-reply' — კომენტარის რედაქტირება
+  // ============================================================
+  if (action === "edit-reply") {
+    const { threadId, replyId, replyBody } = body;
+    if (!threadId || !replyId) return res.status(400).json({ error: "threadId/replyId სავალდებულოა" });
+
+    const reply = await fbGet(`/agora-replies/${threadId}/${replyId}`);
+    if (!reply || reply.status === "deleted") {
+      return res.status(404).json({ error: "კომენტარი ვერ მოიძებნა" });
+    }
+
+    const isAuthor = reply.authorUid === user.uid;
+    const inWindow = (now - reply.createdAt) < EDIT_WINDOW_MS;
+    if (!isAdmin && !(isAuthor && inWindow)) {
+      return res.status(403).json({ error: "⏰ რედაქტირების 1-საათიანი ვადა ამოიწურა" });
+    }
+
+    if (!replyBody || replyBody.trim().length < 2) {
+      return res.status(400).json({ error: "კომენტარი ძალიან მოკლეა" });
+    }
+
+    await fbPatch(`/agora-replies/${threadId}/${replyId}`, {
+      body:     replyBody.trim(),
+      editedAt: now
+    });
+    return res.json({ ok: true });
+  }
+
+
+  // ============================================================
+  // action: 'delete-thread' — thread-ის წაშლა
+  // ============================================================
+  if (action === "delete-thread") {
+    const { threadId } = body;
+    if (!threadId) return res.status(400).json({ error: "threadId სავალდებულოა" });
+
+    const thread = await fbGet(`/agora-threads/${threadId}`);
+    if (!thread || thread.status === "deleted") {
+      return res.status(404).json({ error: "თემა ვერ მოიძებნა" });
+    }
+
+    const isAuthor = thread.authorUid === user.uid;
+    const inWindow = (now - thread.createdAt) < EDIT_WINDOW_MS;
+    if (!isAdmin && !(isAuthor && inWindow)) {
+      return res.status(403).json({ error: "⏰ წაშლის 1-საათიანი ვადა ამოიწურა. ადმინს მიმართე." });
+    }
+
+    await fbPatch(`/agora-threads/${threadId}`, { status: "deleted" });
+
+    // topicsCount - 1
+    try {
+      const userData = await fbGet(`/users/${thread.authorUid}`);
+      const newCount = Math.max(0, (userData?.topicsCount || 0) - 1);
+      await fbPatch(`/users/${thread.authorUid}`, { topicsCount: newCount });
+    } catch { /* silent */ }
+
+    return res.json({ ok: true });
+  }
+
+
+  // ============================================================
+  // action: 'delete-reply' — კომენტარის წაშლა
+  // ============================================================
+  if (action === "delete-reply") {
+    const { threadId, replyId } = body;
+    if (!threadId || !replyId) return res.status(400).json({ error: "threadId/replyId სავალდებულოა" });
+
+    const reply = await fbGet(`/agora-replies/${threadId}/${replyId}`);
+    if (!reply || reply.status === "deleted") {
+      return res.status(404).json({ error: "კომენტარი ვერ მოიძებნა" });
+    }
+
+    const isAuthor = reply.authorUid === user.uid;
+    const inWindow = (now - reply.createdAt) < EDIT_WINDOW_MS;
+    if (!isAdmin && !(isAuthor && inWindow)) {
+      return res.status(403).json({ error: "⏰ წაშლის 1-საათიანი ვადა ამოიწურა." });
+    }
+
+    await fbPatch(`/agora-replies/${threadId}/${replyId}`, { status: "deleted" });
+
+    // replyCount - 1
+    try {
+      const thread   = await fbGet(`/agora-threads/${threadId}`);
+      const newCount = Math.max(0, (thread?.replyCount || 0) - 1);
+      await fbPatch(`/agora-threads/${threadId}`, { replyCount: newCount });
+    } catch { /* silent */ }
+
+    return res.json({ ok: true });
+  }
+
+
+  return res.status(400).json({ error: "უცნობი action" });
+}
