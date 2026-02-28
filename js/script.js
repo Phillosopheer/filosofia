@@ -874,6 +874,12 @@ titleElement.innerText = 'ΦΙΛΟΣΟΦΙΑ';
 titleElement.classList.add('wave-anim');
 }
 function goHome() {
+// agora-ს დახურვა თუ გახსნილია
+const agoraView = document.getElementById('agoraView');
+if (agoraView && agoraView.classList.contains('active')) {
+  agoraView.classList.remove('active');
+  document.body.style.overflow = '';
+}
 currentCat = null;
 const addBtn = document.getElementById('glossaryAddBtn');
 if (addBtn) addBtn.style.display = 'none';
