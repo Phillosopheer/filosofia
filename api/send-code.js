@@ -159,9 +159,15 @@ export default async function handler(req, res) {
     });
   }
 
-  // ---- შემოწმება #4: Browser Fingerprint ბანი ----
+  // ---- შემოწმება #4: Browser Fingerprint (სავალდებულო) ----
+  // fpHash სავალდებულოა — null-ის შემთხვევაში ვუარყოფთ
+  if (!fpHash) {
+    return res.status(403).json({
+      error: '🚫 ბრაუზერის ვერიფიკაცია ვერ მოხერხდა. სცადე ჩვეულებრივ ბრაუზერში.'
+    });
+  }
   // ადმინი ბანავს → /banned-fingerprints/{fpHash} Firebase-ში
-  if (fpHash && await isFpBanned(fpHash)) {
+  if (await isFpBanned(fpHash)) {
     return res.status(403).json({
       error: '🚫 შენი მოწყობილობა ამ საიტზე დაბლოკილია.'
     });
