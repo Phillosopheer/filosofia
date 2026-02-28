@@ -3154,7 +3154,9 @@ async function loadUserProfile(uid, token) {
       const profile = await res.json();
       if (profile) {
         currentUser.nickname = profile.nickname || currentUser.nickname;
-        currentUser.photoURL = profile.photoURL || '';
+        const rawPhoto = profile.photoURL || '';
+        // Google Auth-ის ძველი სურათები — არ გამოვიყენოთ
+        currentUser.photoURL = rawPhoto.includes('googleusercontent.com') ? '' : rawPhoto;
         currentUser.articlesCount = profile.articlesCount || 0;
         currentUser.topicsCount   = profile.topicsCount   || 0;
         localStorage.setItem('userNickname', currentUser.nickname);
