@@ -858,8 +858,11 @@ document.querySelector('.hero').classList.add('no-bg');
 }
 displayRandomQuote();
 updateHeaderButtons();
-// Show header (admin path — user path handled in restoreUserSession)
-if (!localStorage.getItem('userToken')) {
+// Show header only if no active session validation is in progress
+// Admin path: validateToken() controls header reveal
+// User path: restoreUserSession() controls header reveal
+if (!localStorage.getItem('userToken') && !localStorage.getItem('idToken')) {
+  // Nobody logged in → show header immediately
   const h = document.getElementById('headerActions');
   if (h) h.style.visibility = 'visible';
   const rb = document.getElementById('registerBtn');
@@ -1252,6 +1255,16 @@ updateFab();
 updateHeaderButtons();
 }
 async function validateToken(token, savedEmail) {
+const _showAdminHeader = (loggedIn = true) => {
+  const h = document.getElementById('headerActions');
+  if (h) h.style.visibility = 'visible';
+  if (!loggedIn) {
+    const rb = document.getElementById('registerBtn');
+    const lb = document.getElementById('lockBtn');
+    if (rb) rb.style.visibility = 'visible';
+    if (lb) lb.style.visibility = 'visible';
+  }
+};
 try {
 const res = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${API_KEY}`, {
 method: 'POST',
@@ -1270,6 +1283,7 @@ document.body.classList.add('admin-mode');
 updateFab();
 updateHeaderButtons();
 fetchPendingNotes();
+_showAdminHeader(true);
 } else {
 console.log('🔒 Token validation failed - forcing logout');
 idToken = null;
@@ -1277,9 +1291,11 @@ currentUid = null;
 clearSession();
 showToast('სესია ვადაგასულია. გთხოვ ხელახლა შეხვიდე.', 'error');
 fetchNotes();
+_showAdminHeader(false);
 }
 } catch (err) {
 console.log('Token validation failed due to network error:', err);
+_showAdminHeader(true);
 }
 }
 function openEditor() {
