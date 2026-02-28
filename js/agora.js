@@ -341,14 +341,6 @@ function agoraThreadHeader(t) {
           <button class="agora-action-btn" data-act="edit-thread">✏️ რედაქტირება</button>
           <button class="agora-action-btn danger" data-act="delete-thread">🗑 წაშლა</button>
         </div>
-        <div id="threadInlineEdit" class="agora-inline-edit" style="display:none">
-          <input type="text" id="editThreadTitle" class="agora-modal-input" maxlength="120" value="${agoraEscape(t.title)}" />
-          <textarea id="editThreadBody" class="agora-textarea" style="margin-top:8px" maxlength="2000">${agoraEscape(t.body)}</textarea>
-          <div class="agora-inline-edit-btns">
-            <button class="agora-reply-submit" id="editThreadSaveBtn">შენახვა</button>
-            <button class="agora-action-btn" id="editThreadCancelBtn">გაუქმება</button>
-          </div>
-        </div>
       ` : ''}
     </div>`;
 }
@@ -362,13 +354,12 @@ function agoraBindThreadActions(actionsEl, thread) {
 
   if (editBtn) {
     editBtn.addEventListener('click', function() {
-      const editDiv = document.getElementById('threadInlineEdit');
-      const bodyDiv = document.getElementById('threadBodyDisplay');
-      if (editDiv) {
-        editDiv.style.display = 'block';
-        bodyDiv.style.display = 'none';
-        actionsEl.style.display = 'none';
-      }
+      agoraOpenEditModal({
+        type: 'thread',
+        id: thread.id,
+        title: thread.title,
+        body: thread.body
+      });
     });
   }
 
@@ -380,24 +371,7 @@ function agoraBindThreadActions(actionsEl, thread) {
     });
   }
 
-  // inline edit form
-  const saveBtn   = document.getElementById('editThreadSaveBtn');
-  const cancelBtn = document.getElementById('editThreadCancelBtn');
 
-  if (saveBtn) {
-    saveBtn.addEventListener('click', async function() {
-      const newTitle = document.getElementById('editThreadTitle')?.value.trim();
-      const newBody  = document.getElementById('editThreadBody')?.value.trim();
-      await agoraEditThread(thread.id, newTitle, newBody);
-    });
-  }
-  if (cancelBtn) {
-    cancelBtn.addEventListener('click', function() {
-      document.getElementById('threadInlineEdit').style.display = 'none';
-      document.getElementById('threadBodyDisplay').style.display = 'block';
-      actionsEl.style.display = 'flex';
-    });
-  }
 }
 
 // ============================================================
@@ -476,15 +450,7 @@ function agoraReplyCard(r, num) {
           <button class="agora-action-btn danger" data-act="delete-reply">🗑</button>
         ` : ''}
       </div>
-      ${canEdit ? `
-        <div class="agora-inline-edit" id="replyEdit_${agoraEscape(r.id)}" style="display:none">
-          <textarea class="agora-textarea reply-edit-textarea" maxlength="2000">${agoraEscape(r.body)}</textarea>
-          <div class="agora-inline-edit-btns">
-            <button class="agora-reply-submit reply-save-btn" data-reply-id="${agoraEscape(r.id)}">შენახვა</button>
-            <button class="agora-action-btn reply-cancel-btn">გაუქმება</button>
-          </div>
-        </div>
-      ` : ''}
+
     </div>`;
 }
 
@@ -518,11 +484,15 @@ function agoraBindReplyActions(el) {
     });
   }
 
-  if (editBtn && editDiv) {
+  if (editBtn) {
     editBtn.addEventListener('click', function() {
-      editDiv.style.display = 'block';
-      editBtn.closest('.agora-item-actions').style.display = 'none';
-      bodyDiv.style.display = 'none';
+      if (!_agoraCurrentThread) return;
+      agoraOpenEditModal({
+        type: 'reply',
+        threadId: _agoraCurrentThread.id,
+        id: replyId,
+        body: bodyDiv ? bodyDiv.textContent : ''
+      });
     });
   }
 
@@ -535,22 +505,7 @@ function agoraBindReplyActions(el) {
     });
   }
 
-  if (saveBtn && editDiv) {
-    saveBtn.addEventListener('click', async function() {
-      const ta = editDiv.querySelector('textarea');
-      if (!ta || !_agoraCurrentThread) return;
-      await agoraEditReply(_agoraCurrentThread.id, replyId, ta.value.trim());
-    });
-  }
 
-  if (cancelBtn && editDiv) {
-    cancelBtn.addEventListener('click', function() {
-      editDiv.style.display = 'none';
-      const actDiv = editDiv.closest('.agora-reply-item').querySelector('.agora-item-actions');
-      if (actDiv) actDiv.style.display = 'flex';
-      bodyDiv.style.display = 'block';
-    });
-  }
 }
 
 // ============================================================
@@ -1021,6 +976,85 @@ function agoraShowWarningToast(message, isBanned) {
       if (window._doLogoutConfirmed) window._doLogoutConfirmed();
     }, 3000);
   }
+}
+
+
+// ============================================================
+// Edit Modal — thread ან reply-ის რედაქტირება
+// ============================================================
+function agoraOpenEditModal(opts) {
+  // opts: { type, id, threadId?, title?, body }
+  const existing = document.getElementById('agoraEditModal');
+  if (existing) existing.remove();
+
+  const isThread = opts.type === 'thread';
+
+  const modal = document.createElement('div');
+  modal.id = 'agoraEditModal';
+  modal.style.cssText = `
+    position:fixed;inset:0;z-index:9999;
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(0,0,0,0.7);padding:16px;
+  `;
+
+  modal.innerHTML = `
+    <div style="background:#1a1610;border:1px solid #c9a84c44;border-radius:12px;
+      padding:24px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;">
+      <div style="font-size:1rem;font-weight:600;color:#c9a84c;margin-bottom:16px;">
+        ✏️ ${isThread ? 'თემის რედაქტირება' : 'კომენტარის რედაქტირება'}
+      </div>
+      ${isThread ? `
+        <input type="text" id="agoraEditTitle" class="agora-modal-input"
+          maxlength="120" value="${agoraEscape(opts.title || '')}"
+          style="margin-bottom:12px;" />
+      ` : ''}
+      <textarea id="agoraEditBody" class="agora-textarea"
+        style="min-height:120px;">${agoraEscape(opts.body || '')}</textarea>
+      <div class="agora-error" id="agoraEditError" style="margin-top:8px;"></div>
+      <div style="display:flex;gap:8px;margin-top:16px;">
+        <button id="agoraEditSaveBtn" class="agora-reply-submit">შენახვა</button>
+        <button id="agoraEditCancelBtn" class="agora-action-btn">გაუქმება</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  const saveBtn   = document.getElementById('agoraEditSaveBtn');
+  const cancelBtn = document.getElementById('agoraEditCancelBtn');
+
+  cancelBtn.addEventListener('click', () => modal.remove());
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+
+  saveBtn.addEventListener('click', async function() {
+    const newBody  = document.getElementById('agoraEditBody')?.value.trim();
+    const errEl    = document.getElementById('agoraEditError');
+
+    if (!newBody || newBody.length < 2) {
+      errEl.textContent = 'ძალიან მოკლეა';
+      errEl.classList.add('active');
+      return;
+    }
+
+    saveBtn.disabled = true;
+    saveBtn.textContent = '...';
+
+    if (isThread) {
+      const newTitle = document.getElementById('agoraEditTitle')?.value.trim();
+      if (!newTitle || newTitle.length < 5) {
+        errEl.textContent = 'სათაური მინ. 5 სიმბოლო';
+        errEl.classList.add('active');
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'შენახვა';
+        return;
+      }
+      await agoraEditThread(opts.id, newTitle, newBody);
+    } else {
+      await agoraEditReply(opts.threadId, opts.id, newBody);
+    }
+
+    modal.remove();
+  });
 }
 
 // ============================================================
