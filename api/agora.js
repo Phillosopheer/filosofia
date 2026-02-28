@@ -19,7 +19,7 @@ const EDIT_WINDOW_MS   = 60 * 60 * 1000;             // 1 საათი
 const MAX_WARNINGS     = 3;
 const BAN_DAYS         = 60;
 const MAX_THREAD_BODY  = 50000;  // პრაქტიკულად ულიმიტო
-const MAX_REPLY_BODY   = 2000;   // ულიმიტო კომენტარები, 2000 სიმბოლო
+const MAX_REPLY_BODY   = 50000;  // პრაქტიკულად ულიმიტო
 const MAX_TITLE_LEN    = 120;
 
 
