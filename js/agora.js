@@ -551,7 +551,7 @@ function agoraRenderReplyForm(container, thread) {
         </div>
       </div>
       <textarea class="agora-textarea" id="replyTextarea" placeholder="დაწერე კომენტარი..."></textarea>
-      <div class="agora-char-count"><span id="replyCharCount">0</span></div>
+      <div class="agora-char-count"><span id="replyCharCount">0</span> / 50000</div>
       <button class="agora-reply-submit" id="replySubmitBtn">გამოქვეყნება ↑</button>
     </div>`;
 
