@@ -404,6 +404,50 @@
                     <input type="password" id="loginPassword" placeholder="••••••••" aria-label="პაროლი" />
                 </div>
                 <button class="btn btn-primary" id="loginBtn" style="width:100%">შესვლა</button>
+                <div style="text-align:center;margin-top:14px;">
+                    <button id="forgotLink" style="background:none;border:none;color:var(--text-dim);font-size:0.82rem;cursor:pointer;text-decoration:underline;font-family:'EB Garamond',Georgia,serif;">დამავიწყდა პაროლი</button>
+                </div>
+            </div>
+            <!-- Forgot Password Form -->
+            <div id="forgotForm" style="display:none">
+                <div class="msg error" id="forgotError"></div>
+                <div class="msg success" id="forgotSuccess"></div>
+                <!-- Step 1: ელ. ფოსტა -->
+                <div id="forgotStep1">
+                    <div style="text-align:center;margin-bottom:20px;">
+                        <div style="font-size:2rem;margin-bottom:6px;">🔑</div>
+                        <p style="color:var(--ivory-dim);font-size:0.85rem;">შეიყვანე ელ. ფოსტა და<br>გამოგეგზავნება კოდი</p>
+                    </div>
+                    <div class="form-group">
+                        <label>ელ. ფოსტა</label>
+                        <input type="email" id="forgotEmail" placeholder="you@example.com" aria-label="ელ-ფოსტა" />
+                    </div>
+                    <button class="btn btn-primary" id="forgotSendBtn" style="width:100%">კოდის გაგზავნა →</button>
+                    <button id="forgotBackBtn1" style="width:100%;margin-top:8px;background:none;border:1px solid var(--border);color:var(--ivory-dim);padding:10px;cursor:pointer;font-family:'EB Garamond',Georgia,serif;font-size:0.95rem;">← შესვლაზე დაბრუნება</button>
+                </div>
+                <!-- Step 2: კოდი + ახალი პაროლი -->
+                <div id="forgotStep2" style="display:none">
+                    <div style="text-align:center;margin-bottom:18px;">
+                        <div style="font-size:2rem;margin-bottom:6px;">📧</div>
+                        <p style="color:var(--ivory-dim);font-size:0.85rem;">6-ნიშნა კოდი გამოგეგზავნა<br><span id="forgotEmailShow" style="color:var(--accent);"></span></p>
+                    </div>
+                    <div class="form-group">
+                        <label>დადასტურების კოდი</label>
+                        <input type="text" id="forgotCode" placeholder="000000" maxlength="6"
+                            inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code"
+                            style="text-align:center;letter-spacing:8px;font-size:1.4rem;" />
+                    </div>
+                    <div class="form-group">
+                        <label>ახალი პაროლი</label>
+                        <input type="password" id="forgotNewPassword" placeholder="მინ. 6 სიმბოლო" aria-label="ახალი პაროლი" />
+                    </div>
+                    <div class="form-group">
+                        <label>გაიმეორე პაროლი</label>
+                        <input type="password" id="forgotNewPassword2" placeholder="••••••••" aria-label="პაროლის გამეორება" />
+                    </div>
+                    <button class="btn btn-primary" id="forgotResetBtn" style="width:100%">პაროლის შეცვლა ✓</button>
+                    <button id="forgotBackBtn2" style="width:100%;margin-top:8px;background:none;border:1px solid var(--border);color:var(--ivory-dim);padding:10px;cursor:pointer;font-family:'EB Garamond',Georgia,serif;font-size:0.95rem;">← კოდის ხელახლა გაგზავნა</button>
+                </div>
             </div>
             <!-- Register Form -->
             <div id="registerForm" style="display:none">
