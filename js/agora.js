@@ -909,14 +909,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // new thread body char count
-  const bodyTA = document.getElementById('newThreadBody');
-  if (bodyTA) {
-    bodyTA.addEventListener('input', function() {
-      const c = document.getElementById('newThreadBodyCount');
-      if (c) c.textContent = bodyTA.value.length;
-    });
-  }
+  // new thread body char count — ლიმიტი არ არის
 
   // Escape key closes agora
   document.addEventListener('keydown', function(e) {
