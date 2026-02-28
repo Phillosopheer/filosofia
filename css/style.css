@@ -1150,3 +1150,23 @@ select.tb-btn option { background:var(--surface); color:var(--text); }
 .captcha-input::-webkit-outer-spin-button,
 .captcha-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .captcha-input[type=number] { -moz-appearance: textfield; }
+
+/* ===== AVATAR DELETE BUTTON ===== */
+.avatar-delete-btn {
+  position: absolute;
+  top: -4px; right: -4px;
+  background: #c0392b;
+  border: none;
+  border-radius: 50%;
+  width: 18px; height: 18px;
+  font-size: 0.6rem;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: background 0.2s, transform 0.15s;
+  z-index: 2;
+}
+.avatar-delete-btn:hover { background: #e74c3c; transform: scale(1.15); }
