@@ -111,6 +111,25 @@
                 </svg>
                 <span class="agora-btn-label">აგორა</span>
             </button>
+            <!-- Notification Bell — logged-in only -->
+            <div class="notif-wrap" id="notifWrap" style="position:relative;display:none;">
+                <button class="header-btn notif-btn" id="notifBtn" title="შეტყობინებები">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                    </svg>
+                    <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
+                </button>
+                <div class="notif-dropdown" id="notifDropdown">
+                    <div class="notif-header">
+                        <span class="notif-header-title">შეტყობინებები</span>
+                        <button class="notif-mark-all" id="notifMarkAll">ყველა წაკითხული ✓</button>
+                    </div>
+                    <div class="notif-list" id="notifList">
+                        <div class="notif-empty">იტვირთება...</div>
+                    </div>
+                </div>
+            </div>
             <!-- Public Submission Button -->
             <button class="header-btn" id="submitBtn" title="სტატიის გაგზავნა">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -1000,12 +1019,12 @@
     <!-- ===== SCRIPTS ===== -->
 
     <!-- Particles + Footer wiring (CSP-safe, external) -->
-    <script src="js/extras.js?v=44" defer></script>
+    <script src="js/extras.js?v=45" defer></script>
 
     <!-- JavaScript ფაილის დაკავშირება -->
-    <script src="js/script.js?v=44" defer></script>
+    <script src="js/script.js?v=45" defer></script>
     <!-- ΑΓΟΡᲐ ფორუმი -->
-    <script src="js/agora.js?v=44" defer></script>
+    <script src="js/agora.js?v=45" defer></script>
     <!-- UPLOADER MODAL -->
     <div id="uploaderModal" class="modal" role="dialog" aria-modal="true">
       <div class="modal-box wide" style="max-width:500px; background:var(--surface); border-top:2px solid var(--gold-dim); padding:24px 20px;">
