@@ -175,13 +175,13 @@ export default async function handler(req, res) {
       // Block fingerprint
       if (fpHash) {
         await fbSet(`/banned-fingerprints/${fpHash}`, {
-          bannedAt: Date.now(), bannedUntil, reason: reason || "admin ban", uid: targetUid
+          bannedAt: Date.now(), bannedUntil: banUntil, reason: reason || "admin ban", uid: targetUid
         });
       }
 
       // Log in banned-users
       await fbSet(`/banned-users/${targetUid}`, {
-        bannedAt: Date.now(), bannedUntil, banDays,
+        bannedAt: Date.now(), bannedUntil: banUntil, banDays,
         reason: reason || "admin ban",
         nickname: userData?.nickname || "unknown",
         email: userData?.email || "unknown",
