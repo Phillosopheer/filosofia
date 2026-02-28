@@ -202,6 +202,13 @@ export default async function handler(req, res) {
         lastIp:   lastIp || null
       });
 
+      // ბანის email → bannedUntil mapping — login-ზე დრო ჩასაჩვენებლად
+      const userEmail = userData?.email || null;
+      if (userEmail) {
+        const safeEmail = userEmail.replace(/[.#$\[\]@]/g, '_');
+        await fbSet(`/banned-emails/${safeEmail}`, { bannedUntil: banUntil, banDays });
+      }
+
       // Disable Firebase Auth — მომხმარებელი ვეღარ შევა
       await setAuthDisabled(targetUid, true);
 
@@ -228,6 +235,13 @@ export default async function handler(req, res) {
       // Remove from banned-users
       await fbDelete(`/banned-users/${targetUid}`);
 
+      // Remove banned-emails entry
+      const unbanEmail = userData?.email || null;
+      if (unbanEmail) {
+        const safeEmail = unbanEmail.replace(/[.#$\[\]@]/g, '_');
+        await fbDelete(`/banned-emails/${safeEmail}`);
+      }
+
       // Enable Firebase Auth
       await setAuthDisabled(targetUid, false);
 
@@ -246,6 +260,13 @@ export default async function handler(req, res) {
 
       // Remove from banned-users if exists
       await fbDelete(`/banned-users/${targetUid}`);
+
+      // Remove banned-emails entry
+      const delEmail = userData?.email || null;
+      if (delEmail) {
+        const safeEmail = delEmail.replace(/[.#$\[\]@]/g, '_');
+        await fbDelete(`/banned-emails/${safeEmail}`);
+      }
 
       // Remove from usernames
       const nick = userData?.nickname;
