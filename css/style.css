@@ -945,6 +945,24 @@ select.tb-btn option { background:var(--surface); color:var(--text); }
   color: var(--gold-dim);
 }
 
+/* ===== FORGOT BACK BUTTON ===== */
+.forgot-back-btn {
+  width: 100%;
+  margin-top: 8px;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--ivory-dim);
+  padding: 10px;
+  cursor: pointer;
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 0.95rem;
+  transition: border-color 0.2s, color 0.2s;
+}
+.forgot-back-btn:hover {
+  border-color: var(--gold-dim);
+  color: var(--ivory);
+}
+
 /* ===== USER AVATAR HEADER ===== */
 .user-avatar-btn { padding: 0 !important; overflow: hidden; border-radius: 50% !important; }
 .user-avatar-img {
