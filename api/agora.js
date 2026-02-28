@@ -15,13 +15,11 @@ const ALLOWED_ORIGINS = [
 
 const THREADS_PER_PAGE = 20;
 const REPLIES_PER_PAGE = 20;
-const MAX_REPLY_PAGES  = 50;                         // 50 × 20 = 1000 → thread-ი დაიხურება
-const MAX_REPLIES      = MAX_REPLY_PAGES * REPLIES_PER_PAGE;
 const EDIT_WINDOW_MS   = 60 * 60 * 1000;             // 1 საათი
 const MAX_WARNINGS     = 3;
 const BAN_DAYS         = 60;
 const MAX_THREAD_BODY  = 50000;  // პრაქტიკულად ულიმიტო
-const MAX_REPLY_BODY   = 1000;
+const MAX_REPLY_BODY   = 2000;   // ულიმიტო კომენტარები, 2000 სიმბოლო
 const MAX_TITLE_LEN    = 120;
 
 
@@ -251,26 +249,36 @@ async function moderateThread(title, body) {
   }
 }
 
-async function moderateReply(body) {
+async function moderateReply(replyBody, threadTitle, threadBodySnippet) {
+  const topicCtx = threadTitle
+    ? `თემა: "${threadTitle}"\nთემის შინაარსი: ${(threadBodySnippet || "").substring(0, 300)}\n\n`
+    : "";
+
   const prompt = `შენ ხარ ფილოსოფიური ფორუმის AI მოდერატორი.
 
-მომხმარებლის კომენტარი:
-${body}
+${topicCtx}მომხმარებლის კომენტარი:
+${replyBody}
 
-"ok": true — ნორმალური კომენტარი.
-"abuse": true — მხოლოდ მკაფიო გინება, ლანძღვა, ძალადობრივი ენა, სპამი.
+შეამოწმე ორი რამ:
+1. "ontopic": true — კომენტარი ეხება ამ თემას (სულ მცირე 50% კავშირი). false — მხოლოდ თუ სრულიად გამოუსადეგარი, არ ეხება ("ამინდი კარგია", "ვინ გაიმარჯვა ფეხბურთში" და მსგ.). ფილოსოფიური განზოგადება ყოველთვის ontopic-ია.
+2. "abuse": true — მხოლოდ მკაფიო გინება, ლანძღვა, ძალადობრივი ენა, სპამი.
 
 უპასუხე მხოლოდ JSON, სხვა არაფერი:
-{"ok":true/false,"abuse":true/false,"message":"მიზეზი ქართულად"}`;
+{"ontopic":true/false,"abuse":true/false,"message":"მიზეზი ქართულად"}`;
 
   const text = await callGemini(prompt);
-  if (!text) return { ok: true, abuse: false, message: "" };
+  if (!text) return { ontopic: true, abuse: false, message: "" };
 
   try {
     const m = text.match(/\{[\s\S]*?\}/);
-    return JSON.parse(m ? m[0] : text);
+    const parsed = JSON.parse(m ? m[0] : text);
+    // backward compat — ok field
+    if (parsed.ok !== undefined && parsed.ontopic === undefined) {
+      parsed.ontopic = parsed.ok;
+    }
+    return parsed;
   } catch {
-    return { ok: true, abuse: false, message: "" };
+    return { ontopic: true, abuse: false, message: "" };
   }
 }
 
@@ -469,16 +477,18 @@ export default async function handler(req, res) {
     }
 
     // Thread-ის შექმნა
+    const userData = await fbGet(`/users/${user.uid}`);
     const threadData = {
-      title:      title.trim(),
-      body:       threadBody.trim(),
-      authorUid:  user.uid,
-      authorName: body.authorName || "მომხმარებელი",
-      createdAt:  now,
-      editedAt:   null,
-      replyCount: 0,
-      status:     "open",
-      pinned:     false
+      title:        title.trim(),
+      body:         threadBody.trim(),
+      authorUid:    user.uid,
+      authorName:   body.authorName || "მომხმარებელი",
+      authorAvatar: userData?.avatar || null,
+      createdAt:    now,
+      editedAt:     null,
+      replyCount:   0,
+      status:       "open",
+      pinned:       false
     };
 
     const threadId = await fbPush("/agora-threads", threadData);
@@ -486,7 +496,6 @@ export default async function handler(req, res) {
 
     // მომხმარებლის topicsCount + 1
     try {
-      const userData = await fbGet(`/users/${user.uid}`);
       const newCount = (userData?.topicsCount || 0) + 1;
       await fbPatch(`/users/${user.uid}`, { topicsCount: newCount });
     } catch { /* silent */ }
@@ -499,7 +508,7 @@ export default async function handler(req, res) {
   // action: 'create-reply' — კომენტარი
   // ============================================================
   if (action === "create-reply") {
-    const { threadId, replyBody } = body;
+    const { threadId, replyBody, quotedReplyId, quotedBody, quotedAuthor, quotedNum } = body;
 
     if (!threadId) return res.status(400).json({ error: "threadId სავალდებულოა" });
     if (!replyBody || replyBody.trim().length < 2) {
@@ -517,14 +526,9 @@ export default async function handler(req, res) {
     if (thread.status === "locked") {
       return res.status(403).json({ error: "🔒 ეს თემა დახურულია" });
     }
-    if (thread.replyCount >= MAX_REPLIES) {
-      // auto-lock
-      await fbPatch(`/agora-threads/${threadId}`, { status: "locked" });
-      return res.status(403).json({ error: "🔒 თემა დაიხურა — 1000 კომენტარს მიაღწია" });
-    }
 
-    // AI მოდერაცია
-    const modResult = await moderateReply(replyBody.trim());
+    // AI მოდერაცია — abuse + on-topic
+    const modResult = await moderateReply(replyBody.trim(), thread.title, thread.body);
 
     if (modResult.abuse) {
       const warnData = await fbGet(`/agora-warnings/${user.uid}`);
@@ -552,28 +556,42 @@ export default async function handler(req, res) {
       });
     }
 
+    if (modResult.ontopic === false) {
+      return res.status(400).json({
+        error: `🏛️ კომენტარი თემის მიღმაა. ${modResult.message || "შეეცადე, ილაპარაკო ამ თემის შესახებ."}`
+      });
+    }
+
+    // ავტარი
+    const userData = await fbGet(`/users/${user.uid}`);
+    const authorAvatar = userData?.avatar || null;
+
     // Reply-ს შექმნა
     const replyData = {
-      body:       replyBody.trim(),
-      authorUid:  user.uid,
-      authorName: body.authorName || "მომხმარებელი",
-      createdAt:  now,
-      editedAt:   null,
-      status:     "visible"
+      body:         replyBody.trim(),
+      authorUid:    user.uid,
+      authorName:   body.authorName || "მომხმარებელი",
+      authorAvatar: authorAvatar,
+      createdAt:    now,
+      editedAt:     null,
+      status:       "visible",
+      // Quote (optional)
+      quotedReplyId: quotedReplyId || null,
+      quotedBody:    quotedBody   ? quotedBody.substring(0, 200)   : null,
+      quotedAuthor:  quotedAuthor || null,
+      quotedNum:     quotedNum    || null
     };
 
     const replyId = await fbPush(`/agora-replies/${threadId}`, replyData);
     if (!replyId) return res.status(500).json({ error: "კომენტარის გამოქვეყნება ვერ მოხერხდა" });
 
-    // replyCount + 1 და auto-lock შემოწმება
+    // replyCount + 1
     const newCount = (thread.replyCount || 0) + 1;
-    const newStatus = newCount >= MAX_REPLIES ? "locked" : thread.status;
-    await fbPatch(`/agora-threads/${threadId}`, { replyCount: newCount, status: newStatus });
+    await fbPatch(`/agora-threads/${threadId}`, { replyCount: newCount });
 
     return res.json({
       ok: true,
-      replyId,
-      locked: newStatus === "locked"
+      replyId
     });
   }
 
