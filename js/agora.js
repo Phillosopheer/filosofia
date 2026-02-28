@@ -124,17 +124,14 @@ async function agoraShowList(page) {
     newBtn.classList.toggle('hidden', !canCreate);
   }
 
-  // განმარტება — მხოლოდ პირველ გვერდზე
-  const listEl = document.getElementById('agoraThreadList');
-  if (page === 1) {
-    listEl.innerHTML = `
-      <div class="agora-desc">
-        <p>აგორა — ღია სადებატო სივრცეა ფილოსოფიური თემებისთვის. შეგიძლია გახსნა თემა, გამოხატო შენი მოსაზრება და სხვებთან ერთად იდებატო. ნებისმიერი ფილოსოფიური კითხვა მისასალმებელია — ეთიკიდან მეტაფიზიკამდე, ეგზისტენციალიზმიდან ლოგიკამდე.</p>
-      </div>
-      <div class="agora-loading">იტვირთება</div>`;
-  } else {
-    listEl.innerHTML = '<div class="agora-loading">იტვირთება</div>';
+  // განმარტება — სტატიკური, ერთხელ ჩნდება
+  const descEl = document.getElementById('agoraDescription');
+  if (descEl) {
+    descEl.style.display = page === 1 ? 'block' : 'none';
   }
+
+  const listEl = document.getElementById('agoraThreadList');
+  listEl.innerHTML = '<div class="agora-loading">იტვირთება</div>';
 
   try {
     const { ok, data } = await agoraFetch({ action: 'get-threads', page });
