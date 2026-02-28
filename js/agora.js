@@ -10,6 +10,8 @@ let _agoraTotalPages  = 1;
 let _agoraReplyTotal  = 1;
 let _agoraCurrentThread = null; // { id, ...threadData }
 let _agoraQuote       = null;   // { id, num, author, body } — ციტატა
+let _notifData        = [];     // შეტყობინებების cache
+let _notifInterval    = null;
 
 // ===== DOM refs (ინიციალიზაციის შემდეგ) =====
 let _agoraView, _agoraListView, _agoraThreadView, _agoraTopbarTitle, _agoraBackBtn, _agoraNewBtn;
@@ -1058,6 +1060,106 @@ function agoraOpenEditModal(opts) {
 }
 
 // ============================================================
+// 🔔 NOTIFICATIONS
+// ============================================================
+async function agoraNotifLoad() {
+  // მხოლოდ logged-in user-ებისთვის
+  const hasToken = !!(
+    (typeof agoraGetToken === 'function' && agoraGetToken()) ||
+    (typeof agoraIsAdmin === 'function' && agoraIsAdmin())
+  );
+  if (!hasToken) return;
+
+  try {
+    const userToken = await agoraGetValidToken();
+    if (!userToken) return;
+    const { ok, data } = await agoraFetch({ action: 'get-notifications', userToken });
+    if (!ok) return;
+    _notifData = data.notifications || [];
+    agoraNotifUpdateBadge(data.unread || 0);
+  } catch { /* silent */ }
+}
+
+function agoraNotifUpdateBadge(count) {
+  const badge = document.getElementById('notifBadge');
+  if (!badge) return;
+  if (count > 0) {
+    badge.textContent = count > 99 ? '99+' : String(count);
+    badge.style.display = 'flex';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function agoraNotifToggle() {
+  const dropdown = document.getElementById('notifDropdown');
+  if (!dropdown) return;
+  const isOpen = dropdown.classList.contains('open');
+  if (isOpen) {
+    dropdown.classList.remove('open');
+  } else {
+    dropdown.classList.add('open');
+    agoraNotifRender();
+  }
+}
+
+function agoraNotifRender() {
+  const listEl = document.getElementById('notifList');
+  if (!listEl) return;
+
+  if (!_notifData.length) {
+    listEl.innerHTML = '<div class="notif-empty">შეტყობინებები არ არის</div>';
+    return;
+  }
+
+  listEl.innerHTML = _notifData.map(n => {
+    const readClass = n.read ? '' : 'notif-unread';
+    let icon = '💬';
+    let text = '';
+    if (n.type === 'reply') {
+      icon = '↩';
+      text = `<b>${agoraEscape(n.fromName || '')}</b> გიპასუხა: <i>${agoraEscape(n.threadTitle || '')}</i>`;
+    } else if (n.type === 'quote') {
+      icon = '❝';
+      text = `<b>${agoraEscape(n.fromName || '')}</b> გიციტირა: <i>${agoraEscape(n.threadTitle || '')}</i>`;
+    } else if (n.type === 'new-thread') {
+      icon = '🏛';
+      text = `<b>${agoraEscape(n.fromName || '')}</b> გახსნა ახალი თემა: <i>${agoraEscape(n.threadTitle || '')}</i>`;
+    }
+    return `<div class="notif-item ${readClass}" data-thread="${n.threadId || ''}">
+      <span class="notif-icon">${icon}</span>
+      <div class="notif-content">
+        <div class="notif-text">${text}</div>
+        <div class="notif-time">${agoraTimeAgo(n.createdAt)}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  listEl.querySelectorAll('.notif-item').forEach(el => {
+    el.addEventListener('click', function() {
+      const tid = this.dataset.thread;
+      document.getElementById('notifDropdown').classList.remove('open');
+      if (tid) {
+        openAgora();
+        setTimeout(() => agoraOpenThread(tid), 300);
+      }
+    });
+  });
+}
+
+async function agoraNotifMarkAll() {
+  try {
+    const userToken = await agoraGetValidToken();
+    if (!userToken) return;
+    await agoraFetch({ action: 'mark-notifications-read', userToken });
+    _notifData = _notifData.map(n => ({ ...n, read: true }));
+    agoraNotifUpdateBadge(0);
+    agoraNotifRender();
+  } catch { /* silent */ }
+}
+
+
+// ============================================================
 // INIT — event listeners
 // ============================================================
 document.addEventListener('DOMContentLoaded', function() {
@@ -1107,4 +1209,35 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
   });
+
+  // 🔔 Notification bell
+  const notifBtn = document.getElementById('notifBtn');
+  if (notifBtn) {
+    notifBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      agoraNotifToggle();
+    });
+  }
+
+  const markAllBtn = document.getElementById('notifMarkAll');
+  if (markAllBtn) {
+    markAllBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      agoraNotifMarkAll();
+    });
+  }
+
+  // dropdown — გარეთ კლიკი ხურავს
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('#notifWrap')) {
+      const dd = document.getElementById('notifDropdown');
+      if (dd) dd.classList.remove('open');
+    }
+  });
+
+  // notification-ების ჩატვირთვა (auth-ს დროს ვაძლევთ 2 წამს)
+  setTimeout(() => {
+    agoraNotifLoad();
+    _notifInterval = setInterval(agoraNotifLoad, 60000);
+  }, 2000);
 });
