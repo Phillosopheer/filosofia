@@ -338,6 +338,27 @@ export default async function handler(req, res) {
 
 
   // ============================================================
+  // action: 'get-user-profile' — საჯარო პროფილი (auth არ სჭირდება)
+  // ============================================================
+  if (action === "get-user-profile") {
+    const { uid } = body;
+    if (!uid) return res.status(400).json({ error: "uid სავალდებულოა" });
+    try {
+      const userData = await fbGet(`/users/${uid}`);
+      return res.json({
+        nickname:      userData?.nickname      || "მომხმარებელი",
+        articlesCount: userData?.articlesCount || 0,
+        topicsCount:   userData?.topicsCount   || 0,
+        photoURL:      userData?.photoURL      || null,
+        isOwner:       uid === ADMIN_UID
+      });
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
+    }
+  }
+
+
+  // ============================================================
   // action: 'get-threads' — თემების სია (pagination)
   // ============================================================
   if (action === "get-threads") {
