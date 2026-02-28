@@ -2966,6 +2966,7 @@ document.getElementById('avatarFileInput').addEventListener('change', async (e) 
       localStorage.setItem('adminPhoto', dataURL);
       document.getElementById('sidebarAvatar').src = dataURL;
       document.getElementById('userAvatarImg').src = dataURL;
+      updateAvatarDeleteBtn();
       return;
     }
     if (!currentUser || !userToken) return;
@@ -2978,9 +2979,49 @@ document.getElementById('avatarFileInput').addEventListener('change', async (e) 
       currentUser.photoURL = dataURL;
       document.getElementById('sidebarAvatar').src = dataURL;
       document.getElementById('userAvatarImg').src = dataURL;
+      updateAvatarDeleteBtn();
     } catch(e) { alert('ფოტოს ატვირთვა ვერ მოხერხდა'); }
   };
   reader.readAsDataURL(file);
+});
+
+// --- Avatar delete button visibility ---
+function updateAvatarDeleteBtn() {
+  const btn = document.getElementById('avatarDeleteBtn');
+  if (!btn) return;
+  const hasPhoto = idToken
+    ? !!localStorage.getItem('adminPhoto')
+    : !!(currentUser && currentUser.photoURL);
+  btn.style.display = hasPhoto ? 'flex' : 'none';
+}
+
+// --- Avatar delete ---
+document.getElementById('avatarDeleteBtn').addEventListener('click', async (e) => {
+  e.stopPropagation();
+  if (!confirm('ფოტო წაიშლება. დარწმუნებული ხარ?')) return;
+  const fallbackSrc = (nick) => `https://ui-avatars.com/api/?name=${encodeURIComponent(nick[0])}&background=c9a84c&color=1a1610&size=64&bold=true`;
+
+  if (idToken) {
+    localStorage.removeItem('adminPhoto');
+    const nick = localStorage.getItem('adminDisplayName') || 'ნოდარ კებაძე';
+    const src = fallbackSrc(nick);
+    document.getElementById('sidebarAvatar').src = src;
+    document.getElementById('userAvatarImg').src = src;
+    updateAvatarDeleteBtn();
+    return;
+  }
+  if (!currentUser || !userToken) return;
+  try {
+    await fbFetch(`${FIREBASE_DB}/users/${currentUser.uid}/photoURL.json?auth=${userToken}`, {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify('')
+    });
+    currentUser.photoURL = '';
+    const src = fallbackSrc(currentUser.nickname || 'U');
+    document.getElementById('sidebarAvatar').src = src;
+    document.getElementById('userAvatarImg').src = src;
+    updateAvatarDeleteBtn();
+  } catch(e) { alert('ფოტოს წაშლა ვერ მოხერხდა'); }
 });
 
 // --- Avatar button opens profile popup ---
@@ -2988,7 +3029,7 @@ document.getElementById('userAvatarBtn').addEventListener('click', (e) => {
   e.stopPropagation();
   const popup = document.getElementById('profilePopup');
   popup.classList.toggle('open');
-  if (popup.classList.contains('open')) hideNicknameEdit();
+  if (popup.classList.contains('open')) { hideNicknameEdit(); updateAvatarDeleteBtn(); }
 });
 // Close popup when clicking outside
 document.addEventListener('click', (e) => {
