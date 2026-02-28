@@ -450,9 +450,9 @@ rejectBtn.addEventListener('click', () => confirmPendingAction('reject', note.fb
 const banBtn = card.querySelector('.pnote-ban');
 if (banBtn) {
   banBtn.addEventListener('click', () => {
-    if (confirm('⚠️ დარწმუნებული ხარ? მომხმარებელი დაიბლოკება და ახალ აქაუნთს ვერ გახსნის.')) {
+    showConfirmToast('მომხმარებელი დაიბლოკება და ახალ აქაუნთს ვერ გახსნის. დარწმუნებული ხარ?', function() {
       banUserByUid(note.submitterUid, note.fbId, banBtn);
-    }
+    });
   });
 }
 list.appendChild(card);
@@ -1032,7 +1032,10 @@ document.getElementById('articleBotInput').value = '';
 }
 async function deleteCurrentNote() {
 if (!currentNote || !idToken) return;
-if (!confirm(`წაიშალოს "${currentNote.title}"?`)) return;
+showConfirmToast('წაიშალოს "' + currentNote.title + '"?', function() { _deleteCurrentNoteConfirmed(); });
+}
+async function _deleteCurrentNoteConfirmed() {
+if (!currentNote || !idToken) return;
 try {
 const res = await fbFetch(`${FIREBASE_DB}/notes/${currentNote.fbId}.json?auth=${idToken}`, {
 method: 'DELETE'
@@ -1117,7 +1120,9 @@ btn.innerText = 'შესვლა';
 }
 }
 function doLogout() {
-if (!confirm('დარწმუნებული ხართ რომ გსურთ გამოსვლა?')) return;
+showConfirmToast('დარწმუნებული ხარ, რომ გსურს გამოსვლა?', function() { _doLogoutConfirmed(); });
+}
+function _doLogoutConfirmed() {
 idToken    = null;
 currentUid = null;
 localStorage.removeItem('idToken');
@@ -1248,7 +1253,10 @@ document.execCommand('hiliteColor', false, color);
 }
 function removeCoverImage() {
 if (!currentNote) return;
-if (!confirm('ნამდვილად გსურთ სურათის წაშლა?')) return;
+showConfirmToast('ნამდვილად გსურს სურათის წაშლა?', function() { _removeCoverConfirmed(); });
+}
+function _removeCoverConfirmed() {
+if (!currentNote) return;
 currentNote.coverUrl = null;
 document.getElementById('editCoverPreview').innerHTML = '<p style="color:var(--text-dim); font-size:0.85rem; margin-top:8px;">✓ სურათი წაიშლება შენახვის შემდეგ</p>';
 document.getElementById('editCoverUrl').value = '';
@@ -2006,9 +2014,10 @@ btn.innerText = 'განახლება';
 }
 async function deleteGlossaryTerm() {
 if (!idToken || !currentGlossaryTerm) return;
-if (!confirm(`დარწმუნებული ხართ, რომ გსურთ ტერმინის "${currentGlossaryTerm.term}" წაშლა?`)) {
-return;
+showConfirmToast('გსურს ტერმინის "' + currentGlossaryTerm.term + '" წაშლა?', function() { _deleteGlossaryConfirmed(); });
 }
+async function _deleteGlossaryConfirmed() {
+if (!idToken || !currentGlossaryTerm) return;
 try {
 const res = await fbFetch(`${FIREBASE_DB}/glossary/${currentGlossaryTerm.fbId}.json?auth=${idToken}`, {
 method: 'DELETE'
@@ -3107,7 +3116,9 @@ function updateUserUI(loggedIn) {
 }
 
 function doUserLogout() {
-  if (!confirm('დარწმუნებული ხარ, რომ გსურს გამოსვლა?')) return;
+  showConfirmToast('დარწმუნებული ხარ, რომ გსურს გამოსვლა?', function() { _doUserLogoutConfirmed(); });
+}
+function _doUserLogoutConfirmed() {
   localStorage.removeItem('userToken');
   localStorage.removeItem('userRefreshToken');
   localStorage.removeItem('userUid');
@@ -3267,30 +3278,30 @@ function updateAvatarDeleteBtn() {
 // --- Avatar delete ---
 document.getElementById('avatarDeleteBtn').addEventListener('click', async (e) => {
   e.stopPropagation();
-  if (!confirm('ფოტო წაიშლება. დარწმუნებული ხარ?')) return;
-  const fallbackSrc = (nick) => `https://ui-avatars.com/api/?name=${encodeURIComponent(nick[0])}&background=c9a84c&color=1a1610&size=64&bold=true`;
-
-  if (idToken) {
-    localStorage.removeItem('adminPhoto');
-    const nick = localStorage.getItem('adminDisplayName') || 'ნოდარ კებაძე';
-    const src = fallbackSrc(nick);
-    document.getElementById('sidebarAvatar').src = src;
-    document.getElementById('userAvatarImg').src = src;
-    updateAvatarDeleteBtn();
-    return;
-  }
-  if (!currentUser || !userToken) return;
-  try {
-    await fbFetch(`${FIREBASE_DB}/users/${currentUser.uid}/photoURL.json?auth=${userToken}`, {
-      method: 'PUT', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify('')
-    });
-    currentUser.photoURL = '';
-    const src = fallbackSrc(currentUser.nickname || 'U');
-    document.getElementById('sidebarAvatar').src = src;
-    document.getElementById('userAvatarImg').src = src;
-    updateAvatarDeleteBtn();
-  } catch(e) { showToast('ფოტოს წაშლა ვერ მოხერხდა', 'error'); }
+  showConfirmToast('ფოტო წაიშლება. დარწმუნებული ხარ?', async function() {
+    const fallbackSrc = (nick) => `https://ui-avatars.com/api/?name=${encodeURIComponent(nick[0])}&background=c9a84c&color=1a1610&size=64&bold=true`;
+    if (idToken) {
+      localStorage.removeItem('adminPhoto');
+      const nick = localStorage.getItem('adminDisplayName') || 'ნოდარ კებაძე';
+      const src = fallbackSrc(nick);
+      document.getElementById('sidebarAvatar').src = src;
+      document.getElementById('userAvatarImg').src = src;
+      updateAvatarDeleteBtn();
+      return;
+    }
+    if (!currentUser || !userToken) return;
+    try {
+      await fbFetch(`${FIREBASE_DB}/users/${currentUser.uid}/photoURL.json?auth=${userToken}`, {
+        method: 'PUT', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify('')
+      });
+      currentUser.photoURL = '';
+      const src = fallbackSrc(currentUser.nickname || 'U');
+      document.getElementById('sidebarAvatar').src = src;
+      document.getElementById('userAvatarImg').src = src;
+      updateAvatarDeleteBtn();
+    } catch(e) { showToast('ფოტოს წაშლა ვერ მოხერხდა', 'error'); }
+  });
 });
 
 // --- Avatar button opens profile popup ---
