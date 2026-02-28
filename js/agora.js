@@ -34,14 +34,23 @@ function agoraTimeAgo(ts) {
 // helper: user token
 // ============================================================
 function agoraGetToken() {
-  // window.userToken — let-ითაა script.js-ში, ამიტომ პირდაპირ global-ს ვიყენებთ
+  // ადმინი idToken-ს იყენებს, user — userToken-ს
+  if (typeof idToken !== 'undefined' && idToken) return idToken;
   if (typeof userToken !== 'undefined' && userToken) return userToken;
-  return localStorage.getItem('userToken') || localStorage.getItem('idToken') || null;
+  return localStorage.getItem('idToken') || localStorage.getItem('userToken') || null;
 }
 
 function agoraGetUser() {
-  // window.currentUser გამოუსადეგარია (let), პირდაპირ global currentUser
+  // ჩვეულებრივი user
   if (typeof currentUser !== 'undefined' && currentUser) return currentUser;
+  // ადმინი — currentUser null-ია, მაგრამ idToken გვაქვს
+  if (typeof idToken !== 'undefined' && idToken) {
+    return {
+      uid:      'bOZ9pQ95e6RwQ6ZD6p5MUzzEvld2',
+      nickname: localStorage.getItem('adminDisplayName') || 'ნოდარ კებაძე',
+      photoURL: localStorage.getItem('adminPhoto') || null
+    };
+  }
   return null;
 }
 
@@ -549,8 +558,8 @@ function agoraRenderReplyForm(container, thread) {
           <button class="agora-quote-clear" id="agoraQuoteClear" title="ციტატის გაუქმება">✕</button>
         </div>
       </div>
-      <textarea class="agora-textarea" id="replyTextarea" maxlength="2000" placeholder="დაწერე კომენტარი..."></textarea>
-      <div class="agora-char-count"><span id="replyCharCount">0</span>/2000</div>
+      <textarea class="agora-textarea" id="replyTextarea" placeholder="დაწერე კომენტარი..."></textarea>
+      <div class="agora-char-count"><span id="replyCharCount">0</span></div>
       <button class="agora-reply-submit" id="replySubmitBtn">გამოქვეყნება ↑</button>
     </div>`;
 
@@ -563,9 +572,7 @@ function agoraRenderReplyForm(container, thread) {
   agoraUpdateQuotePreview();
 
   ta.addEventListener('input', function() {
-    const len = ta.value.length;
-    countEl.textContent = len;
-    countEl.parentElement.classList.toggle('warn', len > 1800);
+    countEl.textContent = ta.value.length;
   });
 
   if (clearBtn) {
