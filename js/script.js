@@ -1203,6 +1203,139 @@ btn.disabled  = false;
 btn.innerText = 'შესვლა';
 }
 }
+// ============================================================
+// პაროლის აღდგენა
+// ============================================================
+
+function switchToForgot() {
+  // ჩვეულებრივი login/register tab-ებს ვმალავთ
+  document.getElementById('loginForm').style.display    = 'none';
+  document.getElementById('registerForm').style.display = 'none';
+  document.querySelector('.auth-tabs').style.display    = 'none';
+  // forgotForm გამოვაჩენთ, step1-ზე
+  document.getElementById('forgotForm').style.display   = 'block';
+  document.getElementById('forgotStep1').style.display  = 'block';
+  document.getElementById('forgotStep2').style.display  = 'none';
+  // შეტყობინებები გავასუფთავოთ
+  const errEl = document.getElementById('forgotError');
+  const sucEl = document.getElementById('forgotSuccess');
+  showMsg(errEl, '', false);
+  showMsg(sucEl, '', false);
+  // focus
+  setTimeout(() => document.getElementById('forgotEmail').focus(), 100);
+}
+
+function switchForgotToLogin() {
+  // tabs და loginForm ვაბრუნებთ
+  document.querySelector('.auth-tabs').style.display    = 'flex';
+  document.getElementById('forgotForm').style.display   = 'none';
+  document.getElementById('loginForm').style.display    = 'block';
+  const errEl = document.getElementById('loginError');
+  showMsg(errEl, '', false);
+  // loginFails ნარჩუნდება — ეს სწორია
+  setTimeout(() => document.getElementById('loginEmail').focus(), 100);
+}
+
+async function doForgotSend() {
+  const email  = document.getElementById('forgotEmail').value.trim();
+  const errEl  = document.getElementById('forgotError');
+  const sucEl  = document.getElementById('forgotSuccess');
+  const btn    = document.getElementById('forgotSendBtn');
+  showMsg(errEl, '', false);
+  showMsg(sucEl, '', false);
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showMsg(errEl, 'შეიყვანე სწორი ელ. ფოსტა', true);
+    return;
+  }
+
+  btn.disabled  = true;
+  btn.innerText = 'იგზავნება...';
+
+  try {
+    const res  = await fetch('/api/reset-password', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ action: 'send', email })
+    });
+    const data = await res.json();
+
+    if (!res.ok || !data.ok) {
+      showMsg(errEl, data.error || 'შეცდომა. სცადე ხელახლა.', true);
+      return;
+    }
+
+    // Step 2-ზე გადასვლა
+    document.getElementById('forgotEmailShow').innerText = email;
+    document.getElementById('forgotStep1').style.display = 'none';
+    document.getElementById('forgotStep2').style.display = 'block';
+    document.getElementById('forgotCode').value          = '';
+    document.getElementById('forgotNewPassword').value   = '';
+    document.getElementById('forgotNewPassword2').value  = '';
+    setTimeout(() => document.getElementById('forgotCode').focus(), 100);
+
+  } catch (e) {
+    showMsg(errEl, '📡 კავშირის შეცდომა. სცადე ხელახლა.', true);
+  } finally {
+    btn.disabled  = false;
+    btn.innerText = 'კოდის გაგზავნა →';
+  }
+}
+
+async function doForgotReset() {
+  const email    = document.getElementById('forgotEmail').value.trim();
+  const code     = document.getElementById('forgotCode').value.trim();
+  const pass1    = document.getElementById('forgotNewPassword').value;
+  const pass2    = document.getElementById('forgotNewPassword2').value;
+  const errEl    = document.getElementById('forgotError');
+  const sucEl    = document.getElementById('forgotSuccess');
+  const btn      = document.getElementById('forgotResetBtn');
+  showMsg(errEl, '', false);
+  showMsg(sucEl, '', false);
+
+  if (!code || code.length !== 6) {
+    showMsg(errEl, '6-ნიშნა კოდი შეიყვანე', true);
+    return;
+  }
+  if (!pass1 || pass1.length < 6) {
+    showMsg(errEl, 'პაროლი მინ. 6 სიმბოლო უნდა იყოს', true);
+    return;
+  }
+  if (pass1 !== pass2) {
+    showMsg(errEl, 'პაროლები არ ემთხვევა', true);
+    return;
+  }
+
+  btn.disabled  = true;
+  btn.innerText = 'იცვლება...';
+
+  try {
+    const res  = await fetch('/api/reset-password', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ action: 'reset', email, code, newPassword: pass1 })
+    });
+    const data = await res.json();
+
+    if (!res.ok || !data.ok) {
+      showMsg(errEl, data.error || 'შეცდომა. სცადე ხელახლა.', true);
+      return;
+    }
+
+    // წარმატება!
+    showToast('✅ პაროლი წარმატებით შეიცვალა! შედი ახლა.', 'success');
+    switchForgotToLogin();
+    // ემაილი ავტომატურად ჩავწეროთ login-ის ველში
+    document.getElementById('loginEmail').value = email;
+
+  } catch (e) {
+    showMsg(errEl, '📡 კავშირის შეცდომა. სცადე ხელახლა.', true);
+  } finally {
+    btn.disabled  = false;
+    btn.innerText = 'პაროლის შეცვლა ✓';
+  }
+}
+
 function doLogout() {
 showConfirmToast('დარწმუნებული ხარ, რომ გსურს გამოსვლა?', function() { _doLogoutConfirmed(); });
 }
@@ -2467,8 +2600,37 @@ document.getElementById('closeLoginModalBtn').addEventListener('click', () => {
   const s2 = document.getElementById('regStep2');
   if (s1) s1.style.display = 'block';
   if (s2) s2.style.display = 'none';
+  // Reset forgot form
+  const fs1 = document.getElementById('forgotStep1');
+  const fs2 = document.getElementById('forgotStep2');
+  const ff  = document.getElementById('forgotForm');
+  if (ff)  ff.style.display  = 'none';
+  if (fs1) fs1.style.display = 'block';
+  if (fs2) fs2.style.display = 'none';
 });
 document.getElementById('loginBtn').addEventListener('click', doLogin);
+// Forgot password listeners
+document.getElementById('forgotLink').addEventListener('click', switchToForgot);
+document.getElementById('forgotSendBtn').addEventListener('click', doForgotSend);
+document.getElementById('forgotResetBtn').addEventListener('click', doForgotReset);
+document.getElementById('forgotBackBtn1').addEventListener('click', switchForgotToLogin);
+document.getElementById('forgotBackBtn2').addEventListener('click', function() {
+  // კოდის ხელახლა გაგზავნა — Step1-ზე ვბრუნდებით
+  document.getElementById('forgotStep2').style.display = 'none';
+  document.getElementById('forgotStep1').style.display = 'block';
+  const errEl = document.getElementById('forgotError');
+  const sucEl = document.getElementById('forgotSuccess');
+  showMsg(errEl, '', false);
+  showMsg(sucEl, '', false);
+  setTimeout(() => document.getElementById('forgotEmail').focus(), 100);
+});
+// forgotCode Enter key
+document.getElementById('forgotCode').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') doForgotReset();
+});
+document.getElementById('forgotNewPassword2').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') doForgotReset();
+});
 document.getElementById('totpBtn').addEventListener('click', doTotpVerify);
 document.getElementById('totpInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') doTotpVerify(); });
 document.getElementById('closeTotpModalBtn').addEventListener('click', () => { closeModal('totpModal'); window._pendingAuthData = null; });
@@ -2894,10 +3056,15 @@ document.getElementById('registerBtn').addEventListener('click', () => {
 function switchAuthTab(tab) {
   const loginForm   = document.getElementById('loginForm');
   const registerForm = document.getElementById('registerForm');
+  const forgotForm  = document.getElementById('forgotForm');
   const tabLogin    = document.getElementById('tabLogin');
   const tabRegister = document.getElementById('tabRegister');
+  const authTabs    = document.querySelector('.auth-tabs');
   const errEl       = document.getElementById('loginError');
   showMsg(errEl, '', false);
+  // forgotForm ყოველთვის მალავს tab-ის გადართვაზე
+  if (forgotForm) forgotForm.style.display = 'none';
+  if (authTabs)   authTabs.style.display   = 'flex';
   if (tab === 'login') {
     loginForm.style.display   = 'block';
     registerForm.style.display = 'none';
