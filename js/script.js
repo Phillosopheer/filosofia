@@ -1620,7 +1620,7 @@ function showConfirmToast(msg, onConfirm) {
       '<div style="font-size:2rem;margin-bottom:12px;">⚠️</div>' +
       '<p style="color:#e8e0d0;font-size:0.92rem;line-height:1.6;margin-bottom:22px;">' + msg + '</p>' +
       '<div style="display:flex;gap:10px;">' +
-        '<button id="__confirm_yes__" style="flex:1;padding:11px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.5);border-radius:8px;color:#f87171;cursor:pointer;font-size:0.88rem;font-family:inherit;font-weight:600;">დიახ, წაშლა</button>' +
+        '<button id="__confirm_yes__" style="flex:1;padding:11px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.5);border-radius:8px;color:#f87171;cursor:pointer;font-size:0.88rem;font-family:inherit;font-weight:600;">დიახ</button>' +
         '<button id="__confirm_no__"  style="flex:1;padding:11px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:var(--text-dim);cursor:pointer;font-size:0.88rem;font-family:inherit;">გაუქმება</button>' +
       '</div>' +
     '</div>';
@@ -3465,13 +3465,15 @@ document.getElementById('regBackBtn').addEventListener('click', () => {
 // --- Restore user session on page load ---
 (async function restoreUserSession() {
   // Always show header when done
-  const showHeader = () => {
+  const showHeader = (loggedIn = false) => {
     const h = document.getElementById('headerActions');
     if (h) h.style.visibility = 'visible';
-    const rb = document.getElementById('registerBtn');
-    const lb = document.getElementById('lockBtn');
-    if (rb) rb.style.visibility = 'visible';
-    if (lb) lb.style.visibility = 'visible';
+    if (!loggedIn) {
+      const rb = document.getElementById('registerBtn');
+      const lb = document.getElementById('lockBtn');
+      if (rb) rb.style.visibility = 'visible';
+      if (lb) lb.style.visibility = 'visible';
+    }
   };
 
   const savedToken = localStorage.getItem('userToken');
@@ -3509,5 +3511,5 @@ document.getElementById('regBackBtn').addEventListener('click', () => {
   currentUser = { uid: savedUid, email: savedEmail || '', nickname: savedNick || 'მომხმარებელი', photoURL: '' };
   await loadUserProfile(savedUid, savedToken);
   updateUserUI(true);
-  showHeader();
+  showHeader(true);
 })();
