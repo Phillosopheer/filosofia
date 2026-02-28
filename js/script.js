@@ -569,6 +569,11 @@ document.querySelector('.hero').classList.add('no-bg');
 }
 displayRandomQuote();
 updateHeaderButtons();
+// Show header (admin path — user path handled in restoreUserSession)
+if (!localStorage.getItem('userToken')) {
+  const h = document.getElementById('headerActions');
+  if (h) h.style.visibility = 'visible';
+}
 fetchNotes();
 fetchGlossary();
 if (idToken) {
@@ -2948,13 +2953,46 @@ document.getElementById('regBackBtn').addEventListener('click', () => {
 
 // --- Restore user session on page load ---
 (async function restoreUserSession() {
+  // Always show header when done
+  const showHeader = () => {
+    const h = document.getElementById('headerActions');
+    if (h) h.style.visibility = 'visible';
+  };
+
   const savedToken = localStorage.getItem('userToken');
   const savedUid   = localStorage.getItem('userUid');
   const savedEmail = localStorage.getItem('userEmail');
   const savedNick  = localStorage.getItem('userNickname');
-  if (!savedToken || !savedUid) return;
+
+  if (!savedToken || !savedUid) { showHeader(); return; }
+
+  // Validate token — if account deleted, Firebase returns 401/USER_NOT_FOUND
+  try {
+    const checkRes = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${API_KEY}`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken: savedToken }) }
+    );
+    const checkData = await checkRes.json();
+    if (!checkRes.ok || checkData.error) {
+      // Account deleted or token invalid — clear everything
+      localStorage.removeItem('userToken');
+      localStorage.removeItem('userRefreshToken');
+      localStorage.removeItem('userUid');
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('userNickname');
+      showHeader();
+      return;
+    }
+  } catch(e) {
+    // Network error — don't clear, just show header
+    showHeader();
+    return;
+  }
+
   userToken = savedToken;
   currentUser = { uid: savedUid, email: savedEmail || '', nickname: savedNick || 'მომხმარებელი', photoURL: '' };
   await loadUserProfile(savedUid, savedToken);
   updateUserUI(true);
+  showHeader();
 })();
