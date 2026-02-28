@@ -840,6 +840,7 @@ alert(err.message);
 }
 function handleAuthBtn() {
 openModal('loginModal');
+switchAuthTab('login');
 const lockUntil = parseInt(localStorage.getItem('lockUntil') || '0');
 if (lockUntil && Date.now() < lockUntil) {
 const remaining = Math.ceil((lockUntil - Date.now()) / 1000 / 60 / 60);
@@ -1447,7 +1448,16 @@ btn.innerText = 'განახლება';
 }
 document.querySelectorAll('.modal').forEach(m => {
 m.addEventListener('click', e => {
-if (e.target === m) m.classList.remove('active');
+  if (e.target === m) {
+    m.classList.remove('active');
+    if (m.id === 'loginModal') {
+      switchAuthTab('login');
+      const s1 = document.getElementById('regStep1');
+      const s2 = document.getElementById('regStep2');
+      if (s1) s1.style.display = 'block';
+      if (s2) s2.style.display = 'none';
+    }
+  }
 });
 });
 document.addEventListener('keydown', e => {
@@ -2053,7 +2063,15 @@ document.getElementById('deleteGlossaryTermBtn').addEventListener('click', delet
 document.getElementById('glossaryAddBtn').addEventListener('click', () => openModal('addGlossaryModal'));
 const glossarySearch = document.getElementById('glossarySearchInput');
 if (glossarySearch) glossarySearch.addEventListener('input', searchGlossary);
-document.getElementById('closeLoginModalBtn').addEventListener('click', () => closeModal('loginModal'));
+document.getElementById('closeLoginModalBtn').addEventListener('click', () => {
+  closeModal('loginModal');
+  switchAuthTab('login');
+  // Reset reg steps
+  const s1 = document.getElementById('regStep1');
+  const s2 = document.getElementById('regStep2');
+  if (s1) s1.style.display = 'block';
+  if (s2) s2.style.display = 'none';
+});
 document.getElementById('loginBtn').addEventListener('click', doLogin);
 document.getElementById('totpBtn').addEventListener('click', doTotpVerify);
 document.getElementById('totpInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') doTotpVerify(); });
