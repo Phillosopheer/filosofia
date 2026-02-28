@@ -3058,6 +3058,30 @@ async function doUserLogin() {
     if (!res.ok) {
       const errMsg = data?.error?.message || '';
       if (errMsg.includes('USER_DISABLED')) {
+        // ვცდილობთ bannedUntil-ის წაკითხვას banned-emails-იდან
+        try {
+          const safeEmail = email.replace(/[.#$[\]@]/g, '_');
+          const banRes = await fbFetch(`${FIREBASE_DB}/banned-emails/${safeEmail}.json`);
+          if (banRes.ok) {
+            const banData = await banRes.json();
+            if (banData && banData.bannedUntil) {
+              const msLeft   = banData.bannedUntil - Date.now();
+              if (msLeft > 0) {
+                const daysLeft  = Math.ceil(msLeft / 86400000);
+                const hoursLeft = Math.ceil(msLeft / 3600000);
+                const timeStr   = daysLeft >= 2
+                  ? `${daysLeft} დღე`
+                  : hoursLeft >= 1
+                    ? `${hoursLeft} საათი`
+                    : 'ცოტა ხანი';
+                showMsg(errEl, `🚫 ეს ანგარიში დაბლოკილია. დარჩენილია: ${timeStr}.`, true);
+              } else {
+                showMsg(errEl, '🚫 ეს ანგარიში დაბლოკილია.', true);
+              }
+              return;
+            }
+          }
+        } catch {}
         showMsg(errEl, '🚫 ეს ანგარიში დაბლოკილია.', true);
         return;
       }
