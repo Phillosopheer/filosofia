@@ -857,6 +857,10 @@ updateHeaderButtons();
 if (!localStorage.getItem('userToken')) {
   const h = document.getElementById('headerActions');
   if (h) h.style.visibility = 'visible';
+  const rb = document.getElementById('registerBtn');
+  const lb = document.getElementById('lockBtn');
+  if (rb) rb.style.visibility = 'visible';
+  if (lb) lb.style.visibility = 'visible';
 }
 fetchNotes();
 fetchGlossary();
@@ -3464,6 +3468,10 @@ document.getElementById('regBackBtn').addEventListener('click', () => {
   const showHeader = () => {
     const h = document.getElementById('headerActions');
     if (h) h.style.visibility = 'visible';
+    const rb = document.getElementById('registerBtn');
+    const lb = document.getElementById('lockBtn');
+    if (rb) rb.style.visibility = 'visible';
+    if (lb) lb.style.visibility = 'visible';
   };
 
   const savedToken = localStorage.getItem('userToken');
