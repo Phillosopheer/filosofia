@@ -3,6 +3,10 @@
     "api/gemini.js": {
       "memory": 1024,
       "maxDuration": 30
+    },
+    "api/agora.js": {
+      "memory": 1024,
+      "maxDuration": 30
     }
   },
   "headers": [
