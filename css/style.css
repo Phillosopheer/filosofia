@@ -502,7 +502,7 @@ body.admin-mode #uploaderBtn { display: flex !important; }
 /* MODALS */
 .modal { display:none; position:fixed; inset:0; z-index:4000; align-items:center; justify-content:center; background:rgba(0,0,0,0.82); backdrop-filter:blur(6px); }
 .modal.active { display:flex; }
-.modal-box { background:var(--surface); border:1px solid var(--border); border-top:2px solid var(--gold-dim); padding:34px; width:90%; max-width:460px; animation:fadeIn 0.3s ease; box-shadow:0 40px 80px rgba(0,0,0,0.6); }
+.modal-box { background:var(--surface); border:1px solid var(--border); border-top:2px solid var(--gold-dim); padding:34px; width:90%; max-width:460px; max-height:90vh; overflow-y:auto; animation:fadeIn 0.3s ease; box-shadow:0 40px 80px rgba(0,0,0,0.6); }
 .modal-box.wide { max-width:700px; max-height:90vh; overflow-y:auto; }
 @keyframes fadeIn { from{opacity:0;transform:translateY(16px) scale(0.98);} to{opacity:1;transform:translateY(0) scale(1);} }
 .modal-box h2 { font-family:'Cinzel',Georgia,serif; font-size:1.35rem; font-weight:600; margin-bottom:22px; color:var(--ivory); letter-spacing:1px; }
