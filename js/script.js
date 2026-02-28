@@ -266,16 +266,94 @@ async function detectIncognito() {
 
 async function getBrowserFingerprint() {
   try {
-    const raw = [
-      screen.width, screen.height, screen.colorDepth,
-      Intl.DateTimeFormat().resolvedOptions().timeZone,
-      navigator.language,
-      navigator.platform,
-      navigator.hardwareConcurrency
-    ].join('|');
-    const data = new TextEncoder().encode(raw + '_fp_salt_filosof');
+    const signals = [];
+
+    // ── 1. საბაზო სისტემური მონაცემები ──
+    signals.push(screen.width, screen.height, screen.colorDepth, screen.pixelDepth || '');
+    signals.push(Intl.DateTimeFormat().resolvedOptions().timeZone);
+    signals.push(navigator.language, navigator.languages?.join(',') || '');
+    signals.push(navigator.platform, navigator.hardwareConcurrency, navigator.deviceMemory || '');
+    signals.push(navigator.maxTouchPoints || 0);
+    signals.push(window.devicePixelRatio || 1);
+
+    // ── 2. Canvas Fingerprint (ყველაზე ძლიერი სიგნალი) ──
+    // Canvas-ი GPU-ზეა დამოკიდებული — ყოველ მოწყობილობაზე განსხვავებულია
+    try {
+      const cv = document.createElement('canvas');
+      cv.width = 200; cv.height = 50;
+      const ctx = cv.getContext('2d');
+      ctx.textBaseline = 'top';
+      ctx.font = '14px Arial';
+      ctx.fillStyle = '#f60';
+      ctx.fillRect(125, 1, 62, 20);
+      ctx.fillStyle = '#069';
+      ctx.fillText('filosofia🔐', 2, 15);
+      ctx.fillStyle = 'rgba(102,204,0,0.7)';
+      ctx.fillText('filosofia🔐', 4, 17);
+      // WebGL gradient
+      ctx.fillStyle = 'rgba(0,0,128,0.4)';
+      for (let i = 0; i < 5; i++) ctx.fillRect(i * 10, 30, 8, 10);
+      signals.push(cv.toDataURL().substring(22, 150));
+    } catch {}
+
+    // ── 3. WebGL Fingerprint (GPU info) ──
+    try {
+      const gl = document.createElement('canvas').getContext('webgl') ||
+                 document.createElement('canvas').getContext('experimental-webgl');
+      if (gl) {
+        const ext = gl.getExtension('WEBGL_debug_renderer_info');
+        if (ext) {
+          signals.push(gl.getParameter(ext.UNMASKED_VENDOR_WEBGL));
+          signals.push(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL));
+        }
+        signals.push(gl.getParameter(gl.VERSION));
+        signals.push(gl.getParameter(gl.SHADING_LANGUAGE_VERSION));
+      }
+    } catch {}
+
+    // ── 4. Audio Fingerprint ──
+    try {
+      const ac = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ac.createOscillator();
+      const an  = ac.createAnalyser();
+      const gain = ac.createGain();
+      gain.gain.value = 0;
+      osc.connect(an); an.connect(gain); gain.connect(ac.destination);
+      osc.start(0);
+      const buf = new Float32Array(an.frequencyBinCount);
+      an.getFloatFrequencyData(buf);
+      osc.stop(); ac.close();
+      signals.push(buf.slice(0, 10).join(','));
+    } catch {}
+
+    // ── 5. დაყენებული შრიფტები ──
+    try {
+      const testFonts = ['Arial', 'Times New Roman', 'Courier New', 'Georgia', 'Verdana',
+                         'Helvetica', 'Tahoma', 'Trebuchet MS', 'Comic Sans MS', 'Impact'];
+      const cv2 = document.createElement('canvas');
+      const ctx2 = cv2.getContext('2d');
+      const base = '72px monospace';
+      ctx2.font = base;
+      const baseW = ctx2.measureText('mmmmwwww').width;
+      const available = testFonts.filter(f => {
+        ctx2.font = `72px '${f}', monospace`;
+        return ctx2.measureText('mmmmwwww').width !== baseW;
+      });
+      signals.push(available.join(','));
+    } catch {}
+
+    // ── 6. Plugin სია ──
+    try {
+      const plugins = Array.from(navigator.plugins || []).map(p => p.name).sort().join(',');
+      signals.push(plugins.substring(0, 100));
+    } catch {}
+
+    // ── Hash ──
+    const raw  = signals.join('|||') + '|_salt_filosofia_2026';
+    const data = new TextEncoder().encode(raw);
     const buf  = await crypto.subtle.digest('SHA-256', data);
-    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('').substring(0, 32);
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('').substring(0, 48);
+
   } catch { return null; }
 }
 
