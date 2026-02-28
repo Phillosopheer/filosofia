@@ -293,6 +293,9 @@ async function agoraOpenThread(threadId) {
     const actionsEl = contentEl.querySelector('.agora-thread-actions');
     if (actionsEl) agoraBindThreadActions(actionsEl, data.thread);
 
+    // user card triggers on thread header
+    agoraBindUserCardTriggers(contentEl);
+
     // replies
     _agoraReplyPage  = data.replies.page;
     _agoraReplyTotal = data.replies.totalPages;
@@ -323,15 +326,15 @@ function agoraThreadHeader(t) {
   const canEdit = canAct && (isAdm || inWin);
 
   const avatarHtml = t.authorAvatar
-    ? `<img class="agora-author-avatar" src="${agoraEscape(t.authorAvatar)}" alt="" loading="lazy">`
-    : `<div class="agora-author-avatar agora-author-avatar-placeholder">${agoraEscape((t.authorName||'?')[0].toUpperCase())}</div>`;
+    ? `<img class="agora-author-avatar agora-user-card-trigger" data-uid="${agoraEscape(t.authorUid||'')}" src="${agoraEscape(t.authorAvatar)}" alt="" loading="lazy">`
+    : `<div class="agora-author-avatar agora-author-avatar-placeholder agora-user-card-trigger" data-uid="${agoraEscape(t.authorUid||'')}">${agoraEscape((t.authorName||'?')[0].toUpperCase())}</div>`;
 
   return `
     <div class="agora-thread-header">
       <div class="agora-thread-header-title">${agoraEscape(t.title)}</div>
       <div class="agora-thread-header-meta">
         ${avatarHtml}
-        <span class="agora-reply-author">${agoraEscape(t.authorName)}</span>
+        <span class="agora-reply-author agora-user-card-trigger" data-uid="${agoraEscape(t.authorUid||'')}">${agoraEscape(t.authorName)}</span>
         <span>·</span>
         <span>${agoraTimeAgo(t.createdAt)}</span>
         ${t.editedAt ? `<span class="agora-edited-tag">(რედ. ${agoraTimeAgo(t.editedAt)})</span>` : ''}
@@ -401,6 +404,9 @@ function agoraRenderReplies(container, items, paginData) {
   container.querySelectorAll('.agora-reply-item').forEach(el => {
     agoraBindReplyActions(el);
   });
+
+  // user card triggers
+  agoraBindUserCardTriggers(container);
 }
 
 // ============================================================
@@ -416,8 +422,8 @@ function agoraReplyCard(r, num) {
 
   // avatar
   const avatarHtml = r.authorAvatar
-    ? `<img class="agora-author-avatar" src="${agoraEscape(r.authorAvatar)}" alt="" loading="lazy">`
-    : `<div class="agora-author-avatar agora-author-avatar-placeholder">${agoraEscape((r.authorName||'?')[0].toUpperCase())}</div>`;
+    ? `<img class="agora-author-avatar agora-user-card-trigger" data-uid="${agoraEscape(r.authorUid||'')}" src="${agoraEscape(r.authorAvatar)}" alt="" loading="lazy">`
+    : `<div class="agora-author-avatar agora-author-avatar-placeholder agora-user-card-trigger" data-uid="${agoraEscape(r.authorUid||'')}">${agoraEscape((r.authorName||'?')[0].toUpperCase())}</div>`;
 
   // quote block (თუ ეს კომენტარი სხვის ციტატაა)
   const quoteHtml = r.quotedBody
@@ -438,7 +444,7 @@ function agoraReplyCard(r, num) {
       <div class="agora-reply-meta">
         <span class="agora-reply-num">#${num}</span>
         ${avatarHtml}
-        <span class="agora-reply-author">${agoraEscape(r.authorName)}</span>
+        <span class="agora-reply-author agora-user-card-trigger" data-uid="${agoraEscape(r.authorUid||'')}">${agoraEscape(r.authorName)}</span>
         <span>·</span>
         <span>${agoraTimeAgo(r.createdAt)}</span>
         ${r.editedAt ? `<span class="agora-edited-tag">(რედ. ${agoraTimeAgo(r.editedAt)})</span>` : ''}
@@ -748,6 +754,16 @@ async function agoraSubmitNewThread() {
 
     closeModal('newThreadModal');
     showToast('✅ თემა გაიხსნა!', 'success');
+
+    // topicsCount — local განახლება (profile popup-ისთვის)
+    try {
+      if (typeof currentUser !== 'undefined' && currentUser) {
+        currentUser.topicsCount = (currentUser.topicsCount || 0) + 1;
+        const st = document.getElementById('statTopics');
+        if (st) st.textContent = currentUser.topicsCount;
+      }
+    } catch { /* silent */ }
+
     agoraOpenThread(data.threadId);
 
   } catch (e) {
@@ -1058,6 +1074,86 @@ function agoraOpenEditModal(opts) {
     modal.remove();
   });
 }
+
+// ============================================================
+// 👤 USER CARD POPUP
+// ============================================================
+let _userCardCache = {};
+
+async function agoraShowUserCard(uid, anchorEl) {
+  if (!uid) return;
+
+  // ძველი popup წავშალოთ
+  document.querySelectorAll('.agora-user-card-popup').forEach(e => e.remove());
+
+  const popup = document.createElement('div');
+  popup.className = 'agora-user-card-popup';
+  popup.innerHTML = `<div class="auc-loading">იტვირთება...</div>`;
+  document.body.appendChild(popup);
+
+  // პოზიციონირება anchor-ის ქვევით
+  const rect = anchorEl.getBoundingClientRect();
+  const scrollY = window.scrollY || window.pageYOffset;
+  popup.style.position = 'fixed';
+  popup.style.top  = (rect.bottom + 6) + 'px';
+  popup.style.left = Math.min(rect.left, window.innerWidth - 220) + 'px';
+  popup.style.zIndex = '99999';
+
+  // გარეთ კლიკი — დახურვა
+  const closeHandler = (e) => {
+    if (!popup.contains(e.target) && e.target !== anchorEl) {
+      popup.remove();
+      document.removeEventListener('click', closeHandler, true);
+    }
+  };
+  setTimeout(() => document.addEventListener('click', closeHandler, true), 100);
+
+  // cache ან fetch
+  let profile = _userCardCache[uid];
+  if (!profile) {
+    try {
+      const { ok, data } = await agoraFetch({ action: 'get-user-profile', uid });
+      profile = ok ? data : null;
+      if (profile) _userCardCache[uid] = profile;
+    } catch { profile = null; }
+  }
+
+  if (!profile) {
+    popup.innerHTML = `<div class="auc-loading">ვერ ჩაიტვირთა</div>`;
+    return;
+  }
+
+  const avatarSrc = profile.photoURL ||
+    `https://ui-avatars.com/api/?name=${encodeURIComponent((profile.nickname||'?')[0])}&background=c9a84c&color=1a1610&size=64&bold=true`;
+
+  const roleHtml = profile.isOwner
+    ? `<span class="auc-role">👑 Owner — მთავარი ადმინისტრატორი</span>`
+    : `<span class="auc-nickname">${agoraEscape(profile.nickname)}</span>`;
+
+  popup.innerHTML = `
+    <div class="auc-top">
+      <img class="auc-avatar" src="${agoraEscape(avatarSrc)}" alt="">
+      <div class="auc-info">
+        ${roleHtml}
+      </div>
+    </div>
+    <div class="auc-stats">
+      <div class="auc-stat"><span class="auc-num">${profile.articlesCount || 0}</span><span class="auc-label">სტატია</span></div>
+      <div class="auc-stat"><span class="auc-num">${profile.topicsCount || 0}</span><span class="auc-label">თემა</span></div>
+    </div>`;
+}
+
+function agoraBindUserCardTriggers(container) {
+  container.querySelectorAll('.agora-user-card-trigger').forEach(el => {
+    el.style.cursor = 'pointer';
+    el.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const uid = this.dataset.uid;
+      if (uid) agoraShowUserCard(uid, this);
+    });
+  });
+}
+
 
 // ============================================================
 // 🔔 NOTIFICATIONS
