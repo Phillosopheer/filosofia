@@ -927,6 +927,24 @@ select.tb-btn option { background:var(--surface); color:var(--text); }
   border-bottom-color: var(--accent);
 }
 
+/* ===== FORGOT PASSWORD LINK ===== */
+.forgot-link-btn {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 0.78rem;
+  font-family: 'Cinzel', Georgia, serif;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  opacity: 0.55;
+  transition: opacity 0.25s, color 0.25s;
+  padding: 2px 0;
+}
+.forgot-link-btn:hover {
+  opacity: 1;
+  color: var(--gold-dim);
+}
+
 /* ===== USER AVATAR HEADER ===== */
 .user-avatar-btn { padding: 0 !important; overflow: hidden; border-radius: 50% !important; }
 .user-avatar-img {
