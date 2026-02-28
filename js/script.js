@@ -2496,8 +2496,10 @@ function switchAuthTab(tab) {
 }
 
 // --- Registration helpers ---
-const FORBIDDEN_NICK = ['admin','administrator','moderator','mod','owner','nodar','nodiko',
-  'superuser','root','system','support','help','staff','filosof','filosofia','philosoph'];
+const FORBIDDEN_NICK = ['admin','administrator','moderator','mod','owner',
+  'nodar','nodiko','nodo','nodi','kebadze','kebade','keba',
+  'superuser','root','system','support','help','staff',
+  'filosof','filosofia','philosoph','philosophy'];
 const PROFANITY = ['shit','fuck','bitch','damn','ass','hell','sex','porn'];
 
 function generateCaptcha() {
@@ -2530,7 +2532,7 @@ async function doRegStep1() {
   if (!nickname || nickname.length < 3) { showMsg(errEl, 'სახელი მინიმუმ 3 სიმბოლო უნდა იყოს', true); return; }
   if (!/^[\wა-ჿ]+$/.test(nickname)) { showMsg(errEl, 'სახელში მხოლოდ ასოები და ციფრები დასაშვებია', true); return; }
   if (/^\d+$/.test(nickname)) { showMsg(errEl, 'სახელი მხოლოდ ციფრებისგან ვერ შედგება', true); return; }
-  if (FORBIDDEN_NICK.some(f => nickname.toLowerCase().includes(f))) { showMsg(errEl, 'ეს სახელი დაუშვებელია', true); return; }
+  if (FORBIDDEN_NICK.some(f => nickname.toLowerCase() === f)) { showMsg(errEl, 'ეს სახელი დაუშვებელია', true); return; }
   if (PROFANITY.some(p => nickname.toLowerCase().includes(p))) { showMsg(errEl, 'ეს სახელი დაუშვებელია', true); return; }
 
   // Email
