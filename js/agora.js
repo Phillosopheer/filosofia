@@ -34,10 +34,47 @@ function agoraTimeAgo(ts) {
 // helper: user token
 // ============================================================
 function agoraGetToken() {
-  // ადმინი idToken-ს იყენებს, user — userToken-ს
+  // sync ვერსია — UI-სთვის (hidden/visible ღილაკები)
   if (typeof idToken !== 'undefined' && idToken) return idToken;
   if (typeof userToken !== 'undefined' && userToken) return userToken;
   return localStorage.getItem('idToken') || localStorage.getItem('userToken') || null;
+}
+
+// async ვერსია submit-ებისთვის — ამოწმებს expiry-ს და refresh-ავს
+async function agoraGetValidToken() {
+  // ადმინი: getValidIdToken() refresh-ავს ავტომატურად
+  if (typeof idToken !== 'undefined' && idToken) {
+    try {
+      if (typeof getValidIdToken === 'function') return await getValidIdToken();
+    } catch (e) { /* expired/invalid */ }
+    return idToken;
+  }
+  // ჩვეულებრივი user
+  let tok = (typeof userToken !== 'undefined' && userToken)
+    ? userToken : localStorage.getItem('userToken');
+  if (!tok) return null;
+  try {
+    const p = JSON.parse(atob(tok.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
+    if ((p.exp * 1000) < Date.now()) {
+      const rt = localStorage.getItem('userRefreshToken');
+      if (!rt) return tok;
+      const FKEY = typeof API_KEY !== 'undefined'
+        ? API_KEY : 'AIzaSyCcTPhEU478qqwbI9KqJ4iOOFBHox-J7Ao';
+      const r = await fetch(
+        `https://securetoken.googleapis.com/v1/token?key=${FKEY}`,
+        { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'},
+          body:`grant_type=refresh_token&refresh_token=${encodeURIComponent(rt)}` }
+      );
+      const d = await r.json();
+      if (r.ok && d.id_token) {
+        if (typeof userToken !== 'undefined') userToken = d.id_token;
+        localStorage.setItem('userToken', d.id_token);
+        if (d.refresh_token) localStorage.setItem('userRefreshToken', d.refresh_token);
+        return d.id_token;
+      }
+    }
+  } catch (e) { /* ignore */ }
+  return tok;
 }
 
 function agoraGetUser() {
@@ -725,7 +762,7 @@ async function agoraSubmitNewThread() {
   btn.disabled = true;
   btn.textContent = 'AI ამოწმებს...';
 
-  const token    = agoraGetToken();
+  const token    = await agoraGetValidToken();
   const user     = agoraGetUser();
   const authorName   = user?.nickname || localStorage.getItem('userNickname') || 'მომხმარებელი';
   const authorAvatar = user?.photoURL || null;
@@ -776,7 +813,7 @@ async function agoraSubmitReply(threadId, ta, btn) {
     return;
   }
 
-  const token  = agoraGetToken();
+  const token  = await agoraGetValidToken();
   const user   = agoraGetUser();
   const authorName   = user?.nickname || localStorage.getItem('userNickname') || 'მომხმარებელი';
   const authorAvatar = user?.photoURL || null;
@@ -855,7 +892,7 @@ async function agoraSubmitReply(threadId, ta, btn) {
 // edit thread
 // ============================================================
 async function agoraEditThread(threadId, newTitle, newBody) {
-  const token = agoraGetToken();
+  const token = await agoraGetValidToken();
   const btn   = document.getElementById('editThreadSaveBtn');
   if (btn) { btn.disabled = true; btn.textContent = '...'; }
 
@@ -887,7 +924,7 @@ async function agoraEditThread(threadId, newTitle, newBody) {
 // delete thread
 // ============================================================
 async function agoraDeleteThread(threadId) {
-  const token = agoraGetToken();
+  const token = await agoraGetValidToken();
   try {
     const { ok, data } = await agoraFetch({
       action: 'delete-thread',
@@ -911,7 +948,7 @@ async function agoraDeleteThread(threadId) {
 // edit reply
 // ============================================================
 async function agoraEditReply(threadId, replyId, newBody) {
-  const token = agoraGetToken();
+  const token = await agoraGetValidToken();
   const btn   = document.querySelector(`.reply-save-btn[data-reply-id="${replyId}"]`);
   if (btn) { btn.disabled = true; btn.textContent = '...'; }
 
@@ -940,7 +977,7 @@ async function agoraEditReply(threadId, replyId, newBody) {
 // delete reply
 // ============================================================
 async function agoraDeleteReply(threadId, replyId) {
-  const token = agoraGetToken();
+  const token = await agoraGetValidToken();
   try {
     const { ok, data } = await agoraFetch({
       action: 'delete-reply',
