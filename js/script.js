@@ -858,17 +858,11 @@ document.querySelector('.hero').classList.add('no-bg');
 }
 displayRandomQuote();
 updateHeaderButtons();
-// Show header only if no active session validation is in progress
-// Admin path: validateToken() controls header reveal
-// User path: restoreUserSession() controls header reveal
-if (!localStorage.getItem('userToken') && !localStorage.getItem('idToken')) {
-  // Nobody logged in → show header immediately
-  const h = document.getElementById('headerActions');
-  if (h) h.style.visibility = 'visible';
-  const rb = document.getElementById('registerBtn');
-  const lb = document.getElementById('lockBtn');
-  if (rb) rb.style.visibility = 'visible';
-  if (lb) lb.style.visibility = 'visible';
+// Track whether a session is being validated (header stays hidden until done)
+window._sessionPending = !!(localStorage.getItem('userToken') || localStorage.getItem('idToken'));
+if (!window._sessionPending) {
+  // Nobody logged in → show header immediately (no flash possible — guest state)
+  revealHeader();
 }
 fetchNotes();
 fetchGlossary();
@@ -1255,16 +1249,7 @@ updateFab();
 updateHeaderButtons();
 }
 async function validateToken(token, savedEmail) {
-const _showAdminHeader = (loggedIn = true) => {
-  const h = document.getElementById('headerActions');
-  if (h) h.style.visibility = 'visible';
-  if (!loggedIn) {
-    const rb = document.getElementById('registerBtn');
-    const lb = document.getElementById('lockBtn');
-    if (rb) rb.style.visibility = 'visible';
-    if (lb) lb.style.visibility = 'visible';
-  }
-};
+// revealHeader() is the single entry point for showing the header
 try {
 const res = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${API_KEY}`, {
 method: 'POST',
@@ -1283,7 +1268,7 @@ document.body.classList.add('admin-mode');
 updateFab();
 updateHeaderButtons();
 fetchPendingNotes();
-_showAdminHeader(true);
+revealHeader();
 } else {
 console.log('🔒 Token validation failed - forcing logout');
 idToken = null;
@@ -1291,11 +1276,11 @@ currentUid = null;
 clearSession();
 showToast('სესია ვადაგასულია. გთხოვ ხელახლა შეხვიდე.', 'error');
 fetchNotes();
-_showAdminHeader(false);
+revealHeader();
 }
 } catch (err) {
 console.log('Token validation failed due to network error:', err);
-_showAdminHeader(true);
+revealHeader();
 }
 }
 function openEditor() {
@@ -1558,6 +1543,24 @@ function updateFab() {
 const fab = document.getElementById('fabBtn');
 fab.style.display = (idToken && currentCat) ? 'flex' : 'none';
 }
+// ===== Header Reveal (single entry point — prevents flash) =====
+function revealHeader() {
+  const h = document.getElementById('headerActions');
+  if (!h || h.style.visibility === 'visible') return;
+  // Set final state first, THEN make visible (no intermediate flash)
+  updateHeaderButtons();
+  requestAnimationFrame(() => {
+    h.style.visibility = 'visible';
+    const rb = document.getElementById('registerBtn');
+    const lb = document.getElementById('lockBtn');
+    // registerBtn and lockBtn have their own visibility:hidden in HTML
+    // updateHeaderButtons already set their display correctly
+    // but we need to reset their visibility too
+    if (rb) rb.style.visibility = 'visible';
+    if (lb) lb.style.visibility = 'visible';
+  });
+}
+
 function updateHeaderButtons() {
 const submitBtn   = document.getElementById('submitBtn');
 const pendingBtn  = document.getElementById('pendingBtn');
@@ -3487,24 +3490,15 @@ document.getElementById('regBackBtn').addEventListener('click', () => {
 
 // --- Restore user session on page load ---
 (async function restoreUserSession() {
-  // Always show header when done
-  const showHeader = (loggedIn = false) => {
-    const h = document.getElementById('headerActions');
-    if (h) h.style.visibility = 'visible';
-    if (!loggedIn) {
-      const rb = document.getElementById('registerBtn');
-      const lb = document.getElementById('lockBtn');
-      if (rb) rb.style.visibility = 'visible';
-      if (lb) lb.style.visibility = 'visible';
-    }
-  };
+  // revealHeader() is the single entry point for showing the header
+  // It calls updateHeaderButtons() then makes visible atomically via rAF
 
   const savedToken = localStorage.getItem('userToken');
   const savedUid   = localStorage.getItem('userUid');
   const savedEmail = localStorage.getItem('userEmail');
   const savedNick  = localStorage.getItem('userNickname');
 
-  if (!savedToken || !savedUid) { showHeader(); return; }
+  if (!savedToken || !savedUid) { revealHeader(); return; }
 
   // Validate token — if account deleted, Firebase returns 401/USER_NOT_FOUND
   try {
@@ -3521,12 +3515,12 @@ document.getElementById('regBackBtn').addEventListener('click', () => {
       localStorage.removeItem('userUid');
       localStorage.removeItem('userEmail');
       localStorage.removeItem('userNickname');
-      showHeader();
+      revealHeader();
       return;
     }
   } catch(e) {
     // Network error — don't clear, just show header
-    showHeader();
+    revealHeader();
     return;
   }
 
@@ -3534,5 +3528,5 @@ document.getElementById('regBackBtn').addEventListener('click', () => {
   currentUser = { uid: savedUid, email: savedEmail || '', nickname: savedNick || 'მომხმარებელი', photoURL: '' };
   await loadUserProfile(savedUid, savedToken);
   updateUserUI(true);
-  showHeader(true);
+  revealHeader();
 })();
