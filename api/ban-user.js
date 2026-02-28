@@ -168,14 +168,27 @@ export default async function handler(req, res) {
 
     // ===== BAN =====
     if (action === "ban") {
-      const banDays   = parseInt(days) || 999;
-      const banUntil  = Date.now() + banDays * 24 * 60 * 60 * 1000;
-      const fpHash    = userData?.fpHash || null;
+      const banDays  = parseInt(days) || 999;
+      const banUntil = Date.now() + banDays * 24 * 60 * 60 * 1000;
+      const fpHash   = userData?.fpHash || null;
+      const lastIp   = userData?.lastIp  || null;
 
-      // Block fingerprint
+      // Block fingerprint (Browser Fingerprint)
+      // /banned-fingerprints/{fpHash} — send-code.js კითხულობს რეგისტრაციისას
       if (fpHash) {
         await fbSet(`/banned-fingerprints/${fpHash}`, {
           bannedAt: Date.now(), bannedUntil: banUntil, reason: reason || "admin ban", uid: targetUid
+        });
+      }
+
+      // Block IP მისამართი
+      // IP-ში წერტილებს ვანაცვლებთ _-ით, Firebase key-ისთვის
+      // მაგ: 192.168.1.1 → 192_168_1_1
+      if (lastIp) {
+        const safeIp = lastIp.replace(/\./g, '_').replace(/:/g, '_');
+        await fbSet(`/banned-ips/${safeIp}`, {
+          bannedAt: Date.now(), bannedUntil: banUntil, reason: reason || "admin ban",
+          uid: targetUid, ip: lastIp
         });
       }
 
@@ -184,25 +197,33 @@ export default async function handler(req, res) {
         bannedAt: Date.now(), bannedUntil: banUntil, banDays,
         reason: reason || "admin ban",
         nickname: userData?.nickname || "unknown",
-        email: userData?.email || "unknown",
-        fpHash: fpHash || null
+        email:    userData?.email    || "unknown",
+        fpHash:   fpHash || null,
+        lastIp:   lastIp || null
       });
 
-      // Disable Firebase Auth
+      // Disable Firebase Auth — მომხმარებელი ვეღარ შევა
       await setAuthDisabled(targetUid, true);
 
       return res.json({
         ok: true,
-        message: `✅ დაბლოკილია ${banDays} დღით`
+        message: `✅ დაბლოკილია ${banDays} დღით${lastIp ? ` (IP: ${lastIp})` : ''}`
       });
     }
 
     // ===== UNBAN =====
     if (action === "unban") {
       const fpHash = userData?.fpHash || null;
+      const lastIp = userData?.lastIp  || null;
 
       // Remove fingerprint ban
       if (fpHash) await fbDelete(`/banned-fingerprints/${fpHash}`);
+
+      // Remove IP ban
+      if (lastIp) {
+        const safeIp = lastIp.replace(/\./g, '_').replace(/:/g, '_');
+        await fbDelete(`/banned-ips/${safeIp}`);
+      }
 
       // Remove from banned-users
       await fbDelete(`/banned-users/${targetUid}`);
