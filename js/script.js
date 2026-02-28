@@ -1707,6 +1707,7 @@ const usersBtn    = document.getElementById('usersBtn');
 const registerBtn = document.getElementById('registerBtn');
 const lockBtn     = document.getElementById('lockBtn');
 const avatarWrap2 = document.getElementById('avatarWrap');
+const notifWrap   = document.getElementById('notifWrap');
 if (idToken) {
   // Admin logged in
   submitBtn.style.display   = 'none';
@@ -1715,6 +1716,8 @@ if (idToken) {
   registerBtn.style.display = 'none';
   lockBtn.style.display     = 'none';
   if (avatarWrap2) avatarWrap2.style.display = 'flex';
+  if (notifWrap) notifWrap.style.display = 'flex';
+  if (typeof agoraNotifLoad === 'function') agoraNotifLoad();
   updateAdminSidebar();
 } else if (currentUser) {
   // Regular user logged in
@@ -1724,6 +1727,8 @@ if (idToken) {
   registerBtn.style.display = 'none';
   lockBtn.style.display     = 'none';
   if (avatarWrap2) avatarWrap2.style.display = 'flex';
+  if (notifWrap) notifWrap.style.display = 'flex';
+  if (typeof agoraNotifLoad === 'function') agoraNotifLoad();
 } else {
   // Nobody logged in
   submitBtn.style.display   = 'flex';
@@ -1732,6 +1737,7 @@ if (idToken) {
   registerBtn.style.display = 'flex';
   lockBtn.style.display     = 'flex';
   if (avatarWrap2) avatarWrap2.style.display = 'none';
+  if (notifWrap) notifWrap.style.display = 'none';
 }
 }
 
