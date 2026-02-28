@@ -109,6 +109,27 @@ async function isIpBanned(ip) {
 
 
 // ============================================================
+// ფუნქცია: isFpRegistered(fpHash)
+// ამოწმებს, ხომ არ არის ეს fpHash უკვე დარეგისტრირებული
+// Firebase: /users/?orderBy="fpHash"&equalTo="{fpHash}"
+// Session 40: ალტ-ის შექმნის დაბლოკვა
+// ============================================================
+async function isFpRegistered(fpHash) {
+  if (!fpHash) return false;
+  try {
+    const token = await getAdminToken();
+    const url = `${FIREBASE_DB}/users.json?orderBy="fpHash"&equalTo="${encodeURIComponent(fpHash)}"&limitToFirst=1&access_token=${token}`;
+    const res = await fetch(url);
+    if (!res.ok) return false;
+    const data = await res.json();
+    return data !== null && typeof data === 'object' && Object.keys(data).length > 0;
+  } catch {
+    return false;
+  }
+}
+
+
+// ============================================================
 // კოდების in-memory შენახვა
 // Map() — გასაღები: email
 // მნიშვნელობა: { code, expires, sentAt, attempts, ip }
@@ -209,6 +230,14 @@ export default async function handler(req, res) {
   if (await isFpBanned(fpHash)) {
     return res.status(403).json({
       error: '🚫 შენი მოწყობილობა ამ საიტზე დაბლოკილია.'
+    });
+  }
+
+  // ---- შემოწმება #5: ალტ-ის შექმნა (fpHash უკვე დარეგისტრირებული?) ----
+  // ერთ მოწყობილობაზე მხოლოდ 1 ანგარიში შეიძლება
+  if (await isFpRegistered(fpHash)) {
+    return res.status(403).json({
+      error: '🚫 ამ მოწყობილობიდან უკვე შექმნილია ანგარიში. ერთ მოწყობილობაზე მხოლოდ 1 ანგარიში შეიძლება.'
     });
   }
 
