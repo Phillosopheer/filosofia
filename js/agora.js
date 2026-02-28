@@ -33,7 +33,7 @@ function agoraTimeAgo(ts) {
 // helper: user token
 // ============================================================
 function agoraGetToken() {
-  return window.userToken || localStorage.getItem('userToken') || null;
+  return window.userToken || localStorage.getItem('userToken') || localStorage.getItem('idToken') || null;
 }
 
 function agoraGetUser() {
