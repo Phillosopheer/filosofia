@@ -3056,17 +3056,22 @@ async function doUserLogin() {
     });
     const data = await res.json();
     if (!res.ok) {
+      const errMsg = data?.error?.message || '';
+      if (errMsg.includes('USER_DISABLED')) {
+        showMsg(errEl, '🚫 ეს ანგარიში დაბლოკილია.', true);
+        return;
+      }
       const newFails = failCount + 1;
       localStorage.setItem('loginFails', newFails);
-      if (newFails >= 2) {
+      if (newFails >= 5) {
         const until = Date.now() + 24 * 60 * 60 * 1000;
         localStorage.setItem('lockUntil', until);
         localStorage.removeItem('loginFails');
-        showMsg(errEl, '🔒 2-ჯერ ცდა ვერ გამოგივიდა — დაბლოკილია 24 საათით!', true);
+        showMsg(errEl, '🔒 5-ჯერ ცდა ვერ გამოგივიდა — დაბლოკილია 24 საათით!', true);
         btn.disabled = true;
         return;
       }
-      showMsg(errEl, `პაროლი ან ელფოსტა არასწორია (დარჩენილია ${2 - newFails} მცდელობა)`, true);
+      showMsg(errEl, `❌ პაროლი ან ელფოსტა არასწორია (დარჩენილია ${5 - newFails} მცდელობა)`, true);
       return;
     }
     localStorage.removeItem('loginFails');
@@ -3090,6 +3095,7 @@ async function doUserLogin() {
       closeModal('loginModal');
       await loadUserProfile(uid, token);
       updateUserUI(true);
+      updateHeaderButtons();
     }
   } catch(e) {
     showMsg(errEl, '📡 კავშირის შეცდომა, სცადე თავიდან', true);
@@ -3215,6 +3221,8 @@ function _doUserLogoutConfirmed() {
   localStorage.removeItem('userUid');
   localStorage.removeItem('userEmail');
   localStorage.removeItem('userNickname');
+  localStorage.removeItem('loginFails');
+  localStorage.removeItem('lockUntil');
   updateUserUI(false);
 }
 
