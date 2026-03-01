@@ -56,9 +56,21 @@
   inset: 68px 0 0 0;
   background: var(--bg);
   z-index: 900;
-  overflow-y: auto;
+  overflow-y: scroll;
   display: none;
   animation: agoraSlideIn 0.3s ease;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(201,168,76,0.3) transparent;
+}
+.agora-view::-webkit-scrollbar {
+  width: 5px;
+}
+.agora-view::-webkit-scrollbar-track {
+  background: transparent;
+}
+.agora-view::-webkit-scrollbar-thumb {
+  background: rgba(201,168,76,0.3);
+  border-radius: 3px;
 }
 .agora-view.active { display: block; }
 
