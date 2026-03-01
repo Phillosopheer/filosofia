@@ -3,95 +3,145 @@
 > ⚠️ **NOTE FOR NEXT ASSISTANT:** The user speaks Georgian (ქართული). ALWAYS respond in Georgian!
 > The user is Nodar Kebadze. He is working on a Georgian philosophy website.
 > Be patient and explain things simply — he is not a professional developer but learns fast.
+> ⚠️ **სესიის ბოლოს ყოველთვის ჰკითხე: "ნოდარ, გინდა კონტექსტი განვაახლოთ?"**
 
 ---
 
-## 🔔 ASSISTANT-ის ᲨᲔᲮᲡᲔᲜᲔᲑᲔᲑᲘ (ᲛᲜᲘᲨᲕᲜᲔᲚᲝᲕᲐᲜᲘ!)
+## 🔔 ASSISTANT-ის ᲨᲔᲮᲡᲔᲜᲔᲑᲔᲑᲘ
 
 - ✅ ყოველი სესიის ბოლოს — "ნოდარ, გინდა კონტექსტი განვაახლოთ?"
 - ✅ როცა ახალი ფიჩერი დაემატება
-- ✅ როცა URL ან კონფიგი იცვლება
-- ✅ როცა PageSpeed/Security ქულები იცვლება
 - ✅ როცა Firebase-ში მასშტაბური ცვლილება ხდება
-- ✅ როცა ახალი env variable ემატება Vercel-ში
+- ✅ როცა Vercel env var ემატება
 
 ---
 
-## ✅ CURRENT STATE (February 27, 2026 — Session 31)
+## 🎨 ᲓᲘᲖᲐᲘᲜᲘᲡ ᲛᲙᲐᲪᲠᲘ ᲬᲔᲡᲔᲑᲘ (ყოველთვის დაიცავი!)
+
+1. **ფერები** — საიტის ფალიტრა: `#0e0c0a` (ფონი), `#161310` (surface), `#c9a84c` (gold), `#e8dfc8` (text), `#b8ad95` (text-dim). **ლურჯი, მწვანე, ნებისმიერი "ცივი" ფერი — კატეგორიულად აკრძალულია!**
+2. **ღილაკები** — არასოდეს უბრალო browser-default ღილაკები! ყოველი ღილაკი უნდა იყოს სტილიზებული, საიტის დიზაინს შესაბამისი (gold border, dark background, hover effects).
+3. **Dropdown/popup** — ფონი `#161310` ან `#1e1a15`, border `rgba(201,168,76,0.2)`, box-shadow dark.
+4. **ანიმაცია** — fadeIn, smooth transitions — ყოველთვის. Abrupt jumps — არა.
+5. **მობაილი** — ყოველი ახალი UI ელემენტი მობაილზეც გამართული უნდა იყოს (fixed positioning, vh/vw).
+6. **ესთეტიკა** — ნოდარი ძალიან ყურადღებით ადევნებს თვალს დიზაინს. ყველა ახალი ელემენტი **უნდა შეხამდებოდეს** არსებულ ფილოსოფიური საიტის ატმოსფეროს.
+
+---
+
+## 📁 AGORA ფაილების სახელები (მკაცრი!)
+
+GitHub-ზე ატვირთვისას **ყოველთვის ეს სახელები** გამოიყენე — ნოდარი ცალ-ცალკე ატვირთავს:
+
+| გამოსატანი ფაილი | GitHub-ზე ადგილი |
+|---|---|
+| `agora.js` | → `api/agora.js` |
+| `agora.js` | → `js/agora.js` |
+| `agora.css` | → `css/agora.css` |
+| `script.js` | → `js/script.js` |
+| `index.html` | → root `/` |
+
+**არასოდეს** გამოიყენო `api_agora.js`, `agora_api.js`, `agora_js.js` ან სხვა ვარიანტი — მხოლოდ ზემოთ მოცემული სახელები!
+
+---
+
+## ✅ CURRENT STATE (March 1, 2026 — Session 45)
 
 - ✅ Frontend on Vercel — **Ready**
-- ✅ **GitHub Repository** — **PRIVATE** 🔒 (Phillosopheer/filosofia)
-- ✅ Mozilla Observatory: **A+ 140/100, 10/10** 🏆
-- ✅ ImmuniWeb: **A**
-- ✅ Qualys SSL Labs: **A+ (ორივე სერვერი)** 🏆
-- ✅ SecurityHeaders.com: **A+** ✅
-- ✅ PageSpeed Mobile: **98** 🚀
-- ✅ PageSpeed Desktop: **98** 🚀
-- ✅ PageSpeed SEO: **100/100**
-- ✅ PageSpeed Accessibility: **100/100**
+- ✅ GitHub: **PRIVATE** 🔒 (Phillosopheer/filosofia)
+- ✅ Mozilla Observatory: **A+ 140/100** 🏆
+- ✅ Qualys SSL Labs: **A+** 🏆
+- ✅ SecurityHeaders.com: **A+**
+- ✅ PageSpeed Mobile/Desktop: **98/98** 🚀
+- ✅ PageSpeed SEO/Accessibility: **100/100**
 - ✅ CLS Mobile: **0.003** 🏆
-- ✅ CLS Desktop: **0.028**
-- ✅ Google Search Console: verified + sitemap submitted
-- ✅ Firebase App Check — **ENFORCED** (Realtime Database) 🔒
-- ✅ **Fonts** — Self-hosted
-- ✅ **TOTP 2FA** — Google Authenticator
-- ✅ **Glossary** — **50,334 სიტყვა** Firebase-ში! 🏆
-- ✅ **GitHub Uploader** — ჩაშენებული UI-ში
-- ✅ **Public Submission** — visitors-ებს სტატიის გაგზავნა შეუძლიათ
-- ✅ **Mobile Console** — Admin-only (extras.js)
-- ✅ **Particles** — ოქროს ნაწილაკები (extras.js)
-- ✅ **ფემინისტური ფილოსოფია** — კატეგორია დაემატა (Session 26)
-- ✅ **AI Review** — სტატიის გაგზავნამდე AI ამოწმებს (Session 27) 🤖
-- ✅ **Pending ღილაკები** — გამოსწორდა (Session 29) 🟢
-- ✅ **Anti-Spam სისტემა** — სრული დაცვა (Session 30) 🛡️
-- ✅ **Firebase Admin SDK** — Service Account, App Check-ს გვერდს უვლის (Session 30) 🔑
-- ✅ **Anti-Spam ბაგები გასწორდა** — (Session 31) 🐛
+- ✅ Firebase App Check — **ENFORCED** 🔒
+- ✅ Fonts — Self-hosted
+- ✅ TOTP 2FA — Google Authenticator
+- ✅ Glossary — **50,334 სიტყვა** 🏆
+- ✅ Anti-Spam სისტემა 🛡️
+- ✅ Browser Fingerprint (fpHash) — Canvas+WebGL+Audio+Fonts+Plugins, 48 char
+- ✅ კატეგორიის AI შემოწმება
+- ✅ რეგისტრაციის სისტემა 👤
+- ✅ Profile Popup (avatar კლიკი → popup) 💬
+- ✅ Admin Avatar + 👑 Owner badge
+- ✅ Nickname Inline Edit + 60-დღიანი ლიმიტი
+- ✅ სახელის ვალიდაცია — მხოლოდ ასოები + _ (Nodo_Qebadze სტილი)
+- ✅ /usernames/ — დაკავებული სახელების DB
+- ✅ articlesCount — სტატიის დადასტურებისას ავტომატური +1
+- ✅ ავატარის წაშლა — წითელი ✕ ღილაკი popup-ში
+- ✅ Header flash ბაგი — Session 40
+- ✅ წაშლილი Firebase აქაუნთი — ავტო logout (token validation)
+- ✅ მომხმარებლის ბლოკვის სისტემა — Session 37
+- ✅ VPN/Proxy/Tor — რეგისტრაციაზე ბლოკი
+- ✅ Incognito — რეგისტრაციაზე ბლოკი
+- ✅ მომხმარებლების მართვის პანელი (ბანი/განბლოკვა/წაშლა)
+- ✅ ბანის ვადა (დღეებით)
+- ✅ alert()/confirm() ამოღებულია — Toast + ConfirmDialog
+- ✅ Brevo API — 300 email/დღე
+- ✅ IP ბანის სისტემა + lastIp
+- ✅ fpHash სავალდებულო რეგისტრაციაზე
+- ✅ Login fix: USER_DISABLED, 5 მცდელობა, updateHeaderButtons
+- ✅ ბანის დრო login-ზე ("დარჩენილია: 28 დღე")
+- ✅ banned-emails Firebase node
+- ✅ **პაროლის აღდგენა (Forgot Password)** — Session 41
+- ✅ **აგორა (ფილოსოფიური ფორუმი)** — Session 42
+- ✅ **აგორა — token refresh, authorName fallback** — Session 44
+- ✅ **აგორა — edit modal** (inline → popup modal) — Session 44
+- ✅ **აგორა — thread სია გასწორდა** (`get-threads`: `items` → `threads`) — Session 45
+- ✅ **აგორა — counter** (0 → 0 / 50000) — Session 45
+- ✅ **🔔 Notifications სისტემა** — Session 45
+- ✅ **👤 User Card Popup** (avatar/სახელზე კლიკი) — Session 45
+- ✅ **topicsCount** — thread შექმნისას ავტომატური +1 — Session 45
 
 ---
 
-## ✅ Session 31-ში გაკეთებული (Bug Fixes):
+## ✅ Session 45-ში გაკეთებული
 
-### პრობლემა 1: `შენიშვნა: undefined`
-- **მიზეზი:** Gemini-მ `valid: false` დააბრუნა `message`-ის გარეშე
-- **გამოსწორება `api/review.js`:** `result.message || "სტატია ვერ გაიარა AI-ის შემოწმება..."`
-- **გამოსწორება `js/script.js`:** ყველა `reviewData.message` → fallback-ებით
+### Bug fixes:
+- `api/agora.js`: `get-threads` → `result.items` → `result.threads` (thread სია ცარიელი იყო)
+- `js/agora.js`: textarea counter — `0` → `0 / 50000`
 
-### პრობლემა 2: Rate Limit არ მუშაობდა (500 error)
-- **მიზეზი:** `FIREBASE_SERVICE_ACCOUNT` Vercel-ში **კოდი იყო შეყვანილი JSON-ის მაგივრად**
-- **გამოსწორება:** სწორი Service Account JSON ჩაიწერა
-- **შედეგი:** Rate Limit ✅, 24h ბანი ✅ — სრულად მუშაობს
+### 🔔 Notifications სისტემა:
+- `api/agora.js`:
+  - `writeNotification(uid, data)` — Firebase `/notifications/{uid}/` push
+  - `notifyAllUsers(excludeUid, data)` — ყველა user-ს აცნობებს
+  - `create-thread` → ყველა user-ს ეცნობება ახალ თემაზე
+  - `create-reply` → thread ავტორს ეცნობება reply-ზე; ციტირებულ ავტორს — quote-ზე
+  - ახალი actions: `get-notifications`, `mark-notifications-read`
+  - ახალი action: `get-user-profile` (auth-ის გარეშე — საჯარო)
+- `js/agora.js`:
+  - `agoraNotifLoad()`, `agoraNotifUpdateBadge()`, `agoraNotifToggle()`, `agoraNotifRender()`, `agoraNotifMarkAll()`
+  - 🔔 ზარი header-ში, წითელი badge წაუკითხავი რაოდენობით
+  - dropdown — კლიკი notification-ზე პირდაპირ ხსნის thread-ს
+  - auto-reload ყოველ 60 წამში
+- `js/script.js`: `updateHeaderButtons()` — `notifWrap` show/hide + `agoraNotifLoad()` on auth
+- `index.html`: notifWrap + notifBtn + notifDropdown HTML; `?v=45`
+- `css/agora.css`: notification სტილები (gold palette, mobile fixed positioning)
 
-### ფაილები შეცვლილი (Session 31):
-- `api/review.js` — `result.message` fallback
-- `js/script.js` — `reviewData.message` + `reviewData.error` handling
+### 👤 User Card Popup:
+- `api/agora.js`: `get-user-profile` action — nickname, articlesCount, topicsCount, isOwner
+- `js/agora.js`:
+  - `agoraShowUserCard(uid, anchorEl)` — popup avatar/სახელზე კლიკზე
+  - `agoraBindUserCardTriggers(container)` — `.agora-user-card-trigger` კლასი
+  - Owner-ისთვის: "👑 Owner — მთავარი ადმინისტრატორი"
+  - User-ისთვის: nickname, სტატიები, თემები
+  - `_userCardCache` — repeat fetch-ების თავიდან აცილება
+- `css/agora.css`: `.agora-user-card-popup`, `.auc-*` კლასები
+
+### topicsCount:
+- `js/agora.js`: thread შექმნის შემდეგ `currentUser.topicsCount++` + `statTopics` DOM განახლება
 
 ---
 
-## ✅ Session 30-ში გაკეთებული (Anti-Spam + Admin SDK):
+## ✅ Session 44-ში გაკეთებული
 
-### სტატიის გაგზავნა (`api/review.js`):
-- 🪤 **Honeypot** — ფარული ველი (`#website_hp`), ბოტი ავსებს → **24h ბანი**
-- 🌐 **VPN/Proxy/Tor გამოვლენა** — ip-api.com → მყისიერი ბლოკი
-- 📊 **Rate Limit** — 3 სტატია/საათში, მე-4-ზე **24h ბანი** (AI-ს გარეშეც)
-- 🤬 **გინება/შეურაცხყოფა** → **60 დღის ბანი**
-- Firebase node: `bot-ratelimit-sub` (სტატიებისთვის ცალკე)
-- **ბლოკი IP-ზეა** (`ipHash`) — Firebase `bot-blocks` node-ში
+- `agoraGetValidToken()` — async, token expiry შემოწმება + refresh
+- inline edit ამოღებულია → `agoraOpenEditModal()` popup modal
+- `create-reply` / `create-thread`: `authorName` 3-დონის fallback
+- `?v=44` cache bust
 
-### AI ასისტენტი (`api/gemini.js`):
-- 🌐 **VPN/Proxy/Tor** → მყისიერი ბლოკი
-- ❌ **ნებისმიერი დარღვევა** → **პირდაპირ 24h ბანი**
+---
 
-### Firebase Admin SDK (ორივე ფაილში):
-- `getAdminToken()` — Service Account-ით JWT → Access Token (1 საათი ქეშდება)
-- `fbGet(path)` / `fbSet(path, data)` — Admin REST, App Check-ს გვერდს უვლის
-- **Env var:** `FIREBASE_SERVICE_ACCOUNT` — Vercel-ში **სწორი JSON!** **არასოდეს GitHub-ზე!** 🔴
-
-### Vercel Env Variables:
-- `FIREBASE_SERVICE_ACCOUNT` — **სწორი Service Account JSON** 🔑
-- `TOTP_SECRET` — TOTP 2FA
-- `GEMINI_KEY_1` ... `GEMINI_KEY_10` — Gemini API keys
-
-### Firebase Rules:
+## Firebase Rules (სრული — Session 45):
 ```json
 {
   "rules": {
@@ -101,73 +151,107 @@
     "pending-notes": { ".read": "auth != null", ".write": true },
     "bot-blocks": { ".read": true, ".write": true },
     "bot-ratelimit": { ".read": true, ".write": true },
-    "bot-ratelimit-sub": { ".read": true, ".write": true }
+    "bot-ratelimit-sub": { ".read": true, ".write": true },
+    "bot-cat-warn": { ".read": true, ".write": true },
+    "users": {
+      ".indexOn": ["fpHash"],
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid",
+        ".write": "auth != null && auth.uid == $uid"
+      }
+    },
+    "admins": { ".read": "auth != null", ".write": false },
+    "usernames": { ".read": true, ".write": "auth != null" },
+    "banned-fingerprints": { ".read": true, ".write": false },
+    "banned-users": { ".read": false, ".write": false },
+    "banned-ips": { ".read": true, ".write": false },
+    "banned-emails": { ".read": true, ".write": false },
+    "agora-threads":  { ".read": true, ".write": false },
+    "agora-replies":  { ".read": true, ".write": false },
+    "agora-warnings": { ".read": false, ".write": false },
+    "notifications": {
+      "$uid": {
+        ".read": false,
+        ".write": false
+      }
+    }
   }
 }
 ```
 
 ---
 
-## ⚠️ ᲨᲔᲛᲓᲔᲒ ASSISTANT — ANTI-SPAM-ის შესახებ:
-- `FIREBASE_SERVICE_ACCOUNT` — Vercel env var — **სრული JSON უნდა იყოს, არა კოდი!** 🔴
-- `getAdminToken()` — JWT-ით Access Token, 1 საათს ქეშავს — **ნუ შეცვლი!**
-- `#website_hp` — Honeypot ველი — **ნუ წაშლი!**
-- `bot-ratelimit-sub` — სტატიების Rate Limit node
-- `bot-blocks` — ბანების node (IP hash-ით)
-- VPN გამოვლენა — `ip-api.com` (server-side HTTP, უფასო)
-- **`onclick="" HTML-ში`** — CSP ბლოკავს! addEventListener გამოიყენე
-- **`getValidIdToken()`** — Firebase write-ის წინ ყოველთვის გამოიყენე
-- **სესიის ბოლოს შეახსენე კონტექსტის განახლება!** 🔔
+## Vercel Env Variables:
+- `FIREBASE_SERVICE_ACCOUNT` — სრული JSON (არასოდეს GitHub-ზე!) 🔴
+- `TOTP_SECRET` — TOTP 2FA
+- `GEMINI_KEY_1` ... `GEMINI_KEY_10`
+- `BREVO_KEY` — Brevo API key
+- ~~RESEND_KEY~~ — აღარ გამოიყენება
+
+### Admin:
+- UID: `bOZ9pQ95e6RwQ6ZD6p5MUzzEvld2`
+- `/admins/bOZ9pQ95e6RwQ6ZD6p5MUzzEvld2: true`
 
 ---
 
-## ✅ Session 29-ში გაკეთებული:
-- Firebase Rules — `notes` ნოდს `.write` დაემატა
-- CSP: ყველა `onclick=` → `addEventListener`
-- `refreshToken` localStorage-ში, `getValidIdToken()` დაემატა
+## ⚠️ ᲨᲔᲛᲓᲔᲒ ASSISTANT — ᲙᲠᲘᲢᲘᲙᲣᲚᲘ ᲬᲔᲡᲔᲑᲘ:
 
----
+### ფაილები:
+- `BREVO_KEY` / `FIREBASE_SERVICE_ACCOUNT` — **არასოდეს GitHub-ზე!** 🔴
+- `getAdminToken()` — **ნუ შეცვლი!** (send-code.js, ban-user.js, reset-password.js, agora.js)
+- `reset-password.js`-ში `getAdminToken()` — `identitytoolkit` scope სავალდებულოა!
+- `#website_hp` — Honeypot, **ნუ წაშლი!**
+- `maxOutputTokens: 350` — **არ შეამციროს!**
+- `onclick=""` HTML-ში — CSP ბლოკავს! **addEventListener გამოიყენე**
+- Google Fonts — **self-hosted, ნუ შეეხები!**
+- **Skeleton cards** — **არ გამოიყენო!** (CLS)
+- App Check ENFORCED — Firebase-ზე server-side კითხვა Service Account-ით!
 
-## ⚠️ GLOSSARY:
-- **დასრულებულია** — 50,334 სიტყვა ✅
-- ახალი სიტყვები: **Firebase Console → /glossary → Import JSON**
-- **curl არ მუშაობს** — App Check ბლოკავს!
+### Agora-სპეციფიური:
+- `agora.js`-ში `currentUser`/`userToken`/`idToken` — `let` ცვლადებია `script.js`-ში, window-ზე არ ჩანს! გამოიყენე: `typeof currentUser !== 'undefined'`
+- ადმინის avatar: `localStorage.getItem('adminPhoto')`, nickname: `localStorage.getItem('adminDisplayName')`
+- user-ის avatar: `currentUser.photoURL` (არა `avatar`!)
+- `agoraGetValidToken()` — **async!** submit-ებში `await` გამოიყენე
+- `banned-fingerprints` — write მხოლოდ Service Account-ით
+- `banned-ips` — IP key-ში წერტილი → `_` (192_168_1_1)
+- `banned-emails` — email key-ში `[.#$[]@]` → `_`
+- `ban-user.js` — `ADMIN_UID` hardcoded: `bOZ9pQ95e6RwQ6ZD6p5MUzzEvld2`
+- `showToast(msg, type)` — success/error/info
+- `showConfirmToast(msg, fn)` — confirm()-ის ნაცვლად
+- `revealHeader()` — header-ის გამოჩენის ერთადერთი წერტილი!
+- `forgot-link-btn` / `forgot-back-btn` — CSS კლასები style.css-ში
+- `closeAgora()` — `document.body.style.overflow = ''` სავალდებულო!
+- `#agoraDescription` — სტატიკური div, JS ვეღარ გადაწერს
+- `agoraBtn` — ყველას უჩანს
+- `agora-warnings/{uid}/count` — 1,2,3 → ბანი
+- `profilePopup` — `avatarWrap` div-შია
+- `adminDisplayName` — admin nickname key (არა `adminNickname`!)
+- `nicknameLastChanged` — 60d limit
+- `_userCardCache` — user card-ების cache, agora.js-ში global
 
----
-
-## ⚠️ PageSpeed ისტორია
-
-| Session | Desktop | Mobile | Desktop CLS | Mobile CLS |
-|---|---|---|---|---|
-| Session 9 | 81 | 80 | 0.244 | 0.148 |
-| **Session 24** | **98** 🏆 | **98** 🏆 | **0.028** | **0.003** 🏆 |
-
----
-
-## ⚠️ ᲨᲔᲛᲓᲔᲒ ASSISTANT:
-- Google Fonts **ნუ შეეხები** — self-hosted-ია
-- **Skeleton cards არ გამოიყენო** — CLS-ს ამაღლებს
-- App Check **ENFORCED on Realtime Database** 🔒
-- მთავარი URL: `philosoph.vercel.app`
-- **curl Firebase-ზე არ მუშაობს** — App Check ბლოკავს!
-- **CSP `'unsafe-inline'` არ არის** — inline onclick-ები ბლოკდება!
-- **სესიის ბოლოს შეახსენე კონტექსტის განახლება!** 🔔
+### დიზაინი:
+- **ფერები** — gold `#c9a84c`, bg `#0e0c0a`, surface `#161310`. **ლურჯი/ცივი ფერები — კატეგორიულად აკრძალულია!**
+- **ნებისმიერი ახალი UI** — უნდა შეხამდებოდეს საიტის dark/gold ატმოსფეროს
+- **ღილაკები** — ყოველთვის სტილიზებული, არასოდეს browser-default
+- **მობაილი** — ყოველი popup/dropdown `position: fixed` მობაილზე, `left/right: 8px`
 
 ---
 
 ## 🌐 URLs
-- **Frontend:** https://philosoph.vercel.app ✅
-- **Frontend (ძველი):** https://filosofia-xi.vercel.app
-- **API:** https://philosoph.vercel.app/api/gemini
-- **GitHub:** https://github.com/Phillosopheer/filosofia 🔒
+- Frontend: https://philosoph.vercel.app
+- GitHub: https://github.com/Phillosopheer/filosofia
 
 ---
 
-## ⚠️ TODO (Session 32+):
-1. **Meta URLs განახლება** — canonical, og:url ჯერ კიდევ GitHub Pages-ზეა
-2. **robots.txt** sitemap URL ძველია
-3. **CSP meta** — `connect-src`-ში `filosofia-xi.vercel.app` ჯერ კიდევ არის
-4. **Telegram Bot** — საიტის მონიტორინგი 👁️
+## ⚠️ TODO (Session 46+):
+1. Forum — Admin pin/unpin thread
+2. Forum — სტატისტიკა profile popup-ში
+3. Firebase Storage — avatar (ამჟამად base64 DB-ში)
+4. Meta URLs — canonical, og:url
+5. robots.txt — sitemap URL ძველია
+6. CSP — connect-src-ში filosofia-xi.vercel.app ჯერ კიდევ არის
+7. Telegram Bot — მონიტორინგი
+8. Domain → საკუთარი domain
 
 ---
 
@@ -175,70 +259,43 @@
 ```
 /
 ├── api/
-│   ├── gemini.js            ← AI ასისტენტი + Admin SDK + Anti-Spam (Session 30)
-│   ├── review.js            ← სტატიის შემოწმება + Admin SDK + Anti-Spam + bugfix (Session 31)
-│   └── verify-totp.js       ← TOTP 2FA
+│   ├── gemini.js
+│   ├── review.js
+│   ├── send-code.js
+│   ├── ban-user.js
+│   ├── reset-password.js
+│   ├── agora.js              ← Session 45-ში განახლდა
+│   └── verify-totp.js
 ├── css/
-│   ├── style.css            ← .hp-field კლასი (Session 30)
-│   └── fonts/               ← Self-hosted
+│   ├── style.css
+│   ├── agora.css             ← Session 45-ში განახლდა
+│   └── fonts/
 ├── js/
-│   ├── script.js            ← honeypot + ბანის handling + bugfix (Session 31)
+│   ├── script.js             ← Session 45-ში განახლდა
+│   ├── agora.js              ← Session 45-ში განახლდა
 │   ├── extras.js
 │   └── firebase-app-compat.js
-├── index.html               ← #website_hp honeypot (Session 30)
-├── philosopher-bg.jpg       ← DO NOT DELETE
+├── index.html                ← Session 45-ში განახლდა (?v=45)
+├── philosopher-bg.jpg
 ├── philosopher-bg.webp
 ├── sitemap.xml
 ├── robots.txt
 ├── CNAME
-└── vercel.json              ← CRITICAL
+└── vercel.json
 ```
 
 ---
 
 ## ⚙️ Tech Stack
 - Frontend → Vercel
-- Backend → Vercel /api/gemini + /api/verify-totp + /api/review
 - Database → Firebase Realtime DB
-- AI → **gemma-3-27b-it** (GEMINI_KEY_1...GEMINI_KEY_10) — **არასოდეს შეცვალო!**
-- Auth → Firebase Auth + TOTP (TOTP_SECRET env var)
-- VPN Detection → ip-api.com (server-side, უფასო)
-- Firebase Admin → Service Account JWT (FIREBASE_SERVICE_ACCOUNT env var)
-
----
-
-## 🔑 Critical Rules
-1. Firebase `apiKey` — კლიენტური, **ნებადართულია** კოდში
-2. Model: `gemma-3-27b-it` — **არასოდეს** შეცვალო!
-3. `vercel.json` — root-ში, **არასოდეს** წაშალო
-4. `index.html` — **lowercase i**!
-5. Firebase App Compat — **CDN 12.9.0**
-6. CORS — `gemini.js`-ში მხოლოდ
-7. **Google Fonts** — **არ გამოიყენო!** Self-hosted-ია
-8. **Skeleton cards** — **არ გამოიყენო!**
-9. App Check — **ENFORCED on Realtime Database** 🔒
-10. **curl Firebase-ზე** — App Check ბლოკავს!
-11. **onclick="" HTML-ში** — **არ გამოიყენო!** addEventListener გამოიყენე
-12. **getValidIdToken()** — Firebase write-ის წინ ყოველთვის გამოიყენე
-13. **#website_hp** — Honeypot ველი, **არ წაშალო!**
-14. **bot-ratelimit-sub** — Firebase node, სტატიების Rate Limit-ისთვის
-15. **FIREBASE_SERVICE_ACCOUNT** — Vercel env var, **სრული JSON**, **არასოდეს GitHub-ზე!** 🔴
-16. **getAdminToken()** — Admin SDK, App Check-ს გვერდს უვლის, **ნუ შეცვლი!**
-17. **bot-blocks** — IP ბანები (ipHash), Firebase-ში ინახება
-
----
-
-## 🛡️ Scripts (index.html head):
-```html
-<script src="https://www.gstatic.com/firebasejs/12.9.0/firebase-app-compat.js"
-  integrity="sha384-3XWNJu2qFQ6l+dVvCdcgpGP7mp9cxB8uT+w78+fV0wyyiD0lYQ2yMt2cFZOlCcFp"
-  crossorigin="anonymous" defer></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-check-compat.js"
-  integrity="sha384-iF93NE9DFYjJ/GJcb4h18LKfvMn3Ppl4GSSFZ8RFvwc7OtGGQSHQXbHEdO8Rknhj"
-  crossorigin="anonymous" defer></script>
-<script src="js/extras.js" defer></script>
-<script src="js/script.js" defer></script>
-```
+- AI → **gemma-3-27b-it** — **არასოდეს შეცვალო!**
+- Auth Admin → Firebase Email/Password + TOTP
+- Auth Users → Firebase Email/Password
+- Email → Brevo (nodoqebadze21@gmail.com) — 300/დღე
+- VPN Detection → ip-api.com
+- Firebase Admin → Service Account JWT
+- Incognito Detection → client-side detectIncognito + server confirm
 
 ---
 
@@ -249,7 +306,7 @@ const firebaseConfig = {
   authDomain: "gen-lang-client-0339684222.firebaseapp.com",
   databaseURL: "https://gen-lang-client-0339684222-default-rtdb.firebaseio.com",
   projectId: "gen-lang-client-0339684222",
-  storageBucket: "gen-lang-client-0339684222.firebasestorage.app",
+  storageBucket: "gen-lang-client-033968422.firebasestorage.app",
   messagingSenderId: "636166502416",
   appId: "1:636166502416:web:78841eec3ba4c658a07295"
 };
@@ -257,37 +314,11 @@ const firebaseConfig = {
 
 ---
 
-## 🧪 Test Results
-
-| Tool | Result |
-|---|---|
-| Mozilla Observatory | **A+ (140/100), 10/10** 🏆 |
-| Qualys SSL Labs | **A+ ორივე სერვერზე** 🏆 |
-| SecurityHeaders.com | **A+** ✅ |
-| ImmuniWeb | **A** ✅ |
-| PageSpeed Mobile | **98** 🚀 |
-| PageSpeed Desktop | **98** 🚀 |
-| PageSpeed SEO | **100/100** ✅ |
-| PageSpeed Accessibility | **100/100** ✅ |
-| CLS Mobile | **0.003** 🏆 |
-| CLS Desktop | **0.028** ✅ |
-| Google Search Console | **Verified** ✅ |
-| Firebase App Check | **Enforced** 🔒 |
-| Glossary | **50,334 სიტყვა** 🏆 |
-| Pending ღილაკები | **✅ გამოსწორდა (Session 29)** |
-| Anti-Spam სისტემა | **✅ სრული დაცვა (Session 30)** 🛡️ |
-| Firebase Admin SDK | **✅ სწორი JSON (Session 31)** 🔑 |
-| Rate Limit 3/საათი | **✅ დატესტილია (Session 31)** |
-| 24h ბანი | **✅ დატესტილია (Session 31)** |
-| Abuse/გინება → 60 დღე | **✅ დატესტილია (Session 31)** |
-| Tor Browser ბლოკი | **✅ დატესტილია (Session 31)** 🧅 |
-| DuckDuckGo VPN | **⚠️ ვერ ბლოკავს — IP-საც ვერ მალავს** |
-
----
-
 ## 📋 Instructions for Next Assistant
 - ZIP → `/mnt/user-data/uploads/` → unzip → read files
 - Modified files → `/mnt/user-data/outputs/`
-- Syntax check: `node --check api/review.js` / `node --check api/gemini.js`
+- Syntax check: `node --check js/agora.js && node --check api/agora.js`
 - `present_files` tool for sharing
+- **ფაილების სახელები** — იხილე "AGORA ფაილების სახელები" სექცია ზევით!
+- **დიზაინი** — იხილე "ᲓᲘᲖᲐᲘᲜᲘᲡ ᲛᲙᲐᲪᲠᲘ ᲬᲔᲡᲔᲑᲘ" სექცია ზევით!
 - **სესიის ბოლოს ყოველთვის შეახსენე კონტექსტის განახლება!** 🔔
