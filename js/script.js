@@ -24,9 +24,7 @@ async function doTotpVerify() {
       localStorage.setItem('currentUid', d.localId);
       localStorage.setItem('userEmail', d.email);
       localStorage.setItem('sessionTimestamp', Date.now().toString());
-      const badge = document.getElementById('userBadge');
-      badge.innerText = d.email.split('@')[0];
-      badge.style.display = 'inline-block';
+      // userBadge hidden (Session 47)
       document.getElementById('lockIcon').innerHTML = '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>';
       document.getElementById('logoutBtn').classList.add('active');
       document.body.classList.add('admin-mode');
@@ -1397,9 +1395,7 @@ body: JSON.stringify({ idToken: token })
 });
 if (res.ok) {
 if (savedEmail) {
-const badge = document.getElementById('userBadge');
-badge.innerText = savedEmail.split('@')[0];
-badge.style.display = 'inline-block';
+// userBadge hidden (Session 47)
 }
 document.getElementById('lockIcon').innerHTML = '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>';
 document.getElementById('logoutBtn').classList.add('active');
