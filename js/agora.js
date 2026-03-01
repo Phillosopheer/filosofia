@@ -178,6 +178,19 @@ async function agoraShowList(page) {
     newBtn.classList.toggle('hidden', !canCreate);
   }
 
+  // admin — დაბლოკილების ღილაკი
+  const existingBanBtn = document.getElementById('agoraBannedBtn');
+  if (existingBanBtn) existingBanBtn.remove();
+  if (agoraIsAdmin()) {
+    const banListBtn = document.createElement('button');
+    banListBtn.id = 'agoraBannedBtn';
+    banListBtn.className = 'agora-banned-btn';
+    banListBtn.textContent = '🚫 დაბლოკილები';
+    banListBtn.addEventListener('click', agoraOpenBannedPanel);
+    const topbar = document.querySelector('.agora-topbar-row');
+    if (topbar) topbar.appendChild(banListBtn);
+  }
+
   // განმარტება — სტატიკური, ერთხელ ჩნდება
   const descEl = document.getElementById('agoraDescription');
   if (descEl) {
@@ -1322,6 +1335,88 @@ async function agoraNotifMarkAll() {
 // ============================================================
 function agoraInitSelectionBubble() {
   // Bubble გაუქმებულია — ლოგიკა მხოლოდ "↩ ციტირება" ღილაკშია
+}
+
+
+// ============================================================
+// 🚫 Admin — დაბლოკილი მომხმარებლების პანელი
+// ============================================================
+async function agoraOpenBannedPanel() {
+  const existing = document.getElementById('agoraBannedPanel');
+  if (existing) { existing.remove(); return; }
+
+  const panel = document.createElement('div');
+  panel.id = 'agoraBannedPanel';
+  panel.className = 'agora-banned-panel';
+  panel.innerHTML = `
+    <div class="abp-header">
+      <span class="abp-title">🚫 დაბლოკილი მომხმარებლები</span>
+      <button class="abp-close" id="abpClose">✕</button>
+    </div>
+    <div class="abp-list" id="abpList">
+      <div class="agora-loading">იტვირთება...</div>
+    </div>`;
+  document.getElementById('agoraView').appendChild(panel);
+
+  document.getElementById('abpClose').addEventListener('click', () => panel.remove());
+
+  // ჩატვირთვა
+  try {
+    const token = await agoraGetValidToken();
+    const { ok, data } = await agoraFetch({ action: 'get-agora-banned', userToken: token });
+    const listEl = document.getElementById('abpList');
+    if (!listEl) return;
+
+    if (!ok || !data.users || !data.users.length) {
+      listEl.innerHTML = '<div class="abp-empty">დაბლოკილი მომხმარებელი არ არის</div>';
+      return;
+    }
+
+    listEl.innerHTML = data.users.map(u => {
+      const avatar = u.photoURL
+        ? `<img class="abp-avatar" src="${agoraEscape(u.photoURL)}" alt="">`
+        : `<div class="abp-avatar abp-avatar-ph">${agoraEscape((u.nickname||'?')[0].toUpperCase())}</div>`;
+      const when = u.bannedAt ? agoraTimeAgo(u.bannedAt) : '';
+      return `<div class="abp-item" data-uid="${agoraEscape(u.uid)}">
+        ${avatar}
+        <div class="abp-info">
+          <div class="abp-nick">${agoraEscape(u.nickname)}</div>
+          ${when ? `<div class="abp-when">დაბლოკვა: ${when}</div>` : ''}
+        </div>
+        <button class="abp-unban-btn" data-uid="${agoraEscape(u.uid)}">განბლოკვა</button>
+      </div>`;
+    }).join('');
+
+    listEl.querySelectorAll('.abp-unban-btn').forEach(btn => {
+      btn.addEventListener('click', async function() {
+        const uid = this.dataset.uid;
+        this.disabled = true;
+        this.textContent = '...';
+        try {
+          const tok = await agoraGetValidToken();
+          const { ok, data } = await agoraFetch({ action: 'unban-agora', userToken: tok, targetUid: uid });
+          if (ok) {
+            showToast('✅ მომხმარებელი განიბლოკა', 'success');
+            this.closest('.abp-item').remove();
+            if (!document.querySelector('.abp-item')) {
+              document.getElementById('abpList').innerHTML = '<div class="abp-empty">დაბლოკილი მომხმარებელი არ არის</div>';
+            }
+          } else {
+            showToast(data.error || 'შეცდომა', 'error');
+            this.disabled = false;
+            this.textContent = 'განბლოკვა';
+          }
+        } catch {
+          showToast('📡 კავშირის შეცდომა', 'error');
+          this.disabled = false;
+          this.textContent = 'განბლოკვა';
+        }
+      });
+    });
+  } catch {
+    const listEl = document.getElementById('abpList');
+    if (listEl) listEl.innerHTML = '<div class="abp-empty">❌ ჩატვირთვის შეცდომა</div>';
+  }
 }
 
 
