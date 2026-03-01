@@ -792,12 +792,15 @@ async function agoraSubmitNewThread() {
 
     if (!ok) {
       if (data.warned) {
-        agoraShowWarningToast(data.message, data.banned);
+        agoraShowWarningToast(data.message, data.banned, data.quote || '');
         if (data.banned) {
           closeModal('newThreadModal');
         }
       } else {
-        agoraShowError('newThreadError', data.error || 'შეცდომა');
+        const errMsg = data.quote
+          ? `${data.error || 'შეცდომა'}\n\n❝ "${data.quote}"`
+          : (data.error || 'შეცდომა');
+        agoraShowError('newThreadError', errMsg);
       }
       return;
     }
@@ -868,9 +871,12 @@ async function agoraSubmitReply(threadId, ta, btn) {
 
     if (!ok) {
       if (data.warned) {
-        agoraShowWarningToast(data.message, data.banned);
+        agoraShowWarningToast(data.message, data.banned, data.quote || '');
       } else {
-        agoraShowError('replyError', data.error || 'შეცდომა');
+        const errMsg = data.quote
+          ? `${data.error || 'შეცდომა'}\n\n❝ "${data.quote}"`
+          : (data.error || 'შეცდომა');
+        agoraShowError('replyError', errMsg);
       }
       return;
     }
@@ -1026,22 +1032,25 @@ async function agoraDeleteReply(threadId, replyId) {
 // ============================================================
 // AI warning toast
 // ============================================================
-function agoraShowWarningToast(message, isBanned) {
-  // ადრინდელი ტოსტი წაშლა
+function agoraShowWarningToast(message, isBanned, quote) {
   const old = document.getElementById('__agora_warn__');
   if (old) old.remove();
 
   const el = document.createElement('div');
   el.id = '__agora_warn__';
   el.className = 'agora-warn-toast';
-  el.textContent = message;
+
+  let html = `<div class="agora-warn-msg">${agoraEscape(message)}</div>`;
+  if (quote) {
+    html += `<div class="agora-warn-quote">❝ "${agoraEscape(quote)}"</div>`;
+  }
+  el.innerHTML = html;
   document.body.appendChild(el);
 
-  const timeout = isBanned ? 8000 : 5000;
+  const timeout = isBanned ? 8000 : 6000;
   setTimeout(() => el.remove(), timeout);
 
   if (isBanned) {
-    // 60 დღიანი ბანი — სესიის გასუფთავება
     setTimeout(() => {
       if (window._doLogoutConfirmed) window._doLogoutConfirmed();
     }, 3000);
