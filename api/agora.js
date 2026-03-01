@@ -20,7 +20,7 @@ const MAX_WARNINGS     = 3;
 const BAN_DAYS         = 60;
 const MAX_THREAD_BODY  = 50000;  // პრაქტიკულად ულიმიტო
 const MAX_REPLY_BODY   = 50000;  // პრაქტიკულად ულიმიტო
-const MAX_TITLE_LEN    = 120;
+const MAX_TITLE_LEN    = 80;
 
 
 // ============================================================
@@ -313,6 +313,16 @@ function paginate(arr, page, perPage) {
 }
 
 // ============================================================
+// Emoji გამოვლენა — სმაილები/emojis აკრძალულია
+// ============================================================
+function containsEmoji(text) {
+  // Unicode emoji ranges
+  const emojiRegex = /[\u{1F000}-\u{1FFFF}|\u{2600}-\u{27FF}|\u{FE00}-\u{FEFF}|\u{1F300}-\u{1F9FF}|\u{231A}-\u{231B}|\u{23E9}-\u{23F3}|\u{25AA}-\u{25FE}|\u{2614}-\u{2615}|\u{2648}-\u{2653}|\u{267F}|\u{2693}|\u{26A1}|\u{26AA}-\u{26AB}|\u{26BD}-\u{26BE}|\u{26C4}-\u{26C5}|\u{26CE}|\u{26D4}|\u{26EA}|\u{26F2}-\u{26F3}|\u{26F5}|\u{26FA}|\u{26FD}|\u{2702}|\u{2705}|\u{2708}-\u{270D}|\u{270F}|\u{2712}|\u{2714}|\u{2716}|\u{271D}|\u{2721}|\u{2728}|\u{2733}-\u{2734}|\u{2744}|\u{2747}|\u{274C}|\u{274E}|\u{2753}-\u{2755}|\u{2757}|\u{2763}-\u{2764}|\u{2795}-\u{2797}|\u{27A1}|\u{27B0}|\u{27BF}|\u{2934}-\u{2935}|\u{2B05}-\u{2B07}|\u{2B1B}-\u{2B1C}|\u{2B50}|\u{2B55}|\u{3030}|\u{303D}|\u{3297}|\u{3299}]/u;
+  return emojiRegex.test(text);
+}
+
+
+// ============================================================
 // მთავარი HANDLER
 // ============================================================
 export default async function handler(req, res) {
@@ -344,13 +354,26 @@ export default async function handler(req, res) {
     const { uid } = body;
     if (!uid) return res.status(400).json({ error: "uid სავალდებულოა" });
     try {
+      const isOwner = uid === ADMIN_UID;
       const userData = await fbGet(`/users/${uid}`);
+
+      let articlesCount = userData?.articlesCount || 0;
+      // ადმინისთვის — notes-დან რეალური რაოდენობა
+      if (isOwner) {
+        try {
+          const notes = await fbGet('/notes');
+          articlesCount = notes ? Object.keys(notes).length : 0;
+        } catch { /* silent */ }
+      }
+
       return res.json({
-        nickname:      userData?.nickname      || "მომხმარებელი",
-        articlesCount: userData?.articlesCount || 0,
-        topicsCount:   userData?.topicsCount   || 0,
-        photoURL:      userData?.photoURL      || null,
-        isOwner:       uid === ADMIN_UID
+        nickname:      isOwner ? "Nodo" : (userData?.nickname || "მომხმარებელი"),
+        articlesCount,
+        topicsCount:   userData?.topicsCount || 0,
+        photoURL:      isOwner
+          ? (userData?.photoURL || null)
+          : (userData?.photoURL || null),
+        isOwner
       });
     } catch (e) {
       return res.status(500).json({ error: e.message });
@@ -477,6 +500,9 @@ export default async function handler(req, res) {
     if (title.trim().length > MAX_TITLE_LEN) {
       return res.status(400).json({ error: `სათაური მაქს. ${MAX_TITLE_LEN} სიმბოლო` });
     }
+    if (containsEmoji(title) || containsEmoji(threadBody || '')) {
+      return res.status(400).json({ error: "😶 სმაილები/emoji-ები აკრძალულია ფორუმში." });
+    }
     if (!threadBody || threadBody.trim().length < 10) {
       return res.status(400).json({ error: "შინაარსი მინ. 10 სიმბოლო უნდა იყოს" });
     }
@@ -569,6 +595,9 @@ export default async function handler(req, res) {
     }
     if (replyBody.trim().length > MAX_REPLY_BODY) {
       return res.status(400).json({ error: `კომენტარი მაქს. ${MAX_REPLY_BODY} სიმბოლო` });
+    }
+    if (containsEmoji(replyBody)) {
+      return res.status(400).json({ error: "😶 სმაილები/emoji-ები აკრძალულია ფორუმში." });
     }
 
     // Thread-ის სტატუსი
