@@ -1295,7 +1295,6 @@ async function agoraNotifMarkAll() {
 // ✂️ Selection Quote Bubble
 // ============================================================
 function agoraInitSelectionBubble() {
-  // bubble element — ერთხელ შევქმნათ
   const bubble = document.createElement('div');
   bubble.id = 'agoraSelectionBubble';
   bubble.className = 'agora-selection-bubble';
@@ -1304,66 +1303,90 @@ function agoraInitSelectionBubble() {
   document.body.appendChild(bubble);
 
   let _bubbleReplyData = null;
+  const isMobile = ('ontouchstart' in window);
 
   function hideBubble() {
     bubble.style.display = 'none';
     _bubbleReplyData = null;
   }
 
-  document.addEventListener('mouseup', function(e) {
-    // bubble-ზე კლიკი — არ დავმალოთ
-    if (e.target === bubble || bubble.contains(e.target)) return;
+  function tryShowBubble() {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed || !sel.toString().trim()) {
+      hideBubble();
+      return;
+    }
+    const selectedText = sel.toString().trim();
 
-    // გადავდოთ — selection მზად უნდა იყოს
-    setTimeout(() => {
-      const sel = window.getSelection();
-      if (!sel || sel.isCollapsed || !sel.toString().trim()) {
-        hideBubble();
-        return;
+    // მხოლოდ agora thread view-ს შიგნით
+    const agoraView = document.getElementById('agoraThreadView');
+    if (!agoraView) { hideBubble(); return; }
+
+    // closest agora-reply-item
+    let anchor = sel.anchorNode;
+    let replyEl = null;
+    while (anchor && anchor !== agoraView) {
+      if (anchor.classList && anchor.classList.contains('agora-reply-item')) {
+        replyEl = anchor; break;
       }
-      const selectedText = sel.toString().trim();
+      anchor = anchor.parentElement;
+    }
+    if (!replyEl) { hideBubble(); return; }
 
-      // ვიპოვოთ reply item ან thread header — მხოლოდ agora-ს შიგნით
-      const agoraView = document.getElementById('agoraThreadView');
-      if (!agoraView) { hideBubble(); return; }
+    // logged-in check
+    if (!agoraGetToken() && !agoraIsAdmin()) { hideBubble(); return; }
 
-      // მოვძებნოთ closest reply-item ან thread header body
-      let anchor = sel.anchorNode;
-      let replyEl = null;
-      while (anchor && anchor !== agoraView) {
-        if (anchor.classList && anchor.classList.contains('agora-reply-item')) {
-          replyEl = anchor; break;
-        }
-        anchor = anchor.parentElement;
-      }
+    const replyId     = replyEl.dataset.replyId;
+    const replyNum    = replyEl.dataset.replyNum;
+    const replyAuthor = replyEl.dataset.replyAuthor || '';
+    _bubbleReplyData  = { id: replyId, num: parseInt(replyNum) || '', author: replyAuthor, body: selectedText };
 
-      if (!replyEl) { hideBubble(); return; }
-
-      const replyId  = replyEl.dataset.replyId;
-      const replyNum = replyEl.dataset.replyNum;
-      const replyAuthor = replyEl.dataset.replyAuthor || '';
-
-      // logged-in check
-      if (!agoraGetToken() && !agoraIsAdmin()) { hideBubble(); return; }
-
-      _bubbleReplyData = { id: replyId, num: parseInt(replyNum) || '', author: replyAuthor, body: selectedText };
-
-      // bubble პოზიციონირება — selection-ის ზემოთ
-      const range = sel.getRangeAt(0);
-      const rect  = range.getBoundingClientRect();
-      bubble.style.display = 'flex';
-      const bw = bubble.offsetWidth || 100;
-      let left = rect.left + (rect.width / 2) - (bw / 2);
+    // პოზიციონირება — selection-ის ზემოთ
+    const range = sel.getRangeAt(0);
+    const rect  = range.getBoundingClientRect();
+    bubble.style.display = 'flex';
+    // offsetWidth-ის სწორად წასაკითხად ერთი frame უნდა გავიდეს
+    requestAnimationFrame(() => {
+      const bw  = bubble.offsetWidth || 110;
+      let left  = rect.left + (rect.width / 2) - (bw / 2);
       left = Math.max(8, Math.min(left, window.innerWidth - bw - 8));
+      // მობაილზე: fixed positioning — scrollY არ გვჭირდება
+      const top = isMobile
+        ? rect.top - bubble.offsetHeight - 12
+        : window.scrollY + rect.top - bubble.offsetHeight - 12;
+      bubble.style.position = isMobile ? 'fixed' : 'absolute';
       bubble.style.left = left + 'px';
-      bubble.style.top  = (window.scrollY + rect.top - bubble.offsetHeight - 10) + 'px';
-    }, 10);
+      bubble.style.top  = top + 'px';
+    });
+  }
+
+  // ── Desktop: mouseup ──
+  document.addEventListener('mouseup', function(e) {
+    if (e.target === bubble || bubble.contains(e.target)) return;
+    setTimeout(tryShowBubble, 10);
   });
 
-  // bubble კლიკი — დამატება
-  bubble.addEventListener('mousedown', function(e) {
-    e.preventDefault(); // selection არ დაიკარგოს
-  });
+  // ── Mobile: touchend + selectionchange ──
+  if (isMobile) {
+    // selectionchange fires after the user lifts finger and browser shows handles
+    document.addEventListener('selectionchange', function() {
+      // გადავდოთ — browser handle-ები ჯერ კიდევ იხატება
+      clearTimeout(window._agoraBubbleTimer);
+      window._agoraBubbleTimer = setTimeout(tryShowBubble, 400);
+    });
+
+    // თუ სხვა ადგილს შეეხო — bubble დამალვა
+    document.addEventListener('touchstart', function(e) {
+      if (e.target !== bubble && !bubble.contains(e.target)) {
+        hideBubble();
+      }
+    }, { passive: true });
+  }
+
+  // bubble — კლიკი/tap
+  bubble.addEventListener('mousedown', function(e) { e.preventDefault(); });
+  bubble.addEventListener('touchstart', function(e) { e.preventDefault(); }, { passive: false });
+
   bubble.addEventListener('click', function(e) {
     e.stopPropagation();
     if (_bubbleReplyData) {
@@ -1373,12 +1396,14 @@ function agoraInitSelectionBubble() {
     hideBubble();
   });
 
-  // document კლიკი — bubble დამალვა
-  document.addEventListener('mousedown', function(e) {
-    if (e.target !== bubble && !bubble.contains(e.target)) {
-      hideBubble();
-    }
-  });
+  // Desktop: გარეთ კლიკი — დამალვა
+  if (!isMobile) {
+    document.addEventListener('mousedown', function(e) {
+      if (e.target !== bubble && !bubble.contains(e.target)) {
+        hideBubble();
+      }
+    });
+  }
 }
 
 
