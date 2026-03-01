@@ -575,6 +575,13 @@ function agoraRenderReplyForm(container, thread) {
     countEl.textContent = ta.value.length;
   });
 
+  // 📱 კლავიატურა ჩნდება — textarea-ს scroll into view
+  ta.addEventListener('focus', function() {
+    setTimeout(() => {
+      ta.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 350);
+  });
+
   if (clearBtn) {
     clearBtn.addEventListener('click', function() {
       _agoraQuote = null;
@@ -702,7 +709,17 @@ function agoraOpenNewThreadModal() {
   if (countEl) countEl.textContent = '0';
   if (errEl)   { errEl.textContent = ''; errEl.classList.remove('active'); }
   openModal('newThreadModal');
-  setTimeout(() => titleEl?.focus(), 100);
+  setTimeout(() => {
+    titleEl?.focus();
+    // სათაურის counter
+    const titleCountEl = document.getElementById('titleCharCount');
+    if (titleEl && titleCountEl) {
+      titleEl.addEventListener('input', function() {
+        titleCountEl.textContent = `${this.value.length} / 80`;
+        titleCountEl.style.color = this.value.length > 70 ? '#e53e3e' : 'var(--text-dim)';
+      });
+    }
+  }, 100);
 }
 
 async function agoraSubmitNewThread() {
