@@ -587,7 +587,7 @@ export default async function handler(req, res) {
   // action: 'create-reply' — კომენტარი
   // ============================================================
   if (action === "create-reply") {
-    const { threadId, replyBody, quotedReplyId, quotedBody, quotedAuthor, quotedNum } = body;
+    const { threadId, replyBody, quotes: quotesArr, quotedReplyId, quotedBody, quotedAuthor, quotedNum } = body;
 
     if (!threadId) return res.status(400).json({ error: "threadId სავალდებულოა" });
     if (!replyBody || replyBody.trim().length < 2) {
@@ -649,6 +649,17 @@ export default async function handler(req, res) {
     const authorAvatar = body.authorAvatar || userData?.photoURL || null;
 
     // Reply-ს შექმნა
+    // quotes: ახალი array ფორმატი; ძველი single-quote fields — backward compat
+    let quotesData = null;
+    if (Array.isArray(quotesArr) && quotesArr.length > 0) {
+      quotesData = quotesArr.slice(0, 10).map(q => ({
+        replyId: q.replyId || null,
+        body:    typeof q.body === 'string' ? q.body.substring(0, 200) : '',
+        author:  typeof q.author === 'string' ? q.author : '',
+        num:     q.num || null
+      }));
+    }
+
     const replyData = {
       body:         replyBody.trim(),
       authorUid:    user.uid,
@@ -657,11 +668,13 @@ export default async function handler(req, res) {
       createdAt:    now,
       editedAt:     null,
       status:       "visible",
-      // Quote (optional)
-      quotedReplyId: quotedReplyId || null,
-      quotedBody:    quotedBody   ? quotedBody.substring(0, 200)   : null,
-      quotedAuthor:  quotedAuthor || null,
-      quotedNum:     quotedNum    || null
+      // ახალი: quotes array
+      quotes:        quotesData || null,
+      // ძველი single-quote fields (backward compat — მხოლოდ თუ quotesData null-ია)
+      quotedReplyId: quotesData ? null : (quotedReplyId || null),
+      quotedBody:    quotesData ? null : (quotedBody ? quotedBody.substring(0, 200) : null),
+      quotedAuthor:  quotesData ? null : (quotedAuthor || null),
+      quotedNum:     quotesData ? null : (quotedNum    || null)
     };
 
     const replyId = await fbPush(`/agora-replies/${threadId}`, replyData);
@@ -679,10 +692,14 @@ export default async function handler(req, res) {
       writeNotification(thread.authorUid, { ...notifBase, type: "reply" }).catch(() => {});
     }
 
-    // ციტირებული კომენტარის ავტორს (თუ განსხვავებული)
-    if (quotedReplyId) {
+    // ციტირებული კომენტარების ავტორების შეტყობინება
+    const quotedIds = quotesData
+      ? quotesData.map(q => q.replyId).filter(Boolean)
+      : (quotedReplyId ? [quotedReplyId] : []);
+
+    for (const qid of quotedIds) {
       try {
-        const quotedReply = await fbGet(`/agora-replies/${threadId}/${quotedReplyId}`);
+        const quotedReply = await fbGet(`/agora-replies/${threadId}/${qid}`);
         if (quotedReply && quotedReply.authorUid &&
             quotedReply.authorUid !== user.uid &&
             quotedReply.authorUid !== thread.authorUid) {
