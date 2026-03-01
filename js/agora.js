@@ -145,6 +145,7 @@ function openAgora() {
   _agoraView = document.getElementById('agoraView');
   _agoraView.classList.add('active');
   document.body.style.overflow = 'hidden';
+  agoraInitSearch();
   agoraShowList(1);
 }
 
@@ -1502,3 +1503,92 @@ document.addEventListener('DOMContentLoaded', function() {
     _notifInterval = setInterval(agoraNotifLoad, 60000);
   }, 2000);
 });
+
+// ============================================================
+// თემების ძებნა
+// ============================================================
+let _agoraSearchTimer = null;
+let _agoraSearchActive = false;
+
+function agoraInitSearch() {
+  const input   = document.getElementById('agoraSearchInput');
+  const clear   = document.getElementById('agoraSearchClear');
+  const results = document.getElementById('agoraSearchResults');
+  const list    = document.getElementById('agoraThreadList');
+  const pages   = document.getElementById('agoraListPagination');
+
+  if (!input || input.dataset.searchInited) return;
+  input.dataset.searchInited = '1';
+
+  input.addEventListener('input', () => {
+    const q = input.value.trim();
+    clear.classList.toggle('hidden', !q);
+
+    clearTimeout(_agoraSearchTimer);
+    if (!q) {
+      agoraSearchClearState();
+      return;
+    }
+    _agoraSearchTimer = setTimeout(() => agoraDoSearch(q), 350);
+  });
+
+  clear.addEventListener('click', () => {
+    input.value = '';
+    clear.classList.add('hidden');
+    agoraSearchClearState();
+    input.focus();
+  });
+}
+
+function agoraSearchClearState() {
+  _agoraSearchActive = false;
+  const results = document.getElementById('agoraSearchResults');
+  const list    = document.getElementById('agoraThreadList');
+  const pages   = document.getElementById('agoraListPagination');
+  if (results) { results.style.display = 'none'; results.innerHTML = ''; }
+  if (list)    list.style.display = '';
+  if (pages)   pages.style.display = '';
+}
+
+async function agoraDoSearch(query) {
+  const results = document.getElementById('agoraSearchResults');
+  const list    = document.getElementById('agoraThreadList');
+  const pages   = document.getElementById('agoraListPagination');
+
+  if (!results) return;
+
+  _agoraSearchActive = true;
+  if (list)  list.style.display  = 'none';
+  if (pages) pages.style.display = 'none';
+  results.style.display = 'block';
+  results.innerHTML = '<div class="agora-loading">ძებნა...</div>';
+
+  try {
+    const { ok, data } = await agoraFetch({ action: 'search-threads', query });
+    if (!ok) throw new Error(data.error || 'შეცდომა');
+
+    if (!data.threads || data.threads.length === 0) {
+      results.innerHTML = `<div class="agora-empty"><div class="agora-empty-icon">🔍</div><div class="agora-empty-text">ვერაფერი მოიძებნა</div></div>`;
+      return;
+    }
+
+    results.innerHTML = `
+      <div class="agora-search-count">მოიძებნა: ${data.threads.length} თემა</div>
+      ${data.threads.map(t => agoraThreadCard(t)).join('')}
+    `;
+
+    results.querySelectorAll('.agora-thread-item').forEach(el => {
+      el.addEventListener('click', function() {
+        // search გავასუფთავოთ thread-ში გადასვლამდე
+        const input = document.getElementById('agoraSearchInput');
+        const clear = document.getElementById('agoraSearchClear');
+        if (input) input.value = '';
+        if (clear) clear.classList.add('hidden');
+        agoraSearchClearState();
+        agoraOpenThread(this.dataset.id);
+      });
+    });
+  } catch (e) {
+    results.innerHTML = `<div class="agora-empty"><div class="agora-empty-text">❌ ${agoraEscape(e.message)}</div></div>`;
+  }
+}
