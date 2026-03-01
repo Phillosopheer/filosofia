@@ -921,5 +921,75 @@ export default async function handler(req, res) {
   }
 
 
+  // ============================================================
+  // action: 'get-agora-banned' — დაბლოკილი მომხმარებლების სია (admin only)
+  // ============================================================
+  if (action === "get-agora-banned") {
+    if (!isAdmin) return res.status(403).json({ error: "მხოლოდ ადმინი" });
+    try {
+      const warnings = await fbGet("/agora-warnings");
+      if (!warnings) return res.json({ users: [] });
+
+      const bannedUids = Object.entries(warnings)
+        .filter(([, v]) => v.banned === true)
+        .map(([uid, v]) => ({ uid, bannedAt: v.bannedAt || null, count: v.count || 3 }));
+
+      // nickname-ების მიღება
+      const users = await Promise.all(bannedUids.map(async ({ uid, bannedAt, count }) => {
+        try {
+          const userData = await fbGet(`/users/${uid}`);
+          return {
+            uid,
+            nickname: userData?.nickname || "მომხმარებელი",
+            photoURL:  userData?.photoURL || null,
+            bannedAt,
+            count
+          };
+        } catch { return { uid, nickname: uid, photoURL: null, bannedAt, count }; }
+      }));
+
+      return res.json({ users });
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
+    }
+  }
+
+  // ============================================================
+  // action: 'unban-agora' — აგორა-ბანის მოხსნა (admin only)
+  // ============================================================
+  if (action === "unban-agora") {
+    if (!isAdmin) return res.status(403).json({ error: "მხოლოდ ადმინი" });
+    const { targetUid } = body;
+    if (!targetUid) return res.status(400).json({ error: "targetUid სავალდებულოა" });
+    try {
+      // 1. agora-warnings-ში banned = false, count = 0
+      await fbPatch(`/agora-warnings/${targetUid}`, { banned: false, count: 0, unbannedAt: Date.now() });
+
+      // 2. Firebase Auth — user გააქტიურება
+      const adminToken = await getAdminToken();
+      await fetch(
+        `https://identitytoolkit.googleapis.com/v1/accounts:update?key=${process.env.FIREBASE_API_KEY || "AIzaSyCcTPhEU478qqwbI9KqJ4iOOFBHox-J7Ao"}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${adminToken}` },
+          body: JSON.stringify({ localId: targetUid, disableUser: false })
+        }
+      );
+
+      // 3. banned-emails-დან წაშლა
+      try {
+        const userData = await fbGet(`/users/${targetUid}`);
+        if (userData?.email) {
+          const safeEmail = userData.email.replace(/[.#$[\]@]/g, '_');
+          await fbSet(`/banned-emails/${safeEmail}`, null);
+        }
+      } catch { /* silent */ }
+
+      return res.json({ ok: true });
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
+    }
+  }
+
   return res.status(400).json({ error: "უცნობი action" });
 }
