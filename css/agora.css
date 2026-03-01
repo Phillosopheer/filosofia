@@ -505,6 +505,15 @@
   text-align: center;
   animation: fadeIn 0.3s ease;
 }
+.agora-warn-quote {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(180,100,20,0.3);
+  font-style: italic;
+  font-size: 0.82rem;
+  color: rgba(245,158,11,0.75);
+  word-break: break-word;
+}
 
 
 /* ===== EMPTY STATE ===== */
@@ -770,6 +779,7 @@
   font-family: 'EB Garamond', Georgia, serif;
   margin-bottom: 14px;
   display: none;
+  white-space: pre-line;
 }
 .agora-error.active { display: block; }
 
