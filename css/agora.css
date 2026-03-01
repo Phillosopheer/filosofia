@@ -1067,3 +1067,137 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
+
+/* ===== ADMIN BANNED PANEL ===== */
+.agora-banned-btn {
+  background: rgba(248,113,113,0.08);
+  border: 1px solid rgba(248,113,113,0.3);
+  color: #f87171;
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.5px;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 2px;
+}
+.agora-banned-btn:hover {
+  background: rgba(248,113,113,0.15);
+  border-color: #f87171;
+}
+.agora-banned-panel {
+  position: fixed;
+  top: 60px;
+  right: 12px;
+  width: 320px;
+  max-height: 420px;
+  background: #161310;
+  border: 1px solid rgba(201,168,76,0.2);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  animation: fadeIn 0.2s ease;
+}
+.abp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(201,168,76,0.15);
+}
+.abp-title {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.5px;
+  color: var(--gold-dim);
+}
+.abp-close {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 2px 4px;
+  opacity: 0.6;
+  transition: opacity 0.15s;
+}
+.abp-close:hover { opacity: 1; }
+.abp-list {
+  overflow-y: auto;
+  flex: 1;
+  padding: 8px;
+}
+.abp-empty {
+  text-align: center;
+  padding: 24px;
+  color: var(--text-dim);
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 0.88rem;
+  opacity: 0.6;
+}
+.abp-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 8px;
+  border-bottom: 1px solid rgba(201,168,76,0.08);
+}
+.abp-item:last-child { border-bottom: none; }
+.abp-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.abp-avatar-ph {
+  background: rgba(201,168,76,0.15);
+  color: var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.9rem;
+}
+.abp-info { flex: 1; min-width: 0; }
+.abp-nick {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.78rem;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.abp-when {
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  opacity: 0.6;
+  margin-top: 2px;
+}
+.abp-unban-btn {
+  background: rgba(74,222,128,0.08);
+  border: 1px solid rgba(74,222,128,0.3);
+  color: #4ade80;
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.4px;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  border-radius: 2px;
+}
+.abp-unban-btn:hover {
+  background: rgba(74,222,128,0.15);
+  border-color: #4ade80;
+}
+.abp-unban-btn:disabled { opacity: 0.5; cursor: default; }
+@media (max-width: 480px) {
+  .agora-banned-panel {
+    right: 8px;
+    left: 8px;
+    width: auto;
+  }
+}
