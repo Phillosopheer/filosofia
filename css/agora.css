@@ -1201,3 +1201,64 @@
     width: auto;
   }
 }
+
+/* ============================================================
+   თემების ძებნა
+   ============================================================ */
+.agora-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin: 14px 0 10px;
+  background: #161310;
+  border: 1px solid rgba(201,168,76,0.25);
+  border-radius: 8px;
+  padding: 0 10px;
+  transition: border-color 0.2s;
+}
+.agora-search-wrap:focus-within {
+  border-color: rgba(201,168,76,0.6);
+  box-shadow: 0 0 0 2px rgba(201,168,76,0.08);
+}
+.agora-search-icon {
+  font-size: 15px;
+  opacity: 0.5;
+  margin-right: 8px;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+.agora-search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #e8dfc8;
+  font-family: 'NotoSansGeorgian', sans-serif;
+  font-size: 14px;
+  padding: 10px 0;
+  min-width: 0;
+}
+.agora-search-input::placeholder {
+  color: #b8ad95;
+  opacity: 0.5;
+}
+.agora-search-clear {
+  background: transparent;
+  border: none;
+  color: #b8ad95;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px 2px;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: color 0.2s;
+}
+.agora-search-clear:hover { color: #c9a84c; }
+.agora-search-clear.hidden { display: none; }
+
+.agora-search-count {
+  font-size: 12px;
+  color: #b8ad95;
+  padding: 4px 2px 10px;
+  opacity: 0.7;
+}
