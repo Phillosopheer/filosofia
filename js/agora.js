@@ -1040,15 +1040,16 @@ function agoraShowWarningToast(message, isBanned, quote) {
   el.id = '__agora_warn__';
   el.className = 'agora-warn-toast';
 
-  let html = `<div class="agora-warn-msg">${agoraEscape(message)}</div>`;
+  let html = `
+    <button class="agora-warn-close" id="__agora_warn_close__">✕</button>
+    <div class="agora-warn-msg">${agoraEscape(message)}</div>`;
   if (quote) {
     html += `<div class="agora-warn-quote">❝ "${agoraEscape(quote)}"</div>`;
   }
   el.innerHTML = html;
   document.body.appendChild(el);
 
-  const timeout = isBanned ? 8000 : 6000;
-  setTimeout(() => el.remove(), timeout);
+  document.getElementById('__agora_warn_close__').addEventListener('click', () => el.remove());
 
   if (isBanned) {
     setTimeout(() => {
