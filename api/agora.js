@@ -263,7 +263,9 @@ true — გინება, ლანძღვა, პირდაპირი 
 false — ჯანსაღი კამათი, კრიტიკა, განსხვავებული მოსაზრება, მკაცრი, მაგრამ კორექტული ენა.
 
 "quote": პრობლემური ტექსტის ციტატა (თუ abuse:true ან philosophical:false — დაასახელე კონკრეტული ფრაზა ტექსტიდან რომელიც პრობლემაა; თუ ყველაფერი კარგია — "")
-"message": მოკლე ქართული განმარტება — რატომ არ გაიარა და რა შეასწოროს.
+"message": ქართული განმარტება — 2-3 წინადადებით კონკრეტულად ახსენი რა არის პრობლემა და რა შეასწოროს მომხმარებელმა.
+
+⚠️ ᲔᲜᲝᲑᲠᲘᲕᲘ ᲬᲔᲡᲘ: message ველი წერე სრულყოფილ, სალიტერატურო ქართულად. გამოიყენე გრამატიკულად სწორი, ბუნებრივი ქართული წინადადებები. ნუ გამოიყენებ გაუმართავ სიტყვათა კომბინაციებს.
 
 უპასუხე მხოლოდ JSON, სხვა არაფერი:
 {"philosophical":true/false,"abuse":true/false,"quote":"პრობლემური ფრაზა ან empty string","message":"განმარტება ქართულად"}`;
@@ -314,7 +316,9 @@ abuse:true — შემდეგი ტიპები:
 მაგ: "ეს პოზიცია ეწინააღმდეგება კანტის მოსაზრებას" → abuse:false
 
 "quote": კონკრეტული პრობლემური ფრაზა ტექსტიდან (თუ abuse:true ან ontopic:false; თუ კარგია — "")
-"message": მოკლე ქართული განმარტება — რა არის პრობლემა და რა შეასწოროს.
+"message": ქართული განმარტება — 2-3 წინადადებით კონკრეტულად ახსენი რა არის პრობლემა (რომელი ფრაზა, რატომ დაირღვა წესი) და რა შეასწოროს მომხმარებელმა.
+
+⚠️ ᲔᲜᲝᲑᲠᲘᲕᲘ ᲬᲔᲡᲘ: message ველი წერე სრულყოფილ, სალიტერატურო ქართულად. გამოიყენე გრამატიკულად სწორი, ბუნებრივი ქართული წინადადებები. ნუ გამოიყენებ გაუმართავ სიტყვათა კომბინაციებს.
 
 უპასუხე მხოლოდ JSON, სხვა არაფერი:
 {"ontopic":true/false,"abuse":true/false,"quote":"პრობლემური ფრაზა ან empty string","message":"განმარტება ქართულად"}`;
@@ -450,6 +454,32 @@ export default async function handler(req, res) {
 
 
   // ============================================================
+  // ============================================================
+  // action: 'search-threads' — თემების ძებნა
+  // ============================================================
+  if (action === "search-threads") {
+    const query = (body.query || "").trim().toLowerCase();
+    if (!query || query.length < 2) return res.json({ threads: [] });
+    try {
+      const raw = await fbGet("/agora-threads");
+      if (!raw) return res.json({ threads: [] });
+      const threads = Object.entries(raw)
+        .map(([id, d]) => ({ id, ...d }))
+        .filter(t => t.status !== "deleted")
+        .filter(t => {
+          const title = (t.title || "").toLowerCase();
+          const body2 = (t.body || "").toLowerCase();
+          return title.includes(query) || body2.includes(query);
+        })
+        .sort((a, b) => b.createdAt - a.createdAt)
+        .slice(0, 30);
+      return res.json({ threads });
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
+    }
+  }
+
+
   // action: 'get-thread' — ერთი thread-ის მონაცემები + პირველი გვერდის replies
   // ============================================================
   if (action === "get-thread") {
