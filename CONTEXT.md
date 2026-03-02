@@ -42,7 +42,7 @@
 
 ---
 
-## ✅ CURRENT STATE (March 1, 2026 — Session 46)
+## ✅ CURRENT STATE (March 1, 2026 — Session 47)
 
 - ✅ Frontend on Vercel — **Ready**
 - ✅ GitHub: **PRIVATE** 🔒 (Phillosopheer/filosofia)
@@ -89,6 +89,28 @@
 - ✅ **Warning Toast redesign** (მუქი, X ღილაკი) — Session 46
 - ✅ **🚫 Admin დაბლოკილების პანელი** (სია + განბლოკვა) — Session 46
 - ✅ **Gemini გასაღებები** — 12 ცალი, 168,000 req/დღე
+- ✅ **🔍 თემების ძებნა** — Session 47
+- ✅ **AI Prompt ქართული — გაუმჯობესება** — Session 47
+
+---
+
+## ✅ Session 47-ში გაკეთებული (სრული)
+
+### 🔍 თემების ძებნა (Search):
+- `index.html`: `#agoraSearchWrap` — საძიებო ველი `agoraListView`-ში, `agoraDescription`-ის ქვემოთ
+- `index.html`: `#agoraSearchInput`, `#agoraSearchClear`, `#agoraSearchResults`
+- `api/agora.js`: `search-threads` action — `/agora-threads/` სკანი, title+body ძებნა, max 30 შედეგი
+- `js/agora.js`: `agoraInitSearch()` — openAgora()-ში გამოძახება
+- `js/agora.js`: `agoraDoSearch(query)` — 350ms debounce, results div
+- `js/agora.js`: `agoraSearchClearState()` — ძებნის გასუფთავება
+- `css/agora.css`: `.agora-search-wrap`, `.agora-search-input`, `.agora-search-clear`, `.agora-search-count`
+- ძებნის შედეგზე კლიკი → ასუფთავებს search-ს და ხსნის thread-ს
+
+### 🤖 AI Prompt ქართული — გაუმჯობესება:
+- thread prompt + reply prompt — ორივეში დაემატა:
+  `⚠️ ᲔᲜᲝᲑᲠᲘᲕᲘ ᲬᲔᲡᲘ: message ველი წერე სრულყოფილ, სალიტერატურო ქართულად. გამოიყენე გრამატიკულად სწორი, ბუნებრივი ქართული წინადადებები. ნუ გამოიყენებ გაუმართავ სიტყვათა კომბინაციებს.`
+- `message` — "მოკლე" → "2-3 წინადადებით კონკრეტულად"
+- შედეგი: AI-ს ქართული შესამჩნევად გაუმჯობესდა, patronizing კომენტარი წარმატებით ამოიცნო
 
 ---
 
@@ -104,10 +126,7 @@
 
 ### 🤖 AI მოდერაციის გამკაცრება:
 - Thread prompt: კულინარია/სპორტი/ყოველდღიური → `philosophical:false`; კონკრეტული მაგალითები
-- Reply prompt: **patronizing/დახვეწილი დამცირება** ამოიცნობა:
-  - "გაგების დონე", "საფეხური", "გისურვებ წარმატებას განვითარებაში"
-  - "ყველას აქვს გამოხატვის უფლება, მიუხედავად გაგების დონისა"
-  - "ბუნებრივი შეზღუდვა", "ადრეულ ეტაპზე"
+- Reply prompt: **patronizing/დახვეწილი დამცირება** ამოიცნობა
 - `quote` ველი — AI აბრუნებს კონკრეტულ პრობლემურ ფრაზას
 - Error message-ში: `❝ "კონკრეტული ფრაზა"`
 
@@ -210,6 +229,7 @@
 - `adminDisplayName` — admin nickname key (არა `adminNickname`!)
 - `nicknameLastChanged` — 60d limit
 - `_userCardCache` — user card cache, agora.js global
+- **Search:** `agoraInitSearch()` — openAgora()-ში გამოძახება; `search-threads` action api-ში
 
 ### დიზაინი:
 - gold `#c9a84c`, bg `#0e0c0a`, surface `#161310`
@@ -225,7 +245,7 @@
 
 ---
 
-## ⚠️ TODO (Session 47+):
+## ⚠️ TODO (Session 48+):
 1. Forum — Admin pin/unpin thread
 2. Forum — სტატისტიკა profile popup-ში
 3. Firebase Storage — avatar (ამჟამად base64 DB-ში)
@@ -246,18 +266,18 @@
 │   ├── send-code.js
 │   ├── ban-user.js
 │   ├── reset-password.js
-│   ├── agora.js              ← Session 46-ში განახლდა
+│   ├── agora.js              ← Session 47-ში განახლდა
 │   └── verify-totp.js
 ├── css/
 │   ├── style.css
-│   ├── agora.css             ← Session 46-ში განახლდა
+│   ├── agora.css             ← Session 47-ში განახლდა
 │   └── fonts/
 ├── js/
 │   ├── script.js
-│   ├── agora.js              ← Session 46-ში განახლდა
+│   ├── agora.js              ← Session 47-ში განახლდა
 │   ├── extras.js
 │   └── firebase-app-compat.js
-├── index.html
+├── index.html                ← Session 47-ში განახლდა
 ├── philosopher-bg.jpg
 ├── philosopher-bg.webp
 ├── sitemap.xml
