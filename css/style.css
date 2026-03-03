@@ -415,7 +415,7 @@ body.admin-mode #uploaderBtn { display: flex !important; }
 .card img { transition: transform 0.4s, filter 0.4s; }
 .card-img-wrapper { width: 100%; overflow: hidden; background: var(--surface2); margin-bottom: 16px; border-radius: 8px; }
 .card-img-wrapper img { width:100%!important; height:auto!important; max-height:220px; object-fit:cover!important; object-position:center top!important; margin:0!important; display:block; border-radius:8px; }
-@media (min-width: 768px) { .card-img-wrapper img { max-height:none; object-fit:contain!important; } }
+@media (min-width: 768px) { .card-img-wrapper img { max-height:320px; object-fit:cover!important; object-position:center top!important; } }
 .card img { width:100%!important; height:auto!important; margin:0!important; }
 @media (hover:hover) { .card:hover .card-img-wrapper img { transform: scale(1.05); filter: brightness(1.08); } }
 .card-meta { display: flex; justify-content: space-between; align-items: center; }
