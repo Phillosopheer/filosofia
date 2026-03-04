@@ -293,7 +293,7 @@ body.admin-mode #uploaderBtn { display: flex !important; }
 
 .hero h1 {
   font-family: 'Cinzel', 'Trajan Pro', Georgia, serif;
-  font-size: clamp(3rem, 8.5vw, 6.5rem);
+  font-size: clamp(3.6rem, 10.5vw, 8rem);
   font-weight: 700; margin-bottom: 6px; line-height: 1.1;
   letter-spacing: 6px; color: var(--ivory); text-transform: uppercase;
   text-shadow: 0 0 60px rgba(201,168,76,0.25);
@@ -302,7 +302,7 @@ body.admin-mode #uploaderBtn { display: flex !important; }
 
 #pageSubtitle {
   font-family: 'Cinzel', Georgia, serif;
-  font-size: 0.9rem; letter-spacing: 8px; color: var(--gold);
+  font-size: 1.1rem; letter-spacing: 8px; color: var(--gold);
   text-transform: uppercase; max-width: 700px;
   margin: 0 auto 36px; line-height: 2; opacity: 0.85;
 }
