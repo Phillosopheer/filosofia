@@ -420,6 +420,9 @@ pending: true,
 submittedDate: Date.now()
 };
 if (author) submission.author = author;
+// Cover photo
+const subCoverData = document.getElementById('subCoverFileInput')._coverData || null;
+if (subCoverData) submission.coverUrl = subCoverData;
 // Track who submitted (for articlesCount)
 const submitterUid = localStorage.getItem('userUid') || localStorage.getItem('currentUid');
 if (submitterUid) submission.submitterUid = submitterUid;
@@ -433,6 +436,12 @@ showMsg(sucEl, '✓ სტატია AI-მა გადაამოწმა 
 document.getElementById('submissionTitle').value = '';
 document.getElementById('submissionAuthor').value = '';
 document.getElementById('submissionArea').innerHTML = '';
+// Clear cover
+const subFile = document.getElementById('subCoverFileInput');
+subFile._coverData = null; subFile.value = '';
+document.getElementById('subCoverPreview').innerHTML = '';
+document.getElementById('subCoverStatus').style.display = 'none';
+document.getElementById('subCoverUploadText').textContent = '📎 ფოტოს ატვირთვა';
 setTimeout(() => {
 closeModal('publicSubmissionModal');
 showMsg(sucEl, '', false);
@@ -3601,11 +3610,34 @@ document.getElementById('coverFileInput').addEventListener('change', async (e) =
   try {
     const dataURL = await compressCoverImage(file, 1200, 900, 0.82);
     urlInput.value = dataURL;
-    previewEl.innerHTML = `<img src="${dataURL}" style="max-width:100%;max-height:180px;object-fit:cover;border-radius:8px;border:1px solid var(--border);margin-top:8px;" />`;
+    previewEl.innerHTML = `<img src="${dataURL}" style="display:block;width:100%;max-height:200px;object-fit:cover;border-radius:8px;border:1px solid var(--border);margin-top:8px;" />`;
     statusEl.textContent = '✓ ფოტო მზადაა';
     setTimeout(() => { statusEl.style.display = 'none'; }, 2000);
   } catch(err) {
     statusEl.textContent = '';
+    statusEl.style.display = 'none';
+    showToast('ფოტოს დამუშავება ვერ მოხერხდა', 'error');
+  }
+  e.target.value = '';
+});
+
+// --- Sub Cover file upload ---
+document.getElementById('subCoverFileInput').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 10 * 1024 * 1024) { showToast('ფოტო მაქს. 10MB უნდა იყოს', 'error'); return; }
+  const statusEl  = document.getElementById('subCoverStatus');
+  const previewEl = document.getElementById('subCoverPreview');
+  const labelText = document.getElementById('subCoverUploadText');
+  statusEl.style.display = 'block';
+  statusEl.textContent = '⏳ ატვირთვა...';
+  try {
+    const dataURL = await compressCoverImage(file, 1200, 900, 0.82);
+    e.target._coverData = dataURL;
+    previewEl.innerHTML = `<img src="${dataURL}" style="display:block;width:100%;max-height:200px;object-fit:cover;border-radius:8px;border:1px solid var(--border);margin-top:8px;" />`;
+    labelText.textContent = '✓ ' + file.name;
+    statusEl.style.display = 'none';
+  } catch(err) {
     statusEl.style.display = 'none';
     showToast('ფოტოს დამუშავება ვერ მოხერხდა', 'error');
   }
