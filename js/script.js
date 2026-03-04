@@ -441,7 +441,7 @@ const subFile = document.getElementById('subCoverFileInput');
 subFile._coverData = null; subFile.value = '';
 document.getElementById('subCoverPreview').innerHTML = '';
 document.getElementById('subCoverStatus').style.display = 'none';
-document.getElementById('subCoverUploadText').textContent = '📎 ფოტოს ატვირთვა';
+document.getElementById('subCoverUploadText').textContent = 'ფოტოს ატვირთვა';
 setTimeout(() => {
 closeModal('publicSubmissionModal');
 showMsg(sucEl, '', false);
