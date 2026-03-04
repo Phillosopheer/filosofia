@@ -833,6 +833,15 @@
                 </div>
                 <div class="editor-area" id="submissionArea" contenteditable="true" data-placeholder="დაიწყე წერა..."></div>
             </div>
+            <div class="form-group" style="margin-top:16px;">
+                <label>Cover ფოტო (არასავალდებულო)</label>
+                <label class="sub-cover-upload-label" id="subCoverUploadLabel">
+                    <span id="subCoverUploadText">📎 ფოტოს ატვირთვა</span>
+                    <input type="file" id="subCoverFileInput" accept="image/*" style="display:none" />
+                </label>
+                <div id="subCoverStatus" style="display:none;font-size:0.75rem;color:var(--gold);margin-top:6px;font-family:'Cinzel',Georgia,serif;letter-spacing:1px;"></div>
+                <div id="subCoverPreview"></div>
+            </div>
             <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
                 <button class="btn btn-primary" id="submitArticleBtn">გაგზავნა</button>
                 <button class="btn btn-secondary" id="cancelSubmissionBtn">გაუქმება</button>
