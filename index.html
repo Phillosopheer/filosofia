@@ -605,13 +605,11 @@
             </div>
             <div class="form-group">
                 <label>Cover სურათი (არასავალდებულო)</label>
-                <div class="cover-input-row">
-                    <input type="text" id="coverUrl" placeholder="https://example.com/image.jpg" aria-label="სქავნის URL" class="form-input-full" />
-                    <label class="cover-upload-label" id="coverUploadLabel" title="ფოტოს ატვირთვა">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                        <input type="file" id="coverFileInput" accept="image/*" style="display:none" />
-                    </label>
-                </div>
+                <label class="sub-cover-upload-label" id="coverUploadLabel" title="ფოტოს ატვირთვა">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    <span id="coverUploadText">ფოტოს ატვირთვა</span>
+                    <input type="file" id="coverFileInput" accept="image/*" style="display:none" />
+                </label>
                 <div id="coverUploadStatus" style="display:none;font-size:0.75rem;color:var(--gold);margin-top:5px;font-family:'Cinzel',Georgia,serif;letter-spacing:1px;"></div>
                 <div id="coverPreview"></div>
             </div>
