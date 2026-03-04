@@ -1532,6 +1532,10 @@ const coverUrlEl = document.getElementById('coverUrl');
 if (coverUrlEl) coverUrlEl.value = '';
 const coverPreviewEl = document.getElementById('coverPreview');
 if (coverPreviewEl) coverPreviewEl.innerHTML = '';
+const coverStatusEl = document.getElementById('coverUploadStatus');
+if (coverStatusEl) { coverStatusEl.style.display = 'none'; coverStatusEl.textContent = ''; }
+const coverFileEl = document.getElementById('coverFileInput');
+if (coverFileEl) coverFileEl.value = '';
 setTimeout(() => {
 showMsg(sucEl, '', false);
 showMsg(errEl, '', false);
@@ -3559,6 +3563,53 @@ document.getElementById('nicknameCancelBtn').addEventListener('click', hideNickn
 document.getElementById('nicknameInput').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') saveNickname();
   if (e.key === 'Escape') hideNicknameEdit();
+});
+
+// --- Cover image compress helper ---
+function compressCoverImage(file, maxW, maxH, quality) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+        if (h > maxH) { w = Math.round(w * maxH / h); h = maxH; }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// --- Cover file upload ---
+document.getElementById('coverFileInput').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 10 * 1024 * 1024) { showToast('ფოტო მაქს. 10MB უნდა იყოს', 'error'); return; }
+  const statusEl = document.getElementById('coverUploadStatus');
+  const previewEl = document.getElementById('coverPreview');
+  const urlInput = document.getElementById('coverUrl');
+  statusEl.style.display = 'block';
+  statusEl.textContent = '⏳ ატვირთვა...';
+  try {
+    const dataURL = await compressCoverImage(file, 1200, 900, 0.82);
+    urlInput.value = dataURL;
+    previewEl.innerHTML = `<img src="${dataURL}" style="max-width:100%;max-height:180px;object-fit:cover;border-radius:8px;border:1px solid var(--border);margin-top:8px;" />`;
+    statusEl.textContent = '✓ ფოტო მზადაა';
+    setTimeout(() => { statusEl.style.display = 'none'; }, 2000);
+  } catch(err) {
+    statusEl.textContent = '';
+    statusEl.style.display = 'none';
+    showToast('ფოტოს დამუშავება ვერ მოხერხდა', 'error');
+  }
+  e.target.value = '';
 });
 
 // --- Avatar upload ---
