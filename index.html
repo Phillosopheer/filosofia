@@ -605,7 +605,14 @@
             </div>
             <div class="form-group">
                 <label>Cover სურათი (არასავალდებულო)</label>
-                <input type="text" id="coverUrl" placeholder="https://example.com/image.jpg" aria-label="სქავნის URL" class="form-input-full" />
+                <div class="cover-input-row">
+                    <input type="text" id="coverUrl" placeholder="https://example.com/image.jpg" aria-label="სქავნის URL" class="form-input-full" />
+                    <label class="cover-upload-label" id="coverUploadLabel" title="ფოტოს ატვირთვა">
+                        📎
+                        <input type="file" id="coverFileInput" accept="image/*" style="display:none" />
+                    </label>
+                </div>
+                <div id="coverUploadStatus" style="display:none;font-size:0.75rem;color:var(--gold);margin-top:5px;font-family:'Cinzel',Georgia,serif;letter-spacing:1px;"></div>
                 <div id="coverPreview"></div>
             </div>
             <div class="form-group">
