@@ -1504,7 +1504,8 @@ async function saveNote() {
 const title   = document.getElementById('editorTitle').value.trim();
 const cat     = document.getElementById('editorCat').value;
 const content = document.getElementById('editorArea').innerHTML.trim();
-const coverUrlInput = document.getElementById('coverUrl').value.trim();
+const coverFileInput = document.getElementById('coverFileInput');
+const coverUrlInput  = coverFileInput?._coverData || '';
 const author  = document.getElementById('editorAuthor').value.trim();
 const errEl   = document.getElementById('editorError');
 const sucEl   = document.getElementById('editorSuccess');
@@ -1537,14 +1538,14 @@ await fetchNotes();
 document.getElementById('editorTitle').value = '';
 document.getElementById('editorArea').innerHTML = '';
 document.getElementById('editorAuthor').value = '';
-const coverUrlEl = document.getElementById('coverUrl');
-if (coverUrlEl) coverUrlEl.value = '';
+const coverFileEl = document.getElementById('coverFileInput');
+if (coverFileEl) { coverFileEl._coverData = null; coverFileEl.value = ''; }
 const coverPreviewEl = document.getElementById('coverPreview');
 if (coverPreviewEl) coverPreviewEl.innerHTML = '';
 const coverStatusEl = document.getElementById('coverUploadStatus');
 if (coverStatusEl) { coverStatusEl.style.display = 'none'; coverStatusEl.textContent = ''; }
-const coverFileEl = document.getElementById('coverFileInput');
-if (coverFileEl) coverFileEl.value = '';
+const coverTextEl = document.getElementById('coverUploadText');
+if (coverTextEl) coverTextEl.textContent = 'ფოტოს ატვირთვა';
 setTimeout(() => {
 showMsg(sucEl, '', false);
 showMsg(errEl, '', false);
@@ -2661,7 +2662,7 @@ if (e.key === 'Enter') doLogin();
 document.getElementById('closeEditorModalBtn').addEventListener('click', () => closeModal('editorModal'));
 document.getElementById('cancelEditorBtn').addEventListener('click', () => closeModal('editorModal'));
 document.getElementById('saveBtn').addEventListener('click', saveNote);
-document.getElementById('coverUrl').addEventListener('change', (e) => previewCoverUrl(e.target.value, 'coverPreview'));
+// coverUrl input removed — file upload used instead
 document.getElementById('textColorPicker').addEventListener('change', (e) => changeTextColor(e.target.value));
 document.getElementById('bgColorPicker').addEventListener('change', (e) => changeBackColor(e.target.value));
 document.getElementById('fontSizeSelect').addEventListener('change', (e) => changeFontSize(e.target.value));
@@ -3602,19 +3603,18 @@ document.getElementById('coverFileInput').addEventListener('change', async (e) =
   const file = e.target.files[0];
   if (!file) return;
   if (file.size > 10 * 1024 * 1024) { showToast('ფოტო მაქს. 10MB უნდა იყოს', 'error'); return; }
-  const statusEl = document.getElementById('coverUploadStatus');
+  const statusEl  = document.getElementById('coverUploadStatus');
   const previewEl = document.getElementById('coverPreview');
-  const urlInput = document.getElementById('coverUrl');
+  const labelText = document.getElementById('coverUploadText');
   statusEl.style.display = 'block';
   statusEl.textContent = '⏳ ატვირთვა...';
   try {
     const dataURL = await compressCoverImage(file, 1200, 900, 0.82);
-    urlInput.value = dataURL;
+    e.target._coverData = dataURL;
     previewEl.innerHTML = `<img src="${dataURL}" style="display:block;width:100%;max-height:200px;object-fit:cover;border-radius:8px;border:1px solid var(--border);margin-top:8px;" />`;
-    statusEl.textContent = '✓ ფოტო მზადაა';
-    setTimeout(() => { statusEl.style.display = 'none'; }, 2000);
+    if (labelText) labelText.textContent = '✓ ' + file.name;
+    statusEl.style.display = 'none';
   } catch(err) {
-    statusEl.textContent = '';
     statusEl.style.display = 'none';
     showToast('ფოტოს დამუშავება ვერ მოხერხდა', 'error');
   }
