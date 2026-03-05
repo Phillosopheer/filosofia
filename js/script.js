@@ -968,6 +968,7 @@ d.classList.add('active');
 currentCat = c;
 localStorage.setItem('lastCategoryId', c.id);
 toggleMenu();
+if (typeof closeAgora === 'function') closeAgora();
 renderNotes();
 });
 list.appendChild(d);
