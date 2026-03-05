@@ -293,7 +293,7 @@ body.admin-mode #uploaderBtn { display: flex !important; }
 
 .hero h1 {
   font-family: 'Cinzel', 'Trajan Pro', Georgia, serif;
-  font-size: clamp(3.6rem, 10.5vw, 8rem);
+  font-size: clamp(1rem, 10.5vw, 8rem);
   font-weight: 700; margin-bottom: 6px; line-height: 1.1;
   letter-spacing: 6px; color: var(--ivory); text-transform: uppercase;
   text-shadow: 0 0 60px rgba(201,168,76,0.25);
@@ -919,8 +919,8 @@ select.tb-btn option { background:var(--surface); color:var(--text); }
 }
 
 /* RESPONSIVE */
-@media(max-width:768px){ .hero{background-attachment:scroll;padding:110px 5% 50px;} .hero h1{font-size:2.4rem;} .grid{grid-template-columns:1fr;padding:20px 4%;} .reader{padding:80px 5%;} .header{padding:0 4%;} .welcome-text{padding:20px 22px;margin-top:26px;} .logo-title{font-size:1.1rem;letter-spacing:2px;} .glossary-search-input{font-size:0.95rem;padding:14px 18px 14px 46px;} .term-display{margin:30px auto;padding:0 4%;} .term-card{padding:22px 18px;} .term-title{font-size:1.8rem;} .term-definition{font-size:1.05rem;} }
-@media(max-width:480px){ .header{padding:0 3%;} .header-actions{gap:6px;} .header-btn{width:32px;height:32px;padding:6px;} .header-btn svg{width:14px;height:14px;} .user-badge{display:none!important;} .editor-toolbar{gap:2px;padding:5px;} .tb-btn{padding:4px 7px;font-size:0.72rem;} .modal-box{width:95%;padding:22px;} .modal-box.wide{max-height:88vh;} .hero h1{font-size:1.9rem;letter-spacing:3px;} .welcome-text{padding:18px;} }
+@media(max-width:768px){ .hero{background-attachment:scroll;padding:110px 5% 50px;} .hero h1{font-size:clamp(1rem, 7.5vw, 2.4rem);letter-spacing:2px;} .grid{grid-template-columns:1fr;padding:20px 12px;} .reader{padding:80px 5%;} .header{padding:0 4%;} .welcome-text{padding:20px 22px;margin-top:26px;} .logo-title{font-size:1.1rem;letter-spacing:2px;} .glossary-search-input{font-size:0.95rem;padding:14px 18px 14px 46px;} .term-display{margin:30px auto;padding:0 4%;} .term-card{padding:22px 18px;} .term-title{font-size:1.8rem;} .term-definition{font-size:1.05rem;} }
+@media(max-width:480px){ .header{padding:0 3%;} .header-actions{gap:6px;} .header-btn{width:32px;height:32px;padding:6px;} .header-btn svg{width:14px;height:14px;} .user-badge{display:none!important;} .editor-toolbar{gap:2px;padding:5px;} .tb-btn{padding:4px 7px;font-size:0.72rem;} .modal-box{width:95%;padding:22px;} .modal-box.wide{max-height:88vh;} .hero h1{font-size:clamp(0.9rem, 7vw, 1.9rem);letter-spacing:1px;} .welcome-text{padding:18px;} .grid{padding:16px 8px;} }
 @media(min-width:769px) and (max-width:1024px){ .term-card{padding:32px 28px;} .term-title{font-size:2.1rem;} .term-definition{font-size:1.1rem;} }
 
 /* Honeypot — ბოტების ხაფანგი (ადამიანს არ უჩანს) */
