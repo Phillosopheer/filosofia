@@ -2565,7 +2565,7 @@ updateCountdown();
 }
 function setupEventListeners() {
 document.getElementById('menuBtn').addEventListener('click', toggleMenu);
-document.getElementById('logoBtn').addEventListener('click', () => { window.location.href = '/'; });
+document.getElementById('logoBtn').addEventListener('click', () => { localStorage.removeItem('lastCategoryId'); window.location.href = '/'; });
 document.getElementById('submitBtn').addEventListener('click', openPublicSubmission);
 document.getElementById('pendingBtn').addEventListener('click', openPendingPanel);
 const usersBtnEl = document.getElementById('usersBtn');
