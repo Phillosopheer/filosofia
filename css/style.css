@@ -394,7 +394,7 @@ body.admin-mode #uploaderBtn { display: flex !important; }
 /* GRID */
 .grid {
   display: grid; padding: 30px 5%;
-  grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
   gap: 2px; max-width: 1400px; margin: 0 auto;
   position: relative; z-index: 1;
   background: rgba(201,168,76,0.06);
