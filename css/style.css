@@ -299,7 +299,7 @@ body.admin-mode #uploaderBtn { display: flex !important; }
   letter-spacing: clamp(0px, 0.5vw, 6px); color: var(--ivory); text-transform: uppercase;
   text-shadow: 0 0 60px rgba(201,168,76,0.25);
   background: none; -webkit-text-fill-color: var(--ivory);
-  max-width: 100%; overflow-wrap: break-word;
+  max-width: 100%; word-break: normal;
 }
 
 #pageSubtitle {
@@ -921,8 +921,8 @@ select.tb-btn option { background:var(--surface); color:var(--text); }
 }
 
 /* RESPONSIVE */
-@media(max-width:768px){ .hero{background-attachment:scroll;padding:110px 3% 50px;overflow:hidden;} .hero h1{font-size:clamp(1.4rem,7.5vw,2.8rem);letter-spacing:0;overflow-wrap:break-word;} #pageSubtitle{letter-spacing:2px;font-size:0.85rem;} .grid{grid-template-columns:1fr;padding:20px 12px;} .reader{padding:80px 5%;} .header{padding:0 4%;} .welcome-text{padding:20px 22px;margin-top:26px;} .logo-title{font-size:1.1rem;letter-spacing:2px;} .glossary-search-input{font-size:0.95rem;padding:14px 18px 14px 46px;} .term-display{margin:30px auto;padding:0 4%;} .term-card{padding:22px 18px;} .term-title{font-size:1.8rem;} .term-definition{font-size:1.05rem;} }
-@media(max-width:480px){ .header{padding:0 3%;} .header-actions{gap:6px;} .header-btn{width:32px;height:32px;padding:6px;} .header-btn svg{width:14px;height:14px;} .user-badge{display:none!important;} .editor-toolbar{gap:2px;padding:5px;} .tb-btn{padding:4px 7px;font-size:0.72rem;} .modal-box{width:95%;padding:22px;} .modal-box.wide{max-height:88vh;} .hero h1{font-size:clamp(1.4rem,7.5vw,2.8rem);letter-spacing:0;overflow-wrap:break-word;} #pageSubtitle{letter-spacing:1px;font-size:0.8rem;} .welcome-text{padding:18px;} .grid{padding:16px 8px;} }
+@media(max-width:768px){ .hero{background-attachment:scroll;padding:110px 3% 50px;overflow:hidden;} .hero h1{font-size:clamp(1.4rem,7.5vw,2.8rem);letter-spacing:0;word-break:normal;} #pageSubtitle{letter-spacing:2px;font-size:0.85rem;} .grid{grid-template-columns:1fr;padding:20px 12px;} .reader{padding:80px 5%;} .header{padding:0 4%;} .welcome-text{padding:20px 22px;margin-top:26px;} .logo-title{font-size:1.1rem;letter-spacing:2px;} .glossary-search-input{font-size:0.95rem;padding:14px 18px 14px 46px;} .term-display{margin:30px auto;padding:0 4%;} .term-card{padding:22px 18px;} .term-title{font-size:1.8rem;} .term-definition{font-size:1.05rem;} }
+@media(max-width:480px){ .header{padding:0 3%;} .header-actions{gap:6px;} .header-btn{width:32px;height:32px;padding:6px;} .header-btn svg{width:14px;height:14px;} .user-badge{display:none!important;} .editor-toolbar{gap:2px;padding:5px;} .tb-btn{padding:4px 7px;font-size:0.72rem;} .modal-box{width:95%;padding:22px;} .modal-box.wide{max-height:88vh;} .hero h1{font-size:clamp(1.4rem,7.5vw,2.8rem);letter-spacing:0;word-break:normal;} #pageSubtitle{letter-spacing:1px;font-size:0.8rem;} .welcome-text{padding:18px;} .grid{padding:16px 8px;} }
 @media(min-width:769px) and (max-width:1024px){ .term-card{padding:32px 28px;} .term-title{font-size:2.1rem;} .term-definition{font-size:1.1rem;} }
 
 /* Honeypot — ბოტების ხაფანგი (ადამიანს არ უჩანს) */
