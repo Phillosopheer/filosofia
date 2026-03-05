@@ -741,6 +741,8 @@ select.tb-btn option { background:var(--surface); color:var(--text); }
 }
 
 .hero h1.shimmer {
+  font-size: clamp(2rem, 10.5vw, 8rem);
+  letter-spacing: 6px;
   background: linear-gradient(
     90deg,
     var(--ivory) 0%, var(--ivory) 20%,
