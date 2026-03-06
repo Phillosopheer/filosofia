@@ -442,24 +442,30 @@ async function judgeDebate(debate, threadId, forfeitUid = null) {
       ? `\n⚠️ შენიშვნა: ${forfeitUid===debate.authorUid ? authorName : opponentName}-მა სვლა ვადაში ვერ გააკეთა (ჩავარდნა).`
       : "";
 
-    const prompt = `შენ ხარ ფილოსოფიური დებატის AI კრიტიკოსი. გაანალიზე ქვემოთ მოცემული 1vs1 სადებატო სესია.
+    const prompt = `შენ ხარ მიუმხრობელი, ობიექტური ფილოსოფიური დებატის AI მსაჯი. გაანალიზე ქვემოთ მოცემული 1vs1 სადებატო სესია სრული სიზუსტით.
+
+⚠️ ᲛᲘᲣᲛᲮᲠᲝᲑᲚᲝᲑᲘᲡ ᲬᲔᲡᲘ: შენ არ იცი მონაწილეების ვინაობა, არ გაქვს პრეფერენცია. შეაფასე მხოლოდ არგუმენტების ხარისხი, ლოგიკა და სიმყარე. თუ ორივე მხარე თანაბრად ძლიერი ან სუსტია — გამოაცხადე ფრე.
 
 მონაწილეები:
-- ${authorName} (ავტორი/გამომწვევი)
-- ${opponentName} (ოპონენტი)
+- ${authorName}
+- ${opponentName}
 ${forfeitNote}
 
 ${transcript}
 
 შეაფასე სამი კრიტერიუმით (0-10):
 1. ignored_points — ვის არგუმენტები დარჩა უპასუხოდ (მაღალი = ცუდი)
-2. logic_score — ლოგიკის სიმყარე და თანმიმდევრულობა (მაღალი = კარგი)
+2. logic_score — ლოგიკის სიმყარე, თანმიმდევრულობა, მტკიცებულებები (მაღალი = კარგი)
 3. cross_score — დაკითხვის ეტაპის სტრატეგიული გამოყენება (მაღალი = კარგი)
 
-⚠️ ᲔᲜᲝᲑᲠᲘᲕᲘ ᲬᲔᲡᲘ: ყველა ველი წერე სრულყოფილ, სალიტერატურო ქართულად.
+გადაწყვეტილება:
+- მოგება: ერთი მხარე მნიშვნელოვნად ჯობია მეორეს
+- ფრე: სხვაობა მინიმალურია ან ორივე თანაბრად კარგია/სუსტია
+
+⚠️ ᲔᲜᲝᲑᲠᲘᲕᲘ ᲬᲔᲡᲘ: ყველა ველი — სრულყოფილ, სალიტერატურო ქართულად.
 
 უპასუხე მხოლოდ JSON:
-{"winner":"${authorName} ან ${opponentName}","winner_uid":"შესაბამისი UID","reason":"2-3 წინადადება — რატომ გაიმარჯვა","analysis":"3-4 წინადადება — დებატის მიმოხილვა","scores":{"${authorName}":{"ignored_points":0,"logic_score":0,"cross_score":0},"${opponentName}":{"ignored_points":0,"logic_score":0,"cross_score":0}}}`;
+{"result":"win"|"draw","winner":"${authorName} ან ${opponentName} ან null","winner_uid":"UID ან null","reason":"2-3 წინადადება","analysis":"3-4 წინადადება","scores":{"${authorName}":{"ignored_points":0,"logic_score":0,"cross_score":0},"${opponentName}":{"ignored_points":0,"logic_score":0,"cross_score":0}}}`;
 
     const text = await callGemini(prompt);
     if (!text) throw new Error("Gemini no response");
@@ -467,13 +473,17 @@ ${transcript}
     const m = text.match(/\{[\s\S]*\}/);
     const verdict = JSON.parse(m ? m[0] : text);
 
-    const winnerUid      = verdict.winner_uid === debate.opponentUid ? debate.opponentUid : debate.authorUid;
-    const winnerNickname = winnerUid === debate.authorUid ? authorName : opponentName;
+    const isDraw = verdict.result === "draw" || !verdict.winner_uid || verdict.winner_uid === "null";
+    const winnerUid      = isDraw ? null
+      : verdict.winner_uid === debate.opponentUid ? debate.opponentUid : debate.authorUid;
+    const winnerNickname = isDraw ? null
+      : winnerUid === debate.authorUid ? authorName : opponentName;
 
     const verdictData = {
       analysis:        verdict.analysis || "",
-      winnerUid,
-      winnerNickname,
+      result:          isDraw ? "draw" : "win",
+      winnerUid:       winnerUid || null,
+      winnerNickname:  winnerNickname || null,
       reason:          verdict.reason || "",
       scores:          verdict.scores || {},
       forfeitUid:      forfeitUid || null,
@@ -483,10 +493,13 @@ ${transcript}
     await fbPatch(`/agora-debates/${threadId}`, { phase: "verdict", verdict: verdictData });
     await fbPatch(`/agora-threads/${threadId}`,  { debateStatus: "finished", debatePhase: "verdict" });
 
+    const notifMsg = isDraw
+      ? `⚖️ AI კრიტიკოსმა დებატი შეაფასა — ⚡ ფრე!`
+      : `⚖️ AI კრიტიკოსმა დებატი შეაფასა — გამარჯვებული: ${winnerNickname}`;
     for (const uid of [debate.authorUid, debate.opponentUid]) {
       await writeNotification(uid, {
         type: "debate-verdict", threadId, winnerUid, winnerNickname,
-        message: `⚖️ AI კრიტიკოსმა დებატი შეაფასა — გამარჯვებული: ${winnerNickname}`
+        message: notifMsg
       });
     }
   } catch { /* silent */ }
@@ -1654,6 +1667,42 @@ export default async function handler(req, res) {
       await fbPatch(`/agora-debates/${threadId}`, { turnDeadline: now + TURN_TIMEOUT_MS });
       return res.json({ ok: true, answered: newAnswerCount, total: totalQ });
     }
+  }
+
+
+  // ============================================================
+  // action: 'request-end-debate' — ადრეული დასრულების მოთხოვნა
+  // ============================================================
+  if (action === "request-end-debate") {
+    const { threadId } = body;
+    if (!threadId) return res.status(400).json({ error: "threadId სავალდებულოა" });
+
+    const debate = await fbGet(`/agora-debates/${threadId}`);
+    if (!debate) return res.status(404).json({ error: "დებატი ვერ მოიძებნა" });
+    if (debate.phase !== "final") return res.status(400).json({ error: "მხოლოდ საბოლოო ეტაპზეა შესაძლებელი" });
+    if (user.uid !== debate.authorUid && user.uid !== debate.opponentUid)
+      return res.status(403).json({ error: "მხოლოდ მონაწილეებს შეუძლიათ" });
+
+    const endVotes = debate.endVotes || {};
+    endVotes[user.uid] = true;
+    await fbPatch(`/agora-debates/${threadId}`, { endVotes });
+
+    const bothAgreed = endVotes[debate.authorUid] && endVotes[debate.opponentUid];
+    if (bothAgreed) {
+      const freshDebate = await fbGet(`/agora-debates/${threadId}`);
+      await judgeDebate(freshDebate, threadId, null);
+      return res.json({ ok: true, judging: true });
+    }
+
+    // შეატყობინე მეორე მხარეს
+    const otherUid = user.uid === debate.authorUid ? debate.opponentUid : debate.authorUid;
+    await writeNotification(otherUid, {
+      type:    "debate-turn",
+      threadId,
+      message: `⚑ ${nickname}-მა დებატის ადრე დასრულება მოითხოვა. შენც დათანხმდები?`
+    });
+
+    return res.json({ ok: true, judging: false });
   }
 
 
