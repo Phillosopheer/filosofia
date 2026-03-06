@@ -1870,17 +1870,60 @@ function _dbSubmitForm() {
   return `<div class="db-submit-wrap">
     <label class="db-label">შენი ჯერია</label>
 
-    <div style="display:flex;gap:8px;margin-bottom:14px;">
-      <button id="dbAgreeBtn" class="db-btn db-btn-gold" style="flex:1;font-size:0.6rem;padding:10px 8px;">✓ გეთანხმები</button>
-      <button id="dbNoAnswerBtn" class="db-btn" style="flex:1;font-size:0.6rem;padding:10px 8px;background:none;border:1px solid rgba(201,168,76,0.2);color:var(--text-dim);">— პასუხი არ მაქვს</button>
+    <!-- 1. თეზისი -->
+    <label class="db-struct-label">I. თეზისი</label>
+    <textarea id="dbStructThesis" class="db-textarea" rows="3" placeholder="ჩამოაყალიბე შენი მთავარი პოზიცია..."></textarea>
+
+    <div class="db-struct-divider"></div>
+
+    <!-- 2. არგუმენტები -->
+    <label class="db-struct-label">II. არგუმენტები</label>
+    <div id="dbArgList">
+      <div class="db-arg-row">
+        <span class="db-arg-num">1.</span>
+        <textarea class="db-textarea db-arg-input" rows="2" placeholder="არგუმენტი 1..."></textarea>
+      </div>
+      <div class="db-arg-row">
+        <span class="db-arg-num">2.</span>
+        <textarea class="db-textarea db-arg-input" rows="2" placeholder="არგუმენტი 2..."></textarea>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button id="dbAddArgBtn" class="db-btn db-struct-add-btn">+ არგუმენტი</button>
+      <button id="dbRemoveArgBtn" class="db-btn db-struct-remove-btn">− წაშლა</button>
     </div>
 
-    <div style="height:1px;background:rgba(201,168,76,0.12);margin-bottom:12px;"></div>
+    <div class="db-struct-divider"></div>
 
-    <textarea id="dbTurnInput" class="db-textarea" rows="6" placeholder="არგუმენტი... (მინ. 200 სიმბოლო)"></textarea>
-    <div id="dbTurnCounter" style="font-family:'Cinzel',serif;font-size:0.6rem;color:var(--text-dim);text-align:right;margin-top:4px;letter-spacing:1px;">0 / 200</div>
+    <!-- 3. კონტრარგუმენტები -->
+    <label class="db-struct-label">III. კონტრარგუმენტები <span class="db-struct-opt">(არასავალდებულო)</span></label>
+    <div id="dbCounterList"></div>
+    <div style="display:flex;gap:8px;margin-top:4px;">
+      <button id="dbAddCounterBtn" class="db-btn db-struct-add-btn">+ კონტრარგუმენტი</button>
+      <button id="dbRemoveCounterBtn" class="db-btn db-struct-remove-btn">− წაშლა</button>
+    </div>
+
+    <div class="db-struct-divider"></div>
+
+    <!-- 4. ანალოგია -->
+    <label class="db-struct-label">IV. ანალოგია <span class="db-struct-opt">(არასავალდებულო)</span></label>
+    <textarea id="dbStructAnalogy" class="db-textarea" rows="2" placeholder="მსგავსი შემთხვევა ან შედარება, რომელიც შენს პოზიციას ამყარებს..."></textarea>
+
+    <div class="db-struct-divider"></div>
+
+    <!-- 5. წყარო / ციტატა -->
+    <label class="db-struct-label">V. წყარო / ციტატა <span class="db-struct-opt">(არასავალდებულო)</span></label>
+    <textarea id="dbStructSource" class="db-textarea" rows="2" placeholder="ფილოსოფოსი, ნაშრომი ან ციტატა, რომელსაც ეყრდნობი..."></textarea>
+
+    <div class="db-struct-divider"></div>
+
+    <!-- 6. დასკვნა -->
+    <label class="db-struct-label">VI. დასკვნა <span class="db-struct-opt">(არასავალდებულო)</span></label>
+    <textarea id="dbStructConclusion" class="db-textarea" rows="2" placeholder="შეაჯამე შენი პოზიცია..."></textarea>
+
+    <div id="dbStructCounter" style="font-family:\'Cinzel\',serif;font-size:0.6rem;color:var(--text-dim);text-align:right;margin-top:12px;letter-spacing:1px;">0 / 200</div>
     <div id="dbTurnError" class="db-error"></div>
-    <button id="dbSubmitTurnBtn" class="db-btn db-btn-gold db-btn-full" style="margin-top:10px;">პასუხი →</button>
+    <button id="dbSubmitTurnBtn" class="db-btn db-btn-gold db-btn-full" style="margin-top:12px;">პასუხი →</button>
   </div>`;
 }
 
@@ -2233,28 +2276,97 @@ function _dbBindActions(container, thread, debate, uid) {
   const submitTurnBtn = container.querySelector('#dbSubmitTurnBtn');
   if (submitTurnBtn) submitTurnBtn.addEventListener('click', () => _dbSubmitTurn(tid, submitTurnBtn));
 
-  // character counter
-  const ta = container.querySelector('#dbTurnInput');
-  const counter = container.querySelector('#dbTurnCounter');
-  if (ta && counter) {
-    ta.addEventListener('input', () => {
-      const len = ta.value.trim().length;
-      counter.textContent = `${len} / 200`;
-      counter.style.color = len >= 200 ? 'var(--gold)' : 'var(--text-dim)';
+  function _dbBuildStructBody() {
+    const thesis    = (container.querySelector('#dbStructThesis')?.value || '').trim();
+    const args      = Array.from(container.querySelectorAll('.db-arg-input')).map(i => i.value.trim()).filter(Boolean);
+    const counters  = Array.from(container.querySelectorAll('.db-counter-input')).map(i => i.value.trim()).filter(Boolean);
+    const analogy   = (container.querySelector('#dbStructAnalogy')?.value || '').trim();
+    const source    = (container.querySelector('#dbStructSource')?.value || '').trim();
+    const conclusion = (container.querySelector('#dbStructConclusion')?.value || '').trim();
+    let parts = [];
+    if (thesis)     parts.push('I. თეზისი: ' + thesis);
+    if (args.length) parts.push('II. არგუმენტები:\n' + args.map((a, i) => (i+1) + '. ' + a).join('\n'));
+    if (counters.length) parts.push('III. კონტრარგუმენტები:\n' + counters.map((a, i) => (i+1) + '. ' + a).join('\n'));
+    if (analogy)    parts.push('IV. ანალოგია: ' + analogy);
+    if (source)     parts.push('V. წყარო / ციტატა: ' + source);
+    if (conclusion) parts.push('VI. დასკვნა: ' + conclusion);
+    return parts.join('\n\n');
+  }
+  function _dbUpdateStructCounter() {
+    const preview = _dbBuildStructBody();
+    const structCounter = container.querySelector('#dbStructCounter');
+    if (structCounter) {
+      structCounter.textContent = `${preview.length} / 200`;
+      structCounter.style.color = preview.length >= 200 ? 'var(--gold)' : 'var(--text-dim)';
+    }
+  }
+  // structured mode — add/remove argument
+  const addArgBtn    = container.querySelector('#dbAddArgBtn');
+  const removeArgBtn = container.querySelector('#dbRemoveArgBtn');
+  if (addArgBtn) {
+    addArgBtn.addEventListener('click', () => {
+      const list = container.querySelector('#dbArgList');
+      if (!list) return;
+      const rows = list.querySelectorAll('.db-arg-row');
+
+      const num = rows.length + 1;
+      const row = document.createElement('div');
+      row.className = 'db-arg-row';
+      row.innerHTML = `<span class="db-arg-num">${num}.</span><textarea class="db-textarea db-arg-input" rows="2" placeholder="არგუმენტი ${num}..."></textarea>`;
+      row.querySelector('textarea').addEventListener('input', _dbUpdateStructCounter);
+      list.appendChild(row);
+      _dbUpdateStructCounter();
+    });
+  }
+  if (removeArgBtn) {
+    removeArgBtn.addEventListener('click', () => {
+      const list = container.querySelector('#dbArgList');
+      if (!list) return;
+      const rows = list.querySelectorAll('.db-arg-row');
+      if (rows.length <= 1) return;
+      rows[rows.length - 1].remove();
+      _dbUpdateStructCounter();
     });
   }
 
+  // counter-argument add/remove
+  const addCounterBtn    = container.querySelector('#dbAddCounterBtn');
+  const removeCounterBtn = container.querySelector('#dbRemoveCounterBtn');
+  if (addCounterBtn) {
+    addCounterBtn.addEventListener('click', () => {
+      const list = container.querySelector('#dbCounterList');
+      if (!list) return;
+      const rows = list.querySelectorAll('.db-arg-row');
+      const num = rows.length + 1;
+      const row = document.createElement('div');
+      row.className = 'db-arg-row';
+      row.innerHTML = `<span class="db-arg-num">${num}.</span><textarea class="db-textarea db-counter-input" rows="2" placeholder="კონტრარგუმენტი ${num}..."></textarea>`;
+      row.querySelector('textarea').addEventListener('input', _dbUpdateStructCounter);
+      list.appendChild(row);
+      _dbUpdateStructCounter();
+    });
+  }
+  if (removeCounterBtn) {
+    removeCounterBtn.addEventListener('click', () => {
+      const list = container.querySelector('#dbCounterList');
+      if (!list) return;
+      const rows = list.querySelectorAll('.db-arg-row');
+      if (!rows.length) return;
+      rows[rows.length - 1].remove();
+      _dbUpdateStructCounter();
+    });
+  }
+
+  // structured counters on input
+  ['#dbStructThesis','#dbStructAnalogy','#dbStructSource','#dbStructConclusion'].forEach(sel => {
+    const el = container.querySelector(sel);
+    if (el) el.addEventListener('input', _dbUpdateStructCounter);
+  });
+  container.querySelectorAll('.db-arg-input, .db-counter-input').forEach(el => {
+    el.addEventListener('input', _dbUpdateStructCounter);
+  });
+
   // quick buttons
-  const agreeBtn = container.querySelector('#dbAgreeBtn');
-  if (agreeBtn) agreeBtn.addEventListener('click', () => {
-    showConfirmToast('„გეთანხმები" — გაიგზავნოს?', () => _dbSubmitTurn(tid, agreeBtn, 'agree'));
-  });
-
-  const noAnsBtn = container.querySelector('#dbNoAnswerBtn');
-  if (noAnsBtn) noAnsBtn.addEventListener('click', () => {
-    showConfirmToast('„პასუხი არ მაქვს" — გაიგზავნოს?', () => _dbSubmitTurn(tid, noAnsBtn, 'no_answer'));
-  });
-
   const addQBtn = container.querySelector('#dbAddQBtn');
   if (addQBtn) _dbInitQForm(container, tid);
 
@@ -2370,20 +2482,25 @@ async function _dbDeclineEnd(tid, btn) {
   } catch { /* silent */ if (btn) btn.disabled = false; }
 }
 
-async function _dbSubmitTurn(tid, btn, quickType) {
-  const ta    = document.getElementById('dbTurnInput');
+async function _dbSubmitTurn(tid, btn) {
   const errEl = document.getElementById('dbTurnError');
   if (errEl) errEl.style.display = 'none';
 
   let body;
-  if (quickType === 'agree') {
-    body = 'გეთანხმები';
-  } else if (quickType === 'no_answer') {
-    body = 'პასუხი არ მაქვს';
-  } else {
-    if (!ta) return;
-    body = ta.value.trim();
-    if (!body || body.length < 200) {
+  {
+    body = _dbBuildStructBody();
+    const thesis = (document.getElementById('dbStructThesis')?.value || '').trim();
+    if (!thesis) {
+      if (errEl) { errEl.textContent = 'თეზისი სავალდებულოა'; errEl.style.display = 'block'; }
+      return;
+    }
+    const argInputs = document.querySelectorAll('.db-arg-input');
+    const args = Array.from(argInputs).map(i => i.value.trim()).filter(Boolean);
+    if (!args.length) {
+      if (errEl) { errEl.textContent = 'მინ. 1 არგუმენტი სავალდებულოა'; errEl.style.display = 'block'; }
+      return;
+    }
+    if (body.length < 200) {
       if (errEl) { errEl.textContent = `მინ. 200 სიმბოლო (ახლა: ${body.length})`; errEl.style.display = 'block'; }
       return;
     }
