@@ -2,13 +2,16 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://phillosopheer.github.io/filosofia/</loc>
-    <lastmod>2026-02-20</lastmod>
-    <changefreq>weekly</changefreq>
+    <loc>https://philosoph.vercel.app/</loc>
+    <lastmod>2026-03-07</lastmod>
+    <changefreq>daily</changefreq>
     <priority>1.0</priority>
-    <xhtml:link 
-      rel="alternate" 
-      hreflang="ka" 
-      href="https://phillosopheer.github.io/filosofia/"/>
+    <xhtml:link rel="alternate" hreflang="ka" href="https://philosoph.vercel.app/"/>
+  </url>
+  <url>
+    <loc>https://philosoph.vercel.app/lexicon.html</loc>
+    <lastmod>2026-03-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
 </urlset>
