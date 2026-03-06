@@ -1747,3 +1747,19 @@
   border-color: var(--gold);
   color: var(--gold);
 }
+
+/* --- End-debate banner (opponent sees this) --- */
+.db-end-banner {
+  margin-top: 24px;
+  padding: 16px 18px;
+  background: rgba(201,168,76,0.06);
+  border: 1px solid rgba(201,168,76,0.3);
+  animation: fadeIn 0.3s ease;
+}
+.db-end-banner-text {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.72rem;
+  letter-spacing: 1.5px;
+  color: var(--gold);
+  text-align: center;
+}
