@@ -1377,12 +1377,20 @@ export default async function handler(req, res) {
     const totalDeadline = now + TOTAL_DEBATE_MS;
     const turnDeadline  = now + TURN_TIMEOUT_MS;
 
+    // ავტორის threadBody ავტომატურად პირველი სვლა — opening[0]
+    const thread       = await fbGet(`/agora-threads/${threadId}`);
+    const authorData   = await fbGet(`/users/${debate.authorUid}`);
+    const authorNick   = debate.authorNickname || authorData?.nickname || "მომხმარებელი";
+    const firstTurnBody = thread?.body || "";
+    const firstTurn    = { uid: debate.authorUid, nickname: authorNick, body: firstTurnBody, createdAt: now, auto: true };
+
     await fbPatch(`/agora-debates/${threadId}`, {
       phase:         "opening",
-      currentTurn:   debate.authorUid,   // ავტორი პირველი
+      currentTurn:   debate.opponentUid,  // ავტორის სვლა უკვე ჩაწერილია → ოპონენტი პირველი
       startedAt,
       totalDeadline,
-      turnDeadline
+      turnDeadline,
+      opening:       { 0: firstTurn }
     });
     await fbPatch(`/agora-threads/${threadId}`, {
       debateStatus: "active",
@@ -1399,7 +1407,7 @@ export default async function handler(req, res) {
       threadTitle: (await fbGet(`/agora-threads/${threadId}`))?.title || ""
     });
 
-    return res.json({ ok: true, phase: "opening", currentTurn: debate.authorUid });
+    return res.json({ ok: true, phase: "opening", currentTurn: debate.opponentUid });
   }
 
 
