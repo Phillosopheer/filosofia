@@ -13,6 +13,12 @@ let _agoraQuotes      = [];     // [{ id, num, author, body }] — ციტა�
 let _notifData        = [];     // შეტყობინებების cache
 let _notifInterval    = null;
 
+// ── Debate state ──────────────────────────────────────────────
+let _newThreadType      = 'public';
+let _debateOpponentUid  = null;
+let _debateOpponentNick = null;
+let _debateTimerIds     = [];
+
 // ===== DOM refs (ინიციალიზაციის შემდეგ) =====
 let _agoraView, _agoraListView, _agoraThreadView, _agoraTopbarTitle, _agoraBackBtn, _agoraNewBtn;
 
@@ -246,24 +252,42 @@ async function agoraShowList(page) {
 function agoraThreadCard(t) {
   const locked  = t.status === 'locked';
   const pinned  = t.pinned;
+  const isDebate = t.type === 'debate';
   const classes = ['agora-thread-item',
     locked ? 'agora-thread-locked' : '',
     pinned ? 'pinned' : ''
   ].filter(Boolean).join(' ');
 
+  let badgeHtml = '';
+  if (isDebate) {
+    const ds = t.debateStatus;
+    const bStyle = {
+      pending:   'color:var(--gold);border-color:rgba(201,168,76,0.4);background:rgba(201,168,76,0.06);animation:pulse 2s ease infinite;',
+      active:    'color:#f87171;border-color:rgba(248,113,113,0.5);background:rgba(248,113,113,0.06);animation:pulse 1.5s ease infinite;',
+      finished:  'color:var(--text-dim);border-color:var(--border);opacity:0.7;',
+      cancelled: 'color:var(--text-dim);border-color:var(--border);opacity:0.5;'
+    }[ds] || 'color:var(--gold);border-color:rgba(201,168,76,0.3);';
+    const bLabel = { pending:'⚔ მოლოდინი', active:'⚔ პირდაპირი', finished:'⚔ დასრულდა', cancelled:'⚔ გაუქმდა' }[ds] || '⚔';
+    badgeHtml = `<span style="font-family:'Cinzel',serif;font-size:0.55rem;letter-spacing:1.5px;padding:3px 8px;border:1px solid;white-space:nowrap;flex-shrink:0;${bStyle}">${bLabel}</span>`;
+  }
+
   return `
-    <div class="${classes}" data-id="${agoraEscape(t.id)}">
-      ${pinned ? '<div class="agora-thread-pin">📌 PINNED</div>' : ''}
-      <div class="agora-thread-title">${agoraEscape(t.title)}</div>
-      <div class="agora-thread-meta">
-        <div class="agora-thread-author">
-          <span>${agoraEscape(t.authorName)}</span>
-          <span>·</span>
-          <span>${agoraTimeAgo(t.createdAt)}</span>
-        </div>
-        <div class="agora-thread-replies">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-          <span>${t.replyCount || 0}</span>
+    <div class="${classes}" data-id="${agoraEscape(t.id)}" style="display:flex;align-items:center;gap:12px;">
+      ${badgeHtml}
+      <div style="flex:1;min-width:0;">
+        ${pinned ? '<div class="agora-thread-pin">📌 PINNED</div>' : ''}
+        <div class="agora-thread-title">${agoraEscape(t.title)}</div>
+        <div class="agora-thread-meta">
+          <div class="agora-thread-author">
+            <span>${agoraEscape(t.authorName)}</span>
+            <span>·</span>
+            <span>${agoraTimeAgo(t.createdAt)}</span>
+            ${isDebate && t.opponentNickname ? `<span>·</span><span style="color:var(--gold-dim)">vs ${agoraEscape(t.opponentNickname)}</span>` : ''}
+          </div>
+          ${!isDebate ? `<div class="agora-thread-replies">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span>${t.replyCount || 0}</span>
+          </div>` : ''}
         </div>
       </div>
     </div>`;
@@ -309,6 +333,22 @@ async function agoraOpenThread(threadId) {
 
     // user card triggers on thread header
     agoraBindUserCardTriggers(contentEl);
+
+    // DEBATE type — debate UI
+    if (data.thread.type === 'debate') {
+      _debateTimerIds.forEach(id => clearInterval(id));
+      _debateTimerIds = [];
+      const debRes = await agoraFetch({ action: 'get-debate', threadId });
+      if (debRes.ok && debRes.data.debate) {
+        repliesEl.innerHTML = '';
+        paginEl.innerHTML   = '';
+        if (replyFEl) replyFEl.innerHTML = '';
+        agoraRenderDebateView(data.thread, debRes.data.debate, repliesEl);
+      } else {
+        repliesEl.innerHTML = `<div class="agora-empty"><div class="agora-empty-text">⚔️ დებატის მონაცემი ვერ ჩაიტვირთა</div></div>`;
+      }
+      return;
+    }
 
     // replies
     _agoraReplyPage  = data.replies.page;
@@ -746,21 +786,106 @@ function agoraOpenNewThreadModal() {
     showToast('ახალი თემის გასახსნელად შედი ანგარიშში', 'info');
     return;
   }
-  // reset form
+
+  // reset state
+  _newThreadType      = 'public';
+  _debateOpponentUid  = null;
+  _debateOpponentNick = null;
+
+  // reset fields
   const titleEl   = document.getElementById('newThreadTitle');
   const bodyEl    = document.getElementById('newThreadBody');
-  const countEl   = document.getElementById('newThreadBodyCount');
   const errEl     = document.getElementById('newThreadError');
-  if (titleEl) titleEl.value = '';
-  if (bodyEl)  bodyEl.value  = '';
-  if (countEl) countEl.textContent = '0';
-  if (errEl)   { errEl.textContent = ''; errEl.classList.remove('active'); }
+  const oppWrap   = document.getElementById('debateOpponentWrap');
+  const oppInput  = document.getElementById('debateOpponentInput');
+  const oppStatus = document.getElementById('debateOpponentStatus');
+  const oppFound  = document.getElementById('debateOpponentFound');
+  const submitBtn = document.getElementById('newThreadSubmitBtn');
+  const btnPub    = document.getElementById('typeBtnPublic');
+  const btnDeb    = document.getElementById('typeBtnDebate');
+
+  if (titleEl)   titleEl.value = '';
+  if (bodyEl)    bodyEl.value  = '';
+  if (errEl)     { errEl.textContent = ''; errEl.classList.remove('active'); }
+  if (oppWrap)   oppWrap.style.display = 'none';
+  if (oppInput)  oppInput.value = '';
+  if (oppStatus) { oppStatus.textContent = ''; oppStatus.style.color = ''; }
+  if (oppFound)  { oppFound.style.display = 'none'; oppFound.textContent = ''; }
+  if (submitBtn) submitBtn.textContent = 'გამოქვეყნება';
+
+  const activeStyle   = 'border:1px solid var(--gold);background:rgba(201,168,76,0.12);color:var(--gold);font-family:Cinzel,serif;font-size:0.65rem;letter-spacing:1.5px;padding:8px 16px;cursor:pointer;';
+  const inactiveStyle = 'border:1px solid rgba(201,168,76,0.25);background:none;color:var(--text-dim);font-family:Cinzel,serif;font-size:0.65rem;letter-spacing:1.5px;padding:8px 16px;cursor:pointer;';
+
+  if (btnPub) btnPub.style.cssText = activeStyle;
+  if (btnDeb) btnDeb.style.cssText = inactiveStyle;
+
+  if (btnPub && !btnPub.dataset.ntBound) {
+    btnPub.dataset.ntBound = '1';
+    btnPub.addEventListener('click', function() {
+      _newThreadType = 'public';
+      if (oppWrap)   oppWrap.style.display = 'none';
+      if (submitBtn) submitBtn.textContent = 'გამოქვეყნება';
+      btnPub.style.cssText = activeStyle;
+      if (btnDeb) btnDeb.style.cssText = inactiveStyle;
+    });
+  }
+  if (btnDeb && !btnDeb.dataset.ntBound) {
+    btnDeb.dataset.ntBound = '1';
+    btnDeb.addEventListener('click', function() {
+      _newThreadType = 'debate';
+      if (oppWrap)   oppWrap.style.display = 'block';
+      if (submitBtn) submitBtn.textContent = '⚔ გამოწვევის გაგზავნა';
+      btnDeb.style.cssText = activeStyle;
+      if (btnPub) btnPub.style.cssText = inactiveStyle;
+    });
+  }
+
+  // opponent search
+  if (oppInput && !oppInput.dataset.ntBound) {
+    oppInput.dataset.ntBound = '1';
+    let _oppTimer = null;
+    oppInput.addEventListener('input', function() {
+      const q = this.value.trim();
+      _debateOpponentUid  = null;
+      _debateOpponentNick = null;
+      if (oppStatus) { oppStatus.textContent = ''; }
+      if (oppFound)  { oppFound.style.display = 'none'; }
+      clearTimeout(_oppTimer);
+      if (!q || q.length < 2) return;
+      _oppTimer = setTimeout(async () => {
+        if (oppStatus) oppStatus.textContent = '⏳';
+        try {
+          const tok = await agoraGetValidToken();
+          const { ok, data } = await agoraFetch({ action: 'find-user', nickname: q, userToken: tok });
+          if (ok && data.user) {
+            _debateOpponentUid  = data.user.uid;
+            _debateOpponentNick = data.user.nickname;
+            if (oppStatus) { oppStatus.textContent = '✓'; oppStatus.style.color = '#4ade80'; }
+            if (oppFound) {
+              oppFound.textContent    = `✓ ${data.user.nickname}`;
+              oppFound.style.color    = '#4ade80';
+              oppFound.style.display  = 'block';
+            }
+          } else {
+            _debateOpponentUid = null;
+            if (oppStatus) { oppStatus.textContent = '✗'; oppStatus.style.color = '#f87171'; }
+            if (oppFound) {
+              oppFound.textContent   = 'მომხმარებელი ვერ მოიძებნა';
+              oppFound.style.color   = '#f87171';
+              oppFound.style.display = 'block';
+            }
+          }
+        } catch { if (oppStatus) oppStatus.textContent = ''; }
+      }, 400);
+    });
+  }
+
   openModal('newThreadModal');
   setTimeout(() => {
     titleEl?.focus();
-    // სათაურის counter
     const titleCountEl = document.getElementById('titleCharCount');
-    if (titleEl && titleCountEl) {
+    if (titleEl && titleCountEl && !titleEl.dataset.ntBound) {
+      titleEl.dataset.ntBound = '1';
       titleEl.addEventListener('input', function() {
         titleCountEl.textContent = `${this.value.length} / 80`;
         titleCountEl.style.color = this.value.length > 70 ? '#e53e3e' : 'var(--text-dim)';
@@ -772,20 +897,56 @@ function agoraOpenNewThreadModal() {
 async function agoraSubmitNewThread() {
   const title    = document.getElementById('newThreadTitle')?.value.trim();
   const body     = document.getElementById('newThreadBody')?.value.trim();
-  const errEl    = document.getElementById('newThreadError');
   const btn      = document.getElementById('newThreadSubmitBtn');
 
   agoraClearError('newThreadError');
 
-  if (!title || title.length < 5) {
-    agoraShowError('newThreadError', 'სათაური მინ. 5 სიმბოლო');
-    return;
-  }
-  if (!body || body.length < 10) {
-    agoraShowError('newThreadError', 'შინაარსი მინ. 10 სიმბოლო');
+  if (!title || title.length < 5) { agoraShowError('newThreadError', 'სათაური მინ. 5 სიმბოლო'); return; }
+  if (!body  || body.length  < 10) { agoraShowError('newThreadError', 'შინაარსი მინ. 10 სიმბოლო'); return; }
+
+  // ── DEBATE ──────────────────────────────────────────────────
+  if (_newThreadType === 'debate') {
+    if (!_debateOpponentUid) {
+      agoraShowError('newThreadError', 'ოპონენტი ვერ მოიძებნა — შეამოწმე nickname');
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = 'AI ამოწმებს...';
+    try {
+      const token        = await agoraGetValidToken();
+      const user         = agoraGetUser();
+      const authorName   = user?.nickname || localStorage.getItem('userNickname') || 'მომხმარებელი';
+      const authorAvatar = user?.photoURL || null;
+
+      const { ok, data } = await agoraFetch({
+        action:      'create-debate',
+        title, threadBody: body,
+        opponentUid: _debateOpponentUid,
+        userToken:   token, authorName, authorAvatar
+      });
+
+      if (!ok) {
+        if (data.warned) {
+          agoraShowWarningToast(data.message, data.banned, data.quote || '');
+          if (data.banned) closeModal('newThreadModal');
+        } else {
+          agoraShowError('newThreadError', data.quote ? `${data.error}\n\n❝ "${data.quote}"` : (data.error || 'შეცდომა'));
+        }
+        return;
+      }
+      closeModal('newThreadModal');
+      showToast('⚔️ გამოწვევა გაიგზავნა!', 'success');
+      agoraOpenThread(data.threadId);
+    } catch {
+      agoraShowError('newThreadError', '📡 კავშირის შეცდომა');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '⚔ გამოწვევის გაგზავნა';
+    }
     return;
   }
 
+  // ── PUBLIC ──────────────────────────────────────────────────
   btn.disabled = true;
   btn.textContent = 'AI ამოწმებს...';
 
@@ -796,33 +957,22 @@ async function agoraSubmitNewThread() {
 
   try {
     const { ok, data } = await agoraFetch({
-      action: 'create-thread',
-      title,
-      threadBody: body,
-      userToken:  token,
-      authorName,
-      authorAvatar
+      action: 'create-thread', title, threadBody: body,
+      userToken: token, authorName, authorAvatar
     });
 
     if (!ok) {
       if (data.warned) {
         agoraShowWarningToast(data.message, data.banned, data.quote || '');
-        if (data.banned) {
-          closeModal('newThreadModal');
-        }
+        if (data.banned) closeModal('newThreadModal');
       } else {
-        const errMsg = data.quote
-          ? `${data.error || 'შეცდომა'}\n\n❝ "${data.quote}"`
-          : (data.error || 'შეცდომა');
-        agoraShowError('newThreadError', errMsg);
+        agoraShowError('newThreadError', data.quote ? `${data.error || 'შეცდომა'}\n\n❝ "${data.quote}"` : (data.error || 'შეცდომა'));
       }
       return;
     }
 
     closeModal('newThreadModal');
     showToast('✅ თემა გაიხსნა!', 'success');
-
-    // topicsCount — local განახლება (profile popup-ისთვის)
     try {
       if (typeof currentUser !== 'undefined' && currentUser) {
         currentUser.topicsCount = (currentUser.topicsCount || 0) + 1;
@@ -830,10 +980,9 @@ async function agoraSubmitNewThread() {
         if (st) st.textContent = currentUser.topicsCount;
       }
     } catch { /* silent */ }
-
     agoraOpenThread(data.threadId);
 
-  } catch (e) {
+  } catch {
     agoraShowError('newThreadError', '📡 კავშირის შეცდომა. სცადე ხელახლა.');
   } finally {
     btn.disabled = false;
@@ -1297,6 +1446,21 @@ function agoraNotifRender() {
     } else if (n.type === 'new-thread') {
       icon = '🏛';
       text = `<b>${agoraEscape(n.fromName || '')}</b> გახსნა ახალი თემა: <i>${agoraEscape(n.threadTitle || '')}</i>`;
+    } else if (n.type === 'debate-invite') {
+      icon = '⚔';
+      text = `<b>${agoraEscape(n.fromName || '')}</b> გიწვევს 1vs1 დებატში: <i>${agoraEscape(n.threadTitle || '')}</i>`;
+    } else if (n.type === 'debate-accepted') {
+      icon = '⚔';
+      text = `<b>${agoraEscape(n.fromName || '')}</b> მიიღო შენი გამოწვევა — დებატი დაიწყო!`;
+    } else if (n.type === 'debate-declined') {
+      icon = '⚔';
+      text = `<b>${agoraEscape(n.fromName || '')}</b> უარი თქვა გამოწვევაზე`;
+    } else if (n.type === 'debate-turn') {
+      icon = '⚔';
+      text = n.message || 'შენი სვლაა დებატში';
+    } else if (n.type === 'debate-verdict') {
+      icon = '⚖';
+      text = n.message || 'AI კრიტიკოსმა შეაფასა დებატი';
     }
     return `<div class="notif-item ${readClass}" data-thread="${n.threadId || ''}">
       <span class="notif-icon">${icon}</span>
@@ -1579,7 +1743,6 @@ async function agoraDoSearch(query) {
 
     results.querySelectorAll('.agora-thread-item').forEach(el => {
       el.addEventListener('click', function() {
-        // search გავასუფთავოთ thread-ში გადასვლამდე
         const input = document.getElementById('agoraSearchInput');
         const clear = document.getElementById('agoraSearchClear');
         if (input) input.value = '';
@@ -1591,4 +1754,400 @@ async function agoraDoSearch(query) {
   } catch (e) {
     results.innerHTML = `<div class="agora-empty"><div class="agora-empty-text">❌ ${agoraEscape(e.message)}</div></div>`;
   }
+}
+
+
+// ============================================================
+// ⚔ DEBATE UI
+// ============================================================
+
+function _dbClearTimers() {
+  _debateTimerIds.forEach(id => clearInterval(id));
+  _debateTimerIds = [];
+}
+
+function _dbCountdown(elId, deadline) {
+  function tick() {
+    const el  = document.getElementById(elId);
+    if (!el) { clearInterval(tid); return; }
+    const rem = Math.max(0, deadline - Date.now());
+    const h   = Math.floor(rem / 3600000);
+    const m   = Math.floor((rem % 3600000) / 60000);
+    const s   = Math.floor((rem % 60000) / 1000);
+    el.textContent = [h, m, s].map(x => String(x).padStart(2, '0')).join(':');
+    el.style.color = rem < 3600000 ? '#f87171' : rem < 7200000 ? '#f59e0b' : 'var(--gold)';
+    if (rem <= 0) clearInterval(tid);
+  }
+  tick();
+  const tid = setInterval(tick, 1000);
+  _debateTimerIds.push(tid);
+}
+
+function _dbTimerRow(id, label) {
+  return `<span style="font-family:'Cinzel',serif;font-size:0.6rem;letter-spacing:1.5px;color:var(--text-dim);margin-right:8px;">${label}</span><span id="${id}" style="font-family:'Cinzel',serif;font-size:0.72rem;color:var(--gold);">--:--:--</span>`;
+}
+
+function _dbPhaseHdr(label, timerHtml) {
+  return `<div style="font-family:'Cinzel',serif;font-size:0.72rem;letter-spacing:3px;color:var(--gold);text-transform:uppercase;border-bottom:1px solid rgba(201,168,76,0.2);padding-bottom:10px;margin:24px 0 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+    <span>${label}</span>
+    ${timerHtml ? `<span style="display:flex;align-items:center;gap:4px;">${timerHtml}</span>` : ''}
+  </div>`;
+}
+
+function _dbTurnsHtml(turnsObj, authorUid, authorNick, oppNick) {
+  if (!turnsObj || !Object.keys(turnsObj).length)
+    return `<div style="color:var(--text-dim);font-size:0.88rem;font-style:italic;padding:10px 0;">ჯერ სვლა არ გაკეთებულა</div>`;
+  return Object.values(turnsObj)
+    .sort((a, b) => a.createdAt - b.createdAt)
+    .map(t => {
+      const isA = t.uid === authorUid;
+      return `<div style="margin-bottom:12px;padding:14px 18px;background:var(--surface);border:1px solid rgba(201,168,76,${isA?'0.22':'0.1'});border-left:3px solid ${isA?'var(--gold)':'var(--gold-dim)'};">
+        <div style="font-family:'Cinzel',serif;font-size:0.6rem;letter-spacing:1.5px;color:${isA?'var(--gold)':'var(--text-dim)'};margin-bottom:8px;">${agoraEscape(t.nickname||'?')}</div>
+        <div style="font-size:0.95rem;color:var(--text);line-height:1.75;white-space:pre-wrap;">${agoraEscape(t.body)}</div>
+      </div>`;
+    }).join('');
+}
+
+function _dbSubmitForm() {
+  return `<div style="margin-top:20px;border-top:1px solid rgba(201,168,76,0.15);padding-top:18px;">
+    <label style="font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:2px;color:var(--text-dim);display:block;margin-bottom:8px;text-transform:uppercase;">შენი სვლა</label>
+    <textarea id="dbTurnInput" rows="5" style="width:100%;background:var(--surface);border:1px solid rgba(201,168,76,0.25);color:var(--text);font-family:'EB Garamond',serif;font-size:0.98rem;padding:12px;resize:vertical;outline:none;line-height:1.7;" placeholder="არგუმენტი... (მინ. 5 სიმბოლო)"></textarea>
+    <div id="dbTurnError" style="color:#f87171;font-size:0.82rem;margin-top:6px;display:none;"></div>
+    <button id="dbSubmitTurnBtn" style="margin-top:10px;background:rgba(201,168,76,0.08);border:1px solid var(--gold);color:var(--gold);font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:2px;padding:10px 24px;cursor:pointer;text-transform:uppercase;width:100%;">სვლის გაკეთება →</button>
+  </div>`;
+}
+
+function _dbProgressBar(done, total, aName, aCount, oName, oCount) {
+  const pct = Math.round((done / total) * 100);
+  return `<div style="display:flex;justify-content:space-between;font-family:'Cinzel',serif;font-size:0.6rem;letter-spacing:1px;color:var(--text-dim);margin-bottom:6px;">
+    <span>${agoraEscape(aName)}: ${aCount}</span>
+    <span>${agoraEscape(oName)}: ${oCount}</span>
+  </div>
+  <div style="height:3px;background:rgba(201,168,76,0.1);margin-bottom:20px;"><div style="height:100%;background:var(--gold);width:${pct}%;transition:width 0.4s;"></div></div>`;
+}
+
+// ── Main router ──────────────────────────────────────────────
+function agoraRenderDebateView(thread, debate, container) {
+  _dbClearTimers();
+  const user  = agoraGetUser();
+  const uid   = user?.uid;
+  const phase = debate.phase;
+
+  let html = '';
+
+  if (phase === 'pending') {
+    if (uid === debate.opponentUid)   html = _dbInviteScreen(debate);
+    else if (uid === debate.authorUid) html = _dbPendingScreen(debate);
+    else html = `<div style="text-align:center;padding:32px;color:var(--text-dim);font-style:italic;">⚔️ ${agoraEscape(debate.authorNickname||'?')} ელოდება ${agoraEscape(debate.opponentNickname||'?')}-ის პასუხს...</div>`;
+  } else if (phase === 'cancelled') {
+    html = `<div style="text-align:center;padding:32px;color:var(--text-dim);">⚔️ გამოწვევა გაუქმდა.</div>`;
+  } else if (phase === 'opening') {
+    html = _dbOpeningView(debate, uid);
+  } else if (phase === 'cross-asking') {
+    html = _dbCrossAskView(debate, uid);
+  } else if (phase === 'cross-answering') {
+    html = _dbCrossAnswerView(debate, uid);
+  } else if (phase === 'final') {
+    html = _dbFinalView(debate, uid);
+  } else if (phase === 'verdict') {
+    html = _dbVerdictView(debate);
+  }
+
+  container.innerHTML = html;
+  _dbBindActions(container, thread, debate, uid);
+
+  // timers
+  if (phase === 'pending' && debate.inviteDeadline)
+    _dbCountdown('dbInviteTimer', debate.inviteDeadline);
+  if (['opening','cross-asking','cross-answering','final'].includes(phase)) {
+    if (debate.turnDeadline)  _dbCountdown('dbTurnTimer',  debate.turnDeadline);
+    if (debate.totalDeadline) _dbCountdown('dbTotalTimer', debate.totalDeadline);
+  }
+}
+
+// ── Invite screen ────────────────────────────────────────────
+function _dbInviteScreen(debate) {
+  return `
+    ${_dbPhaseHdr('⚔ გამოწვევა მოგივიდა', _dbTimerRow('dbInviteTimer','ᲕᲐᲓᲐ:'))}
+    <div style="background:var(--surface);border:1px solid rgba(201,168,76,0.2);padding:22px;text-align:center;margin-bottom:16px;">
+      <div style="font-family:'Cinzel',serif;font-size:0.82rem;color:var(--text);letter-spacing:2px;margin-bottom:6px;">${agoraEscape(debate.authorNickname||'?')}</div>
+      <div style="color:var(--text-dim);font-size:0.9rem;font-style:italic;">გიწვევს 1vs1 ფილოსოფიურ დებატში</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid rgba(201,168,76,0.12);padding:14px 18px;margin-bottom:18px;font-size:0.87rem;color:var(--text-dim);line-height:1.85;">
+      ① საწყისი ეტაპი — 5+5 სვლა &nbsp;·&nbsp; ② დაკითხვა — კი/არა/არ ვიცი &nbsp;·&nbsp; ③ საბოლოო — 10+10 სვლა &nbsp;·&nbsp; ⚖ AI კრიტიკოსი<br>
+      <span style="color:#f87171;font-size:0.82rem;">⚠ ყოველ სვლაზე 6 სთ. სვლის გამოტოვება = 7-დღიანი ბანი.</span>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button id="dbAcceptBtn" style="flex:1;background:rgba(201,168,76,0.08);border:1px solid var(--gold);color:var(--gold);font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:2px;padding:12px;cursor:pointer;text-transform:uppercase;">✓ მივიღო</button>
+      <button id="dbDeclineBtn" style="flex:1;background:rgba(224,85,85,0.07);border:1px solid rgba(224,85,85,0.4);color:#e05555;font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:2px;padding:12px;cursor:pointer;text-transform:uppercase;">✕ უარი</button>
+    </div>`;
+}
+
+// ── Pending screen ───────────────────────────────────────────
+function _dbPendingScreen(debate) {
+  return `
+    ${_dbPhaseHdr('⏳ პასუხს ელოდება', _dbTimerRow('dbInviteTimer','ᲕᲐᲓᲐ:'))}
+    <div style="text-align:center;color:var(--text-dim);font-size:0.92rem;margin-bottom:24px;font-style:italic;">
+      ${agoraEscape(debate.opponentNickname||'?')} ჯერ არ გამოხმაურებულა
+    </div>
+    <div style="text-align:center;">
+      <button id="dbCancelBtn" style="background:rgba(224,85,85,0.07);border:1px solid rgba(224,85,85,0.3);color:#e05555;font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:2px;padding:10px 24px;cursor:pointer;text-transform:uppercase;">✕ გამოწვევის გაუქმება</button>
+    </div>`;
+}
+
+// ── Opening phase ────────────────────────────────────────────
+function _dbOpeningView(debate, uid) {
+  const turns  = debate.opening || {};
+  const tArr   = Object.values(turns);
+  const aCount = tArr.filter(t=>t.uid===debate.authorUid).length;
+  const oCount = tArr.filter(t=>t.uid===debate.opponentUid).length;
+  const mine   = uid === debate.currentTurn;
+  const other  = uid === debate.authorUid ? debate.opponentNickname : debate.authorNickname;
+
+  return _dbPhaseHdr('① საწყისი ეტაპი',
+    _dbTimerRow('dbTurnTimer','სვლა:') + '&nbsp;&nbsp;' + _dbTimerRow('dbTotalTimer','სულ:'))
+    + _dbProgressBar(tArr.length, 10, debate.authorNickname||'?', `${aCount}/5`, debate.opponentNickname||'?', `${oCount}/5`)
+    + _dbTurnsHtml(turns, debate.authorUid, debate.authorNickname, debate.opponentNickname)
+    + (mine ? _dbSubmitForm()
+             : uid ? `<div style="text-align:center;padding:20px;color:var(--text-dim);font-style:italic;">⏳ ${agoraEscape(other||'?')}-ის სვლაა...</div>` : '');
+}
+
+// ── Cross-asking phase ───────────────────────────────────────
+function _dbCrossAskView(debate, uid) {
+  const isAsker = uid === debate.authorUid;
+  return _dbPhaseHdr('② დაკითხვა', _dbTimerRow('dbTurnTimer','ვადა:') + '&nbsp;&nbsp;' + _dbTimerRow('dbTotalTimer','სულ:'))
+    + (isAsker ? `
+      <div style="color:var(--text-dim);font-size:0.88rem;margin-bottom:16px;line-height:1.75;">
+        გამოაქვეყნე <strong style="color:var(--text)">5–20 კითხვა</strong>. ოპონენტი მხოლოდ
+        <strong style="color:#4ade80">კი</strong> / <strong style="color:#f87171">არა</strong> / <span style="color:var(--text-dim)">არ ვიცი</span>-ით პასუხობს.
+      </div>
+      <div id="dbCrossQList"></div>
+      <button id="dbAddQBtn" style="background:none;border:1px dashed rgba(201,168,76,0.3);color:var(--text-dim);font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:1.5px;padding:8px 14px;cursor:pointer;margin-bottom:12px;">+ კითხვის დამატება</button>
+      <div id="dbCrossError" style="color:#f87171;font-size:0.82rem;margin-bottom:8px;display:none;"></div>
+      <button id="dbSubmitQBtn" style="background:rgba(201,168,76,0.08);border:1px solid var(--gold);color:var(--gold);font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:2px;padding:10px 24px;cursor:pointer;text-transform:uppercase;width:100%;">კითხვების გამოქვეყნება (მინ. 5)</button>`
+    : `<div style="text-align:center;padding:24px;color:var(--text-dim);font-style:italic;">⏳ ოპონენტი კითხვებს ამზადებს...</div>`);
+}
+
+// ── Cross-answering phase ────────────────────────────────────
+function _dbCrossAnswerView(debate, uid) {
+  const isAns   = uid === debate.opponentUid;
+  const questions = debate.cross?.questions || {};
+  const answers   = debate.cross?.answers   || {};
+  const qArr      = Object.entries(questions).sort(([a],[b]) => a-b);
+
+  let html = _dbPhaseHdr('② დაკითხვა — პასუხი', _dbTimerRow('dbTurnTimer','ვადა:') + '&nbsp;&nbsp;' + _dbTimerRow('dbTotalTimer','სულ:'));
+  html += `<div style="font-family:'Cinzel',serif;font-size:0.6rem;letter-spacing:1px;color:var(--text-dim);margin-bottom:14px;">${Object.keys(answers).length} / ${qArr.length} პასუხი</div>`;
+
+  qArr.forEach(([idx, q]) => {
+    const ans = answers[idx];
+    const done = ans !== undefined;
+    const aLabel = done ? (ans.answer==='yes'?'✓ კი':ans.answer==='no'?'✗ არა':'— არ ვიცი') : '';
+    const aColor = done ? (ans.answer==='yes'?'#4ade80':ans.answer==='no'?'#f87171':'var(--text-dim)') : '';
+    html += `<div style="background:var(--surface);border:1px solid rgba(201,168,76,0.14);padding:14px 18px;margin-bottom:8px;">
+      <div style="font-size:0.92rem;color:var(--text);margin-bottom:10px;line-height:1.6;">${agoraEscape(q.body)}</div>
+      ${done
+        ? `<div style="font-family:'Cinzel',serif;font-size:0.7rem;letter-spacing:1.5px;color:${aColor};">${aLabel}</div>`
+        : isAns
+          ? `<div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="db-ans-btn" data-idx="${idx}" data-ans="yes" style="background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.35);color:#4ade80;font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:1.5px;padding:6px 14px;cursor:pointer;">✓ კი</button>
+              <button class="db-ans-btn" data-idx="${idx}" data-ans="no"  style="background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.35);color:#f87171;font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:1.5px;padding:6px 14px;cursor:pointer;">✗ არა</button>
+              <button class="db-ans-btn" data-idx="${idx}" data-ans="idk" style="background:none;border:1px solid rgba(201,168,76,0.2);color:var(--text-dim);font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:1.5px;padding:6px 14px;cursor:pointer;">— არ ვიცი</button>
+            </div>`
+          : `<div style="color:var(--text-dim);font-size:0.8rem;font-style:italic;">პასუხი ჯერ არ არის</div>`
+      }
+    </div>`;
+  });
+  return html;
+}
+
+// ── Final phase ──────────────────────────────────────────────
+function _dbFinalView(debate, uid) {
+  const turns  = debate.final || {};
+  const tArr   = Object.values(turns);
+  const aCount = tArr.filter(t=>t.uid===debate.authorUid).length;
+  const oCount = tArr.filter(t=>t.uid===debate.opponentUid).length;
+  const mine   = uid === debate.currentTurn;
+  const other  = uid === debate.authorUid ? debate.opponentNickname : debate.authorNickname;
+
+  return _dbPhaseHdr('③ საბოლოო პაექრობა',
+    _dbTimerRow('dbTurnTimer','სვლა:') + '&nbsp;&nbsp;' + _dbTimerRow('dbTotalTimer','სულ:'))
+    + _dbProgressBar(tArr.length, 20, debate.authorNickname||'?', `${aCount}/10`, debate.opponentNickname||'?', `${oCount}/10`)
+    + _dbTurnsHtml(turns, debate.authorUid, debate.authorNickname, debate.opponentNickname)
+    + (mine ? _dbSubmitForm()
+             : uid ? `<div style="text-align:center;padding:20px;color:var(--text-dim);font-style:italic;">⏳ ${agoraEscape(other||'?')}-ის სვლაა...</div>` : '');
+}
+
+// ── Verdict screen ───────────────────────────────────────────
+function _dbVerdictView(debate) {
+  const v = debate.verdict;
+  if (!v) return `<div style="text-align:center;padding:32px;color:var(--text-dim);">AI კრიტიკოსი ვერდიქტს ამზადებს...</div>`;
+
+  function bar(n) {
+    return `<div style="height:3px;background:rgba(201,168,76,0.1);margin-top:3px;"><div style="height:100%;background:var(--gold);width:${Math.round((n/10)*100)}%;"></div></div>`;
+  }
+  function scoreBlock(nick) {
+    const s = (v.scores||{})[nick] || {};
+    return `<div style="background:var(--surface);border:1px solid rgba(201,168,76,0.14);padding:14px;">
+      <div style="font-family:'Cinzel',serif;font-size:0.6rem;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:10px;">${agoraEscape(nick)}</div>
+      <div style="font-size:0.82rem;color:var(--text-dim);margin-bottom:4px;">ლოგიკა: <span style="color:var(--gold)">${s.logic_score||0}/10</span> ${bar(s.logic_score||0)}</div>
+      <div style="font-size:0.82rem;color:var(--text-dim);margin-bottom:4px;">დაკითხვა: <span style="color:var(--gold)">${s.cross_score||0}/10</span> ${bar(s.cross_score||0)}</div>
+      <div style="font-size:0.82rem;color:var(--text-dim);">გამ. პუნქტი: <span style="color:var(--gold)">${s.ignored_points||0}/10</span> ${bar(s.ignored_points||0)}</div>
+    </div>`;
+  }
+
+  const aN = debate.authorNickname || '?';
+  const oN = debate.opponentNickname || '?';
+
+  return _dbPhaseHdr('⚖ AI კრიტიკოსი — ვერდიქტი', '')
+    + (v.analysis ? `<div style="background:var(--surface);border:1px solid rgba(201,168,76,0.14);padding:18px;margin-bottom:16px;font-size:0.92rem;color:var(--text-dim);line-height:1.8;font-style:italic;">${agoraEscape(v.analysis)}</div>` : '')
+    + `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">${scoreBlock(aN)}${scoreBlock(oN)}</div>`
+    + `<div style="background:rgba(201,168,76,0.05);border:2px solid var(--gold);padding:22px;text-align:center;margin-bottom:12px;">
+        <div style="font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:3px;color:var(--text-dim);margin-bottom:10px;text-transform:uppercase;">გამარჯვებული</div>
+        <div style="font-family:'Cinzel',serif;font-size:1.05rem;letter-spacing:2px;color:var(--gold);">${agoraEscape(v.winnerNickname||'?')}</div>
+        ${v.reason ? `<div style="margin-top:10px;font-size:0.88rem;color:var(--text-dim);line-height:1.7;font-style:italic;">${agoraEscape(v.reason)}</div>` : ''}
+        ${v.forfeitUid ? `<div style="margin-top:8px;font-size:0.8rem;color:#f87171;">⚠ სვლის გამოტოვების გამო</div>` : ''}
+      </div>`;
+}
+
+// ── Action binder ────────────────────────────────────────────
+function _dbBindActions(container, thread, debate, uid) {
+  const tid = thread.id;
+
+  const acceptBtn = container.querySelector('#dbAcceptBtn');
+  if (acceptBtn) acceptBtn.addEventListener('click', () => _dbAccept(tid, acceptBtn));
+
+  const declineBtn = container.querySelector('#dbDeclineBtn');
+  if (declineBtn) declineBtn.addEventListener('click', () => {
+    showConfirmToast('გამოწვევაზე უარს დადასტურება სჭირდება.', () => _dbDecline(tid, declineBtn));
+  });
+
+  const cancelBtn = container.querySelector('#dbCancelBtn');
+  if (cancelBtn) cancelBtn.addEventListener('click', () => {
+    showConfirmToast('გამოწვევა გაუქმდება.', () => _dbCancel(tid, cancelBtn));
+  });
+
+  const submitTurnBtn = container.querySelector('#dbSubmitTurnBtn');
+  if (submitTurnBtn) submitTurnBtn.addEventListener('click', () => _dbSubmitTurn(tid, submitTurnBtn));
+
+  const addQBtn = container.querySelector('#dbAddQBtn');
+  if (addQBtn) _dbInitQForm(container, tid);
+
+  container.querySelectorAll('.db-ans-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      _dbSubmitAnswer(tid, parseInt(this.dataset.idx), this.dataset.ans, this);
+    });
+  });
+}
+
+// Cross question form
+function _dbInitQForm(container, tid) {
+  const qList  = container.querySelector('#dbCrossQList');
+  const addBtn = container.querySelector('#dbAddQBtn');
+  const subBtn = container.querySelector('#dbSubmitQBtn');
+  if (!qList || !addBtn || !subBtn) return;
+  let qCount = 0;
+
+  function addQ() {
+    if (qCount >= 20) return;
+    qCount++;
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex;gap:8px;margin-bottom:8px;';
+    div.innerHTML = `
+      <textarea class="db-q-input" rows="2" style="flex:1;background:var(--surface);border:1px solid rgba(201,168,76,0.22);color:var(--text);font-family:'EB Garamond',serif;font-size:0.92rem;padding:8px;resize:vertical;outline:none;" placeholder="კითხვა ${qCount}..."></textarea>
+      <button class="db-rm-q" style="background:none;border:1px solid rgba(224,85,85,0.3);color:#e05555;font-size:0.8rem;padding:5px 8px;cursor:pointer;flex-shrink:0;align-self:flex-start;margin-top:2px;">✕</button>`;
+    div.querySelector('.db-rm-q').addEventListener('click', () => { div.remove(); qCount--; });
+    qList.appendChild(div);
+  }
+
+  addQ();
+  addBtn.addEventListener('click', addQ);
+  subBtn.addEventListener('click', () => _dbSubmitQuestions(container, tid, subBtn));
+}
+
+// ── Submit actions ───────────────────────────────────────────
+async function _dbAccept(tid, btn) {
+  btn.disabled = true; btn.textContent = '...';
+  try {
+    const tok = await agoraGetValidToken();
+    const { ok, data } = await agoraFetch({ action:'accept-debate', threadId:tid, userToken:tok });
+    if (ok) { showToast('⚔️ დებატი დაიწყო!', 'success'); setTimeout(()=>agoraOpenThread(tid), 800); }
+    else { showToast(data.error||'შეცდომა','error'); btn.disabled=false; btn.textContent='✓ მივიღო'; }
+  } catch { showToast('📡 კავშირის შეცდომა','error'); btn.disabled=false; btn.textContent='✓ მივიღო'; }
+}
+
+async function _dbDecline(tid, btn) {
+  btn.disabled = true;
+  try {
+    const tok = await agoraGetValidToken();
+    const { ok, data } = await agoraFetch({ action:'decline-debate', threadId:tid, userToken:tok });
+    if (ok) { showToast('გამოწვევაზე უარი თქვი.','info'); agoraShowList(_agoraListPage); }
+    else { showToast(data.error||'შეცდომა','error'); btn.disabled=false; }
+  } catch { showToast('📡 კავშირის შეცდომა','error'); btn.disabled=false; }
+}
+
+async function _dbCancel(tid, btn) {
+  btn.disabled = true;
+  try {
+    const tok = await agoraGetValidToken();
+    const { ok, data } = await agoraFetch({ action:'cancel-debate', threadId:tid, userToken:tok });
+    if (ok) { showToast('გამოწვევა გაუქმდა.','info'); agoraShowList(_agoraListPage); }
+    else { showToast(data.error||'შეცდომა','error'); btn.disabled=false; }
+  } catch { showToast('📡 კავშირის შეცდომა','error'); btn.disabled=false; }
+}
+
+async function _dbSubmitTurn(tid, btn) {
+  const ta   = document.getElementById('dbTurnInput');
+  const errEl = document.getElementById('dbTurnError');
+  if (!ta) return;
+  const body = ta.value.trim();
+  if (errEl) errEl.style.display = 'none';
+  if (!body || body.length < 5) {
+    if (errEl) { errEl.textContent='მინ. 5 სიმბოლო'; errEl.style.display='block'; }
+    return;
+  }
+  btn.disabled=true; btn.textContent='იგზავნება...';
+  try {
+    const tok  = await agoraGetValidToken();
+    const user = agoraGetUser();
+    const authorName = user?.nickname || localStorage.getItem('userNickname') || 'მომხმარებელი';
+    const { ok, data } = await agoraFetch({ action:'submit-turn', threadId:tid, turnBody:body, userToken:tok, authorName });
+    if (ok) { showToast('✅ სვლა გაკეთდა!','success'); setTimeout(()=>agoraOpenThread(tid), 600); }
+    else { showToast(data.error||'შეცდომა','error'); btn.disabled=false; btn.textContent='სვლის გაკეთება →'; }
+  } catch { showToast('📡 კავშირის შეცდომა','error'); btn.disabled=false; btn.textContent='სვლის გაკეთება →'; }
+}
+
+async function _dbSubmitQuestions(container, tid, btn) {
+  const inputs = container.querySelectorAll('.db-q-input');
+  const errEl  = container.querySelector('#dbCrossError');
+  if (errEl) errEl.style.display = 'none';
+  const questions = Array.from(inputs).map(i=>i.value.trim()).filter(Boolean);
+  if (questions.length < 5) {
+    if (errEl) { errEl.textContent='მინ. 5 კითხვა'; errEl.style.display='block'; }
+    return;
+  }
+  btn.disabled=true; btn.textContent='იგზავნება...';
+  try {
+    const tok = await agoraGetValidToken();
+    const { ok, data } = await agoraFetch({ action:'submit-cross-questions', threadId:tid, questions, userToken:tok });
+    if (ok) { showToast('✅ კითხვები გამოქვეყნდა!','success'); setTimeout(()=>agoraOpenThread(tid), 600); }
+    else { showToast(data.error||'შეცდომა','error'); btn.disabled=false; btn.textContent='კითხვების გამოქვეყნება (მინ. 5)'; }
+  } catch { showToast('📡 კავშირის შეცდომა','error'); btn.disabled=false; btn.textContent='კითხვების გამოქვეყნება (მინ. 5)'; }
+}
+
+async function _dbSubmitAnswer(tid, qIdx, answer, btn) {
+  btn.disabled = true;
+  try {
+    const tok = await agoraGetValidToken();
+    const { ok, data } = await agoraFetch({ action:'submit-cross-answer', threadId:tid, questionIdx:qIdx, answer, userToken:tok });
+    if (ok) {
+      const aLabel = answer==='yes'?'✓ კი':answer==='no'?'✗ არა':'— არ ვიცი';
+      const aColor = answer==='yes'?'#4ade80':answer==='no'?'#f87171':'var(--text-dim)';
+      const btnRow = btn.parentElement;
+      if (btnRow) btnRow.outerHTML = `<div style="font-family:'Cinzel',serif;font-size:0.7rem;letter-spacing:1.5px;color:${aColor};">${aLabel}</div>`;
+      if (data.allAnswered) {
+        showToast('✅ ყველა პასუხი გაცემულია! საბოლოო პაექრობა იწყება.','success');
+        setTimeout(()=>agoraOpenThread(tid), 1000);
+      }
+    } else { showToast(data.error||'შეცდომა','error'); btn.disabled=false; }
+  } catch { showToast('📡 კავშირის შეცდომა','error'); btn.disabled=false; }
 }
