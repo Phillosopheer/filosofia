@@ -343,7 +343,18 @@ async function agoraOpenThread(threadId) {
         repliesEl.innerHTML = '';
         paginEl.innerHTML   = '';
         if (replyFEl) replyFEl.innerHTML = '';
-        agoraRenderDebateView(data.thread, debRes.data.debate, repliesEl);
+        const debate = debRes.data.debate;
+        // fetch both players' photos from Firebase
+        const photoMap = {};
+        try {
+          const [aRes, oRes] = await Promise.all([
+            fbFetch(`${FIREBASE_DB}/users/${debate.authorUid}/photoURL.json`),
+            fbFetch(`${FIREBASE_DB}/users/${debate.opponentUid}/photoURL.json`)
+          ]);
+          if (aRes.ok) { const p = await aRes.json(); if (p) photoMap[debate.authorUid] = p; }
+          if (oRes.ok) { const p = await oRes.json(); if (p) photoMap[debate.opponentUid] = p; }
+        } catch(e) { /* ფოტო ვერ ჩაიტვირთა — initials გამოჩნდება */ }
+        agoraRenderDebateView(data.thread, debate, repliesEl, photoMap);
       } else {
         repliesEl.innerHTML = `<div class="agora-empty"><div class="agora-empty-text">⚔️ დებატის მონაცემი ვერ ჩაიტვირთა</div></div>`;
       }
@@ -1794,16 +1805,18 @@ function _dbPhaseHdr(label, timerHtml) {
   </div>`;
 }
 
-function _dbTurnsHtml(turnsObj, authorUid, authorNick, oppNick, myUid, myPhoto) {
+function _dbTurnsHtml(turnsObj, authorUid, authorNick, oppNick, photoMap) {
+  photoMap = photoMap || {};
   if (!turnsObj || !Object.keys(turnsObj).length)
-    return `<div class="db-empty-turns">ჯერ სვლა არ გაკეთებულა</div>`;
+    return `<div class="db-empty-turns">ჯერ პასუხი არ გაცემულა</div>`;
   const entries = Object.values(turnsObj).sort((a, b) => a.createdAt - b.createdAt);
   return entries.map((t, idx) => {
     const isA     = t.uid === authorUid;
     const nick    = agoraEscape(t.nickname || '?');
     const initial = (t.nickname || '?')[0].toUpperCase();
-    const avatarHtml = (t.uid === myUid && myPhoto)
-      ? `<img class="agora-author-avatar" src="${agoraEscape(myPhoto)}" alt="">`
+    const photo   = photoMap[t.uid] || null;
+    const avatarHtml = photo
+      ? `<img class="agora-author-avatar" src="${agoraEscape(photo)}" alt="">`
       : `<div class="agora-author-avatar agora-author-avatar-placeholder">${initial}</div>`;
     return `<div class="db-turn-card ${isA ? 'db-turn-author' : ''}">
       <div class="db-turn-meta">
@@ -1818,23 +1831,19 @@ function _dbTurnsHtml(turnsObj, authorUid, authorNick, oppNick, myUid, myPhoto) 
 
 function _dbSubmitForm() {
   return `<div class="db-submit-wrap">
-    <label class="db-label">შენი სვლა</label>
+    <label class="db-label">შენი ჯერია</label>
 
     <div style="display:flex;gap:8px;margin-bottom:14px;">
       <button id="dbAgreeBtn" class="db-btn db-btn-gold" style="flex:1;font-size:0.6rem;padding:10px 8px;">✓ გეთანხმები</button>
       <button id="dbNoAnswerBtn" class="db-btn" style="flex:1;font-size:0.6rem;padding:10px 8px;background:none;border:1px solid rgba(201,168,76,0.2);color:var(--text-dim);">— პასუხი არ მაქვს</button>
     </div>
 
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-      <div style="flex:1;height:1px;background:rgba(201,168,76,0.12);"></div>
-      <span style="font-family:'Cinzel',serif;font-size:0.55rem;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;white-space:nowrap;">ან პასუხი გაეცი</span>
-      <div style="flex:1;height:1px;background:rgba(201,168,76,0.12);"></div>
-    </div>
+    <div style="height:1px;background:rgba(201,168,76,0.12);margin-bottom:12px;"></div>
 
     <textarea id="dbTurnInput" class="db-textarea" rows="6" placeholder="არგუმენტი... (მინ. 200 სიმბოლო)"></textarea>
     <div id="dbTurnCounter" style="font-family:'Cinzel',serif;font-size:0.6rem;color:var(--text-dim);text-align:right;margin-top:4px;letter-spacing:1px;">0 / 200</div>
     <div id="dbTurnError" class="db-error"></div>
-    <button id="dbSubmitTurnBtn" class="db-btn db-btn-gold db-btn-full" style="margin-top:10px;">სვლის გაკეთება →</button>
+    <button id="dbSubmitTurnBtn" class="db-btn db-btn-gold db-btn-full" style="margin-top:10px;">პასუხი →</button>
   </div>`;
 }
 
@@ -1867,8 +1876,9 @@ function _dbProgressBar(done, total, aName, aCountRaw, oName, oCountRaw) {
 }
 
 // ── Main router ──────────────────────────────────────────────
-function agoraRenderDebateView(thread, debate, container) {
+function agoraRenderDebateView(thread, debate, container, photoMap) {
   _dbClearTimers();
+  photoMap = photoMap || {};
   const user  = agoraGetUser();
   const uid   = user?.uid;
   const phase = debate.phase;
@@ -1882,13 +1892,13 @@ function agoraRenderDebateView(thread, debate, container) {
   } else if (phase === 'cancelled') {
     html = `<div style="text-align:center;padding:32px;color:var(--text-dim);">⚔️ გამოწვევა გაუქმდა.</div>`;
   } else if (phase === 'opening') {
-    html = _dbOpeningView(debate, uid);
+    html = _dbOpeningView(debate, uid, photoMap);
   } else if (phase === 'cross-asking') {
     html = _dbCrossAskView(debate, uid);
   } else if (phase === 'cross-answering') {
     html = _dbCrossAnswerView(debate, uid);
   } else if (phase === 'final') {
-    html = _dbFinalView(debate, uid);
+    html = _dbFinalView(debate, uid, photoMap);
   } else if (phase === 'verdict') {
     html = _dbVerdictView(debate);
   }
@@ -1934,21 +1944,20 @@ function _dbPendingScreen(debate) {
 }
 
 // ── Opening phase ────────────────────────────────────────────
-function _dbOpeningView(debate, uid) {
+function _dbOpeningView(debate, uid, photoMap) {
   const turns  = debate.opening || {};
   const tArr   = Object.values(turns);
   const aCount = tArr.filter(t=>t.uid===debate.authorUid).length;
   const oCount = tArr.filter(t=>t.uid===debate.opponentUid).length;
   const mine   = uid === debate.currentTurn;
   const other  = uid === debate.authorUid ? debate.opponentNickname : debate.authorNickname;
-  const myPhoto = agoraGetUser()?.photoURL || null;
 
   return _dbPhaseHdr('① საწყისი ეტაპი',
     _dbTimerRow('dbTurnTimer','სვლა:') + '&nbsp;&nbsp;' + _dbTimerRow('dbTotalTimer','სულ:'))
     + _dbProgressBar(tArr.length, 10, debate.authorNickname||'?', `${aCount}/5`, debate.opponentNickname||'?', `${oCount}/5`)
-    + _dbTurnsHtml(turns, debate.authorUid, debate.authorNickname, debate.opponentNickname, uid, myPhoto)
+    + _dbTurnsHtml(turns, debate.authorUid, debate.authorNickname, debate.opponentNickname, photoMap)
     + (mine ? _dbSubmitForm()
-             : uid ? `<div class="db-waiting">⏳ ${agoraEscape(other||'?')}-ის სვლაა...</div>` : '');
+             : uid ? `<div class="db-waiting">⏳ ${agoraEscape(other||'?')}-ის ჯერია...</div>` : '');
 }
 
 // ── Cross-asking phase ───────────────────────────────────────
@@ -2000,21 +2009,20 @@ function _dbCrossAnswerView(debate, uid) {
 }
 
 // ── Final phase ──────────────────────────────────────────────
-function _dbFinalView(debate, uid) {
+function _dbFinalView(debate, uid, photoMap) {
   const turns  = debate.final || {};
   const tArr   = Object.values(turns);
   const aCount = tArr.filter(t=>t.uid===debate.authorUid).length;
   const oCount = tArr.filter(t=>t.uid===debate.opponentUid).length;
   const mine   = uid === debate.currentTurn;
   const other  = uid === debate.authorUid ? debate.opponentNickname : debate.authorNickname;
-  const myPhoto = agoraGetUser()?.photoURL || null;
 
   return _dbPhaseHdr('③ საბოლოო პაექრობა',
     _dbTimerRow('dbTurnTimer','სვლა:') + '&nbsp;&nbsp;' + _dbTimerRow('dbTotalTimer','სულ:'))
     + _dbProgressBar(tArr.length, 20, debate.authorNickname||'?', `${aCount}/10`, debate.opponentNickname||'?', `${oCount}/10`)
-    + _dbTurnsHtml(turns, debate.authorUid, debate.authorNickname, debate.opponentNickname, uid, myPhoto)
+    + _dbTurnsHtml(turns, debate.authorUid, debate.authorNickname, debate.opponentNickname, photoMap)
     + (mine ? _dbSubmitForm()
-             : uid ? `<div class="db-waiting">⏳ ${agoraEscape(other||'?')}-ის სვლაა...</div>` : '');
+             : uid ? `<div class="db-waiting">⏳ ${agoraEscape(other||'?')}-ის ჯერია...</div>` : '');
 }
 
 // ── Verdict screen ───────────────────────────────────────────
