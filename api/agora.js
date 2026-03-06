@@ -1456,8 +1456,8 @@ export default async function handler(req, res) {
     if (!threadId) return res.status(400).json({ error: "threadId სავალდებულოა" });
     if (!turnBody || turnBody.trim().length < 5)
       return res.status(400).json({ error: "სვლა მინ. 5 სიმბოლო" });
-    if (turnBody.trim().length > 2000)
-      return res.status(400).json({ error: "სვლა მაქს. 2000 სიმბოლო" });
+    if (turnBody.trim().length > 40000)
+      return res.status(400).json({ error: "სვლა მაქს. 40000 სიმბოლო" });
     if (containsEmoji(turnBody))
       return res.status(400).json({ error: "emoji-ები აკრძალულია" });
 
