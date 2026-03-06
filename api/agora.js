@@ -442,30 +442,35 @@ async function judgeDebate(debate, threadId, forfeitUid = null) {
       ? `\n⚠️ შენიშვნა: ${forfeitUid===debate.authorUid ? authorName : opponentName}-მა სვლა ვადაში ვერ გააკეთა (ჩავარდნა).`
       : "";
 
-    const prompt = `შენ ხარ მიუმხრობელი, ობიექტური ფილოსოფიური დებატის AI მსაჯი. გაანალიზე ქვემოთ მოცემული 1vs1 სადებატო სესია სრული სიზუსტით.
+    const prompt = `შენ ხარ მიუმხრობელი, ობიექტური ფილოსოფიური დებატის AI მსაჯი. შეაფასე ქვემოთ მოცემული 1vs1 ფილოსოფიური სადებატო სესია სრული სიზუსტით.
 
-⚠️ ᲛᲘᲣᲛᲮᲠᲝᲑᲚᲝᲑᲘᲡ ᲬᲔᲡᲘ: შენ არ იცი მონაწილეების ვინაობა, არ გაქვს პრეფერენცია. შეაფასე მხოლოდ არგუმენტების ხარისხი, ლოგიკა და სიმყარე. თუ ორივე მხარე თანაბრად ძლიერი ან სუსტია — გამოაცხადე ფრე.
+═══ ᲫᲘᲠᲘᲗᲐᲓᲘ ᲬᲔᲡᲔᲑᲘ ═══
 
-მონაწილეები:
+① ᲛᲘᲣᲛᲮᲠᲝᲑᲚᲝᲑᲐ: შენ არ ანიჭებ უპირატესობას არც ერთ მხარეს. შეაფასე მხოლოდ არგუმენტების შინაარსი, ლოგიკა და მტკიცებულებები — ნიკნეიმი, სტილი ან სხვა ფაქტორი გავლენას არ ახდენს.
+
+② ᲥᲐᲠᲗᲣᲚᲘ ᲔᲜᲐ: ყველა ველი — სრულყოფილ, სალიტერატურო ქართულად. დაუშვებელია: ინგლისური სიტყვები, ჟარგონი, ნახევრად ნათარგმნი გამოთქმები. "reason" და "analysis" ველები — ლამაზი, გამართული ქართული პროზა.
+
+③ ფრე-ს ᲙᲠᲘᲢᲔᲠᲘᲣᲛᲘ: თუ ორივე მხარის ჯამური ქულა 2 პუნქტის ფარგლებში ერთმანეთთან ახლოსაა — შედეგი ფრეა. მოგება ითვლება მხოლოდ მნიშვნელოვანი განსხვავებისას.
+
+═══ მონაწილეები ═══
 - ${authorName}
 - ${opponentName}
 ${forfeitNote}
 
+═══ სადებატო ჩანაწერი ═══
 ${transcript}
 
-შეაფასე სამი კრიტერიუმით (0-10):
-1. ignored_points — ვის არგუმენტები დარჩა უპასუხოდ (მაღალი = ცუდი)
-2. logic_score — ლოგიკის სიმყარე, თანმიმდევრულობა, მტკიცებულებები (მაღალი = კარგი)
-3. cross_score — დაკითხვის ეტაპის სტრატეგიული გამოყენება (მაღალი = კარგი)
+═══ შეფასების კრიტერიუმები (0–10) ═══
+1. ignored_points — ვის მნიშვნელოვანი არგუმენტები დარჩა უპასუხოდ (მაღალი = ცუდი შედეგი)
+2. logic_score — ლოგიკის სიმყარე, არგუმენტთა თანმიმდევრულობა და მტკიცებულებები (მაღალი = კარგი)
+3. cross_score — დაკითხვის ეტაპის სტრატეგიული ეფექტურობა (მაღალი = კარგი)
 
-გადაწყვეტილება:
-- მოგება: ერთი მხარე მნიშვნელოვნად ჯობია მეორეს
-- ფრე: სხვაობა მინიმალურია ან ორივე თანაბრად კარგია/სუსტია
+═══ გადაწყვეტილება ═══
+"win"  → ერთი მხარე მნიშვნელოვნად ჯობია (ჯამური ქულების სხვაობა > 2)
+"draw" → სხვაობა უმნიშვნელოა (≤ 2 პუნქტი) ან ორივე თანაბრად ძლიერია/სუსტია
 
-⚠️ ᲔᲜᲝᲑᲠᲘᲕᲘ ᲬᲔᲡᲘ: ყველა ველი — სრულყოფილ, სალიტერატურო ქართულად.
-
-უპასუხე მხოლოდ JSON:
-{"result":"win"|"draw","winner":"${authorName} ან ${opponentName} ან null","winner_uid":"UID ან null","reason":"2-3 წინადადება","analysis":"3-4 წინადადება","scores":{"${authorName}":{"ignored_points":0,"logic_score":0,"cross_score":0},"${opponentName}":{"ignored_points":0,"logic_score":0,"cross_score":0}}}`;
+უპასუხე მხოლოდ ვალიდური JSON ობიექტით, სხვა ტექსტის გარეშე:
+{"result":"win","winner":"${authorName}","winner_uid":"${debate.authorUid}","reason":"ქართული ტექსტი","analysis":"ქართული ტექსტი","scores":{"${authorName}":{"ignored_points":0,"logic_score":0,"cross_score":0},"${opponentName}":{"ignored_points":0,"logic_score":0,"cross_score":0}}}`;
 
     const text = await callGemini(prompt);
     if (!text) throw new Error("Gemini no response");
@@ -1705,6 +1710,29 @@ export default async function handler(req, res) {
     });
 
     return res.json({ ok: true, judging: false });
+  }
+
+
+  // ============================================================
+  // action: 'decline-end-debate' — ადრეული დასრულების უარყოფა
+  // ============================================================
+  if (action === "decline-end-debate") {
+    const { threadId } = body;
+    if (!threadId) return res.status(400).json({ error: "threadId სავალდებულოა" });
+    const debate = await fbGet(`/agora-debates/${threadId}`);
+    if (!debate) return res.status(404).json({ error: "დებატი ვერ მოიძებნა" });
+    if (user.uid !== debate.authorUid && user.uid !== debate.opponentUid)
+      return res.status(403).json({ error: "მხოლოდ მონაწილეებს შეუძლიათ" });
+    // წაშალე ყველა ხმა — reset
+    await fbPatch(`/agora-debates/${threadId}`, { endVotes: {} });
+    const otherUid = user.uid === debate.authorUid ? debate.opponentUid : debate.authorUid;
+    const declData = await fbGet(`/users/${user.uid}`);
+    const declNick = declData?.nickname || "მომხმარებელი";
+    await writeNotification(otherUid, {
+      type: "debate-turn", threadId,
+      message: `⚑ ${declNick}-მა ადრეული დასრულება უარყო — დებატი გრძელდება.`
+    });
+    return res.json({ ok: true });
   }
 
 
