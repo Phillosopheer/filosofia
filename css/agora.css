@@ -1481,6 +1481,103 @@
   display: none;
 }
 
+/* --- Mode Tabs (სტრუქტურირებული / თავისუფალი) --- */
+.db-mode-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 14px;
+  border: 1px solid rgba(201,168,76,0.2);
+}
+.db-mode-tab {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.58rem;
+  letter-spacing: 1.5px;
+  padding: 9px 8px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  text-transform: uppercase;
+}
+.db-mode-tab:first-child {
+  border-right: 1px solid rgba(201,168,76,0.2);
+}
+.db-mode-tab-active {
+  background: rgba(201,168,76,0.1);
+  color: var(--gold);
+}
+.db-mode-tab:hover:not(.db-mode-tab-active) {
+  background: rgba(201,168,76,0.05);
+  color: var(--text);
+}
+.db-struct-label {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.6rem;
+  letter-spacing: 1.5px;
+  color: var(--gold);
+  display: block;
+  margin-bottom: 7px;
+  text-transform: uppercase;
+}
+.db-arg-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+.db-arg-num {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.7rem;
+  color: var(--gold);
+  padding-top: 10px;
+  min-width: 18px;
+  text-align: right;
+}
+.db-arg-input {
+  flex: 1;
+}
+.db-struct-divider {
+  height: 1px;
+  background: rgba(201,168,76,0.1);
+  margin: 16px 0;
+}
+.db-struct-opt {
+  font-size: 0.55rem;
+  color: var(--text-dim);
+  opacity: 0.7;
+  letter-spacing: 0.5px;
+  text-transform: none;
+  font-family: 'EB Garamond', serif;
+  font-style: italic;
+}
+.db-struct-add-btn {
+  background: none !important;
+  border: 1px dashed rgba(201,168,76,0.3) !important;
+  color: var(--text-dim) !important;
+  font-size: 0.6rem;
+  letter-spacing: 1.5px;
+  padding: 7px 14px;
+}
+.db-struct-add-btn:hover {
+  border-color: rgba(201,168,76,0.6) !important;
+  color: var(--gold) !important;
+}
+.db-struct-remove-btn {
+  background: none !important;
+  border: 1px solid rgba(248,113,113,0.25) !important;
+  color: #f87171 !important;
+  font-size: 0.6rem;
+  letter-spacing: 1.5px;
+  padding: 7px 14px;
+}
+.db-struct-remove-btn:hover {
+  border-color: rgba(248,113,113,0.55) !important;
+}
+
 /* --- Cross Questions --- */
 .db-q-row {
   display: flex;
