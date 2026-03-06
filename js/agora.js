@@ -1957,46 +1957,54 @@ function _dbOpeningView(debate, uid, photoMap) {
 
 // ── Cross-asking phase ───────────────────────────────────────
 function _dbCrossAskView(debate, uid) {
-  const isAsker = uid === debate.authorUid;
-  return _dbPhaseHdr('② დაკითხვა', _dbTimerRow('dbTurnTimer','ვადა:') + '&nbsp;&nbsp;' + _dbTimerRow('dbTotalTimer','სულ:'))
+  const isAsker    = uid === debate.currentTurn;
+  const crossRound = debate.crossRound || 1;
+  const roundLabel = crossRound === 2 ? '② დაკითხვა — II' : '② დაკითხვა — I';
+  const askerNick  = debate.currentTurn === debate.authorUid
+    ? agoraEscape(debate.authorNickname||'?')
+    : agoraEscape(debate.opponentNickname||'?');
+  return _dbPhaseHdr(roundLabel, _dbTimerRow('dbTurnTimer','ვადა:') + '&nbsp;&nbsp;' + _dbTimerRow('dbTotalTimer','სულ:'))
     + (isAsker ? `
       <div style="color:var(--text-dim);font-size:0.88rem;margin-bottom:16px;line-height:1.75;font-family:'EB Garamond',serif;">
         გამოაქვეყნე <strong style="color:var(--text)">5–20 კითხვა</strong>. ოპონენტი მხოლოდ
-        <strong style="color:#4ade80">კი</strong> / <strong style="color:#f87171">არა</strong> / <span style="color:var(--text-dim)">არ ვიცი</span>-ით პასუხობს.
+        <strong style="color:var(--gold)">კი</strong> / <strong style="color:#f87171">არა</strong> / <span style="color:var(--text-dim)">არ ვიცი</span>-ით პასუხობს.
       </div>
       <div id="dbCrossQList"></div>
       <button id="dbAddQBtn" class="db-btn" style="background:none;border:1px dashed rgba(201,168,76,0.3);color:var(--text-dim);font-size:0.62rem;letter-spacing:1.5px;padding:8px 14px;margin-bottom:12px;">+ კითხვის დამატება</button>
       <div id="dbCrossError" class="db-error" style="margin-bottom:8px;"></div>
       <button id="dbSubmitQBtn" class="db-btn db-btn-gold db-btn-full">კითხვების გამოქვეყნება (მინ. 5)</button>`
-    : `<div class="db-waiting">⏳ ოპონენტი კითხვებს ამზადებს...</div>`);
+    : `<div class="db-waiting">⏳ ${askerNick} კითხვებს ამზადებს...</div>`);
 }
 
 // ── Cross-answering phase ────────────────────────────────────
 function _dbCrossAnswerView(debate, uid) {
-  const isAns   = uid === debate.opponentUid;
-  const questions = debate.cross?.questions || {};
-  const answers   = debate.cross?.answers   || {};
-  const qArr      = Object.entries(questions).sort(([a],[b]) => a-b);
+  const isAns      = uid === debate.currentTurn;
+  const crossRound = debate.crossRound || 1;
+  const crossKey   = crossRound === 2 ? 'cross2' : 'cross';
+  const roundLabel = crossRound === 2 ? '② დაკითხვა II — პასუხი' : '② დაკითხვა I — პასუხი';
+  const questions  = debate[crossKey]?.questions || {};
+  const answers    = debate[crossKey]?.answers   || {};
+  const qArr       = Object.entries(questions).sort(([a],[b]) => Number(a)-Number(b));
 
-  let html = _dbPhaseHdr('② დაკითხვა — პასუხი', _dbTimerRow('dbTurnTimer','ვადა:') + '&nbsp;&nbsp;' + _dbTimerRow('dbTotalTimer','სულ:'));
+  let html = _dbPhaseHdr(roundLabel, _dbTimerRow('dbTurnTimer','ვადა:') + '&nbsp;&nbsp;' + _dbTimerRow('dbTotalTimer','სულ:'));
   html += `<div style="font-family:'Cinzel',serif;font-size:0.6rem;letter-spacing:1px;color:var(--text-dim);margin-bottom:14px;">${Object.keys(answers).length} / ${qArr.length} პასუხი</div>`;
 
   qArr.forEach(([idx, q]) => {
     const ans = answers[idx];
     const done = ans !== undefined;
-    const aLabel = done ? (ans.answer==='yes'?'✓ კი':ans.answer==='no'?'✗ არა':'— არ ვიცი') : '';
-    const aColor = done ? (ans.answer==='yes'?'#4ade80':ans.answer==='no'?'#f87171':'var(--text-dim)') : '';
+    const aLabel = done ? (ans.answer==='yes'?'კი':ans.answer==='no'?'არა':'არ ვიცი') : '';
+    const aColor = done ? (ans.answer==='yes'?'var(--gold)':ans.answer==='no'?'#f87171':'var(--text-dim)') : '';
     html += `<div style="background:var(--surface);border:1px solid rgba(201,168,76,0.14);padding:14px 16px;margin-bottom:8px;">
       <div style="font-family:'EB Garamond',serif;font-size:0.95rem;color:var(--text);margin-bottom:10px;line-height:1.65;">${agoraEscape(q.body)}</div>
       ${done
         ? `<div style="font-family:'Cinzel',serif;font-size:0.7rem;letter-spacing:1.5px;color:${aColor};">${aLabel}</div>`
         : isAns
           ? `<div class="db-ans-row">
-              <button class="db-ans-btn db-ans-btn-yes" data-idx="${idx}" data-ans="yes">✓ კი</button>
-              <button class="db-ans-btn db-ans-btn-no"  data-idx="${idx}" data-ans="no">✗ არა</button>
-              <button class="db-ans-btn db-ans-btn-idk" data-idx="${idx}" data-ans="idk">— არ ვიცი</button>
+              <button class="db-ans-btn db-ans-btn-yes" data-idx="${idx}" data-ans="yes">კი</button>
+              <button class="db-ans-btn db-ans-btn-no"  data-idx="${idx}" data-ans="no">არა</button>
+              <button class="db-ans-btn db-ans-btn-idk" data-idx="${idx}" data-ans="idk">არ ვიცი</button>
             </div>`
-          : `<div style="color:var(--text-dim);font-size:0.8rem;font-style:italic;">პასუხი ჯერ არ არის</div>`
+          : `<div style="color:var(--text-dim);font-size:0.8rem;font-style:italic;">ელოდება პასუხს...</div>`
       }
     </div>`;
   });
