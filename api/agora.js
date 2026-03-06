@@ -684,7 +684,19 @@ export default async function handler(req, res) {
       if (!debate) return res.status(404).json({ error: "დებატი ვერ მოიძებნა" });
       const changed = await checkDebateTimeouts(debate, threadId, now);
       const fresh   = changed ? await fbGet(`/agora-debates/${threadId}`) : debate;
-      return res.json({ debate: { threadId, ...fresh } });
+
+      // ავატარების ჩატვირთვა სერვერ-სიდეზე (App Check bypass)
+      const photoMap = {};
+      try {
+        const [aUser, oUser] = await Promise.all([
+          fbGet(`/users/${fresh.authorUid}`),
+          fbGet(`/users/${fresh.opponentUid}`)
+        ]);
+        if (aUser?.photoURL) photoMap[fresh.authorUid]   = aUser.photoURL;
+        if (oUser?.photoURL) photoMap[fresh.opponentUid] = oUser.photoURL;
+      } catch (_) {}
+
+      return res.json({ debate: { threadId, ...fresh }, photoMap });
     } catch (e) {
       return res.status(500).json({ error: e.message });
     }
