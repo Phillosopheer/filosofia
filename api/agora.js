@@ -403,8 +403,10 @@ async function judgeDebate(debate, threadId, forfeitUid = null) {
   try {
     const opening = debate.opening ? Object.values(debate.opening).sort((a,b)=>a.createdAt-b.createdAt) : [];
     const finalT  = debate.final   ? Object.values(debate.final).sort((a,b)=>a.createdAt-b.createdAt) : [];
-    const crossQ  = debate.cross?.questions ? Object.values(debate.cross.questions).sort((a,b)=>a.createdAt-b.createdAt) : [];
-    const crossA  = debate.cross?.answers   ? Object.values(debate.cross.answers).sort((a,b)=>a.createdAt-b.createdAt) : [];
+    const crossQ  = debate.cross?.questions  ? Object.values(debate.cross.questions).sort((a,b)=>a.createdAt-b.createdAt)  : [];
+    const crossA  = debate.cross?.answers    ? Object.values(debate.cross.answers).sort((a,b)=>a.createdAt-b.createdAt)    : [];
+    const cross2Q = debate.cross2?.questions ? Object.values(debate.cross2.questions).sort((a,b)=>a.createdAt-b.createdAt) : [];
+    const cross2A = debate.cross2?.answers   ? Object.values(debate.cross2.answers).sort((a,b)=>a.createdAt-b.createdAt)   : [];
 
     const authorName   = debate.authorNickname   || "ავტორი";
     const opponentName = debate.opponentNickname || "ოპონენტი";
@@ -413,9 +415,20 @@ async function judgeDebate(debate, threadId, forfeitUid = null) {
     opening.forEach(t => { transcript += `[${t.nickname}]: ${t.body}\n\n`; });
 
     if (crossQ.length) {
-      transcript += `\n=== დაკითხვა ===\n`;
+      const r1AskerName = debate.cross?.askerUid === debate.authorUid ? authorName : opponentName;
+      const r1AnsName   = debate.cross?.askerUid === debate.authorUid ? opponentName : authorName;
+      transcript += `\n=== დაკითხვა I (${r1AskerName} კითხვებს სვამს, ${r1AnsName} პასუხობს) ===\n`;
       crossQ.forEach((q, i) => {
         const a = crossA[i];
+        transcript += `კითხვა: ${q.body}\nპასუხი: ${a ? (a.answer==="yes"?"კი":a.answer==="no"?"არა":"არ ვიცი") : "—"}\n\n`;
+      });
+    }
+    if (cross2Q.length) {
+      const r2AskerName = debate.cross2?.askerUid === debate.authorUid ? authorName : opponentName;
+      const r2AnsName   = debate.cross2?.askerUid === debate.authorUid ? opponentName : authorName;
+      transcript += `\n=== დაკითხვა II (${r2AskerName} კითხვებს სვამს, ${r2AnsName} პასუხობს) ===\n`;
+      cross2Q.forEach((q, i) => {
+        const a = cross2A[i];
         transcript += `კითხვა: ${q.body}\nპასუხი: ${a ? (a.answer==="yes"?"კი":a.answer==="no"?"არა":"არ ვიცი") : "—"}\n\n`;
       });
     }
@@ -1474,7 +1487,8 @@ export default async function handler(req, res) {
           phase:       "cross-asking",
           currentTurn: debate.authorUid,
           turnDeadline: now + TURN_TIMEOUT_MS,
-          debatePhase: "cross"
+          debatePhase: "cross",
+          crossRound:  1
         });
         await fbPatch(`/agora-threads/${threadId}`, { debatePhase: "cross" });
         await writeNotification(debate.authorUid, {
@@ -1525,22 +1539,27 @@ export default async function handler(req, res) {
       return res.status(403).json({ error: "⏰ ვადა ამოიწურა" });
     }
 
-    // კითხვები შევინახოთ
+    // კითხვები შევინახოთ (round 1 ან 2)
+    const crossRound  = debate.crossRound || 1;
+    const crossKey    = crossRound === 2 ? 'cross2' : 'cross';
+    // ამ სვლაზე currentTurn = asker; answerer = მეორე მხარე
+    const answererUid = user.uid === debate.authorUid ? debate.opponentUid : debate.authorUid;
+
     const qObj = {};
     questions.forEach((q, i) => {
       const text = String(q).trim();
       if (text.length > 0) qObj[i] = { body: text.substring(0, 500), createdAt: now };
     });
 
-    await fbPatch(`/agora-debates/${threadId}/cross`, { questions: qObj });
+    await fbPatch(`/agora-debates/${threadId}/${crossKey}`, { questions: qObj, askerUid: user.uid });
     await fbPatch(`/agora-debates/${threadId}`, {
       phase:       "cross-answering",
-      currentTurn: debate.opponentUid,
+      currentTurn: answererUid,
       turnDeadline: now + TURN_TIMEOUT_MS
     });
     await fbPatch(`/agora-threads/${threadId}`, { debatePhase: "cross" });
 
-    await writeNotification(debate.opponentUid, {
+    await writeNotification(answererUid, {
       type:    "debate-turn",
       threadId,
       message: `⚔️ კითხვები გამოქვეყნდა! უპასუხე ${questions.length} კითხვაზე.`
@@ -1564,42 +1583,72 @@ export default async function handler(req, res) {
     const debate = await fbGet(`/agora-debates/${threadId}`);
     if (!debate) return res.status(404).json({ error: "დებატი ვერ მოიძებნა" });
     if (debate.phase !== "cross-answering") return res.status(400).json({ error: "ეს ეტაპი არ არის cross-answering" });
-    if (debate.opponentUid !== user.uid) return res.status(403).json({ error: "მხოლოდ ოპონენტი პასუხობს" });
+    // answerer = currentTurn (set when questions were submitted)
+    if (debate.currentTurn !== user.uid) return res.status(403).json({ error: "ახლა შენი ჯერი არ არის" });
     if (now > debate.turnDeadline) {
       await banForMissedTurn(user.uid);
       await judgeDebate(debate, threadId, user.uid);
       return res.status(403).json({ error: "⏰ ვადა ამოიწურა" });
     }
 
-    const questions   = debate.cross?.questions || {};
-    const totalQ      = Object.keys(questions).length;
-    const answers     = debate.cross?.answers   || {};
+    const crossRound = debate.crossRound || 1;
+    const crossKey   = crossRound === 2 ? 'cross2' : 'cross';
+    const questions  = debate[crossKey]?.questions || {};
+    const totalQ     = Object.keys(questions).length;
+    const answers    = debate[crossKey]?.answers   || {};
 
     if (answers[questionIdx] !== undefined)
       return res.status(400).json({ error: "ეს კითხვა უკვე პასუხგაცემულია" });
     if (questions[questionIdx] === undefined)
       return res.status(400).json({ error: "კითხვა ვერ მოიძებნა" });
 
-    await fbPatch(`/agora-debates/${threadId}/cross/answers`, {
+    await fbPatch(`/agora-debates/${threadId}/${crossKey}/answers`, {
       [questionIdx]: { answer, createdAt: now }
     });
 
     const newAnswerCount = Object.keys(answers).length + 1;
 
     if (newAnswerCount >= totalQ) {
-      // ყველა კითხვა პასუხგაცემულია → final
-      await fbPatch(`/agora-debates/${threadId}`, {
-        phase:        "final",
-        currentTurn:  debate.authorUid,
-        turnDeadline: now + TURN_TIMEOUT_MS
-      });
-      await fbPatch(`/agora-threads/${threadId}`, { debatePhase: "final" });
-      await writeNotification(debate.authorUid, {
-        type:    "debate-turn",
-        threadId,
-        message: "⚔️ დაკითხვა დასრულდა! საბოლოო პაექრობა იწყება — შენი ჯერია."
-      });
-      return res.json({ ok: true, allAnswered: true, nextPhase: "final" });
+      if (crossRound === 1) {
+        // Round 1 დასრულდა → Round 2: ოპონენტი სვამს კითხვებს, ავტორი პასუხობს
+        const round2Asker = debate.opponentUid;
+        await fbPatch(`/agora-debates/${threadId}`, {
+          phase:       "cross-asking",
+          currentTurn: round2Asker,
+          turnDeadline: now + TURN_TIMEOUT_MS,
+          crossRound:  2
+        });
+        await writeNotification(round2Asker, {
+          type:    "debate-turn",
+          threadId,
+          message: "⚔️ პირველი დაკითხვა დასრულდა! ახლა შენი ჯერია — გამოაქვეყნე კითხვები."
+        });
+        await writeNotification(debate.authorUid, {
+          type:    "debate-turn",
+          threadId,
+          message: `⚔️ ${debate.opponentNickname||'ოპონენტი'} ახლა კითხვებს სვამს. ელოდე.`
+        });
+        return res.json({ ok: true, allAnswered: true, nextPhase: "cross-asking-2" });
+      } else {
+        // Round 2 დასრულდა → final
+        await fbPatch(`/agora-debates/${threadId}`, {
+          phase:        "final",
+          currentTurn:  debate.authorUid,
+          turnDeadline: now + TURN_TIMEOUT_MS
+        });
+        await fbPatch(`/agora-threads/${threadId}`, { debatePhase: "final" });
+        await writeNotification(debate.authorUid, {
+          type:    "debate-turn",
+          threadId,
+          message: "⚔️ დაკითხვა დასრულდა! საბოლოო პაექრობა იწყება — შენი ჯერია."
+        });
+        await writeNotification(debate.opponentUid, {
+          type:    "debate-turn",
+          threadId,
+          message: "⚔️ დაკითხვა დასრულდა! საბოლოო პაექრობა იწყება."
+        });
+        return res.json({ ok: true, allAnswered: true, nextPhase: "final" });
+      }
     } else {
       // კიდევ კითხვები რჩება
       await fbPatch(`/agora-debates/${threadId}`, { turnDeadline: now + TURN_TIMEOUT_MS });
