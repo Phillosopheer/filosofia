@@ -2841,6 +2841,29 @@ window.openUploader = function() {
 document.addEventListener('DOMContentLoaded', function() {
   upSyncBtn();
 
+  // Token eye toggle
+  var tokenEye = document.getElementById('upTokenEye');
+  if (tokenEye) tokenEye.addEventListener('click', function() {
+    var inp = document.getElementById('upToken');
+    if (!inp) return;
+    var show = inp.type === 'password';
+    inp.type = show ? 'text' : 'password';
+    tokenEye.textContent = show ? '🙈' : '👁';
+  });
+
+  // Custom styled checkbox for upSave
+  var upRememberLabel = document.getElementById('upRememberLabel');
+  if (upRememberLabel) upRememberLabel.addEventListener('click', function(e) {
+    e.preventDefault();
+    var cb = document.getElementById('upSave');
+    var tick = document.getElementById('upSaveTick');
+    var cbBox = document.getElementById('upSaveCb');
+    if (!cb) return;
+    cb.checked = !cb.checked;
+    if (tick) tick.style.transform = cb.checked ? 'scale(1)' : 'scale(0)';
+    if (cbBox) cbBox.style.borderColor = cb.checked ? 'rgba(201,168,76,0.6)' : 'rgba(201,168,76,0.3)';
+  });
+
   // ღილაკი — გახსნა
   var uploaderBtn = document.getElementById('uploaderBtn');
   if (uploaderBtn) uploaderBtn.addEventListener('click', window.openUploader);
