@@ -1847,19 +1847,23 @@ function _dbSubmitForm() {
   </div>`;
 }
 
-function _dbProgressBar(done, total, aName, aCountRaw, oName, oCountRaw) {
-  // e.g. aCountRaw = "1/5" → extract numbers
+function _dbProgressBar(done, total, aName, aCountRaw, oName, oCountRaw, aUid, oUid, photoMap) {
   const [aDone, aMax] = aCountRaw.split('/').map(Number);
   const [oDone, oMax] = oCountRaw.split('/').map(Number);
   const pct = Math.round((done / total) * 100);
+  photoMap = photoMap || {};
 
-  function playerCard(nick, doneCnt, maxCnt) {
+  function playerCard(nick, uid, doneCnt, maxCnt) {
     const initials = (nick||'?')[0].toUpperCase();
+    const photo    = photoMap[uid] || null;
+    const avatarEl = photo
+      ? `<img src="${agoraEscape(photo)}" alt="" style="width:26px;height:26px;border-radius:50%;object-fit:cover;flex-shrink:0;border:1px solid rgba(201,168,76,0.3);">`
+      : `<div style="width:26px;height:26px;border-radius:50%;background:var(--surface2);border:1px solid rgba(201,168,76,0.25);display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-size:0.65rem;color:var(--gold-dim);flex-shrink:0;">${initials}</div>`;
     const dots = Array.from({length: maxCnt}, (_, i) =>
       `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;margin:0 2px;background:${i < doneCnt ? 'var(--gold)' : 'rgba(201,168,76,0.15)'};"></span>`
     ).join('');
     return `<div style="display:flex;align-items:center;gap:8px;">
-      <div style="width:26px;height:26px;border-radius:50%;background:var(--surface2);border:1px solid rgba(201,168,76,0.25);display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-size:0.65rem;color:var(--gold-dim);flex-shrink:0;">${initials}</div>
+      ${avatarEl}
       <div>
         <div style="font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:1px;color:var(--text-dim);margin-bottom:4px;">${agoraEscape(nick)}</div>
         <div style="line-height:1;">${dots}</div>
@@ -1868,9 +1872,9 @@ function _dbProgressBar(done, total, aName, aCountRaw, oName, oCountRaw) {
   }
 
   return `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px;padding:12px 14px;background:var(--surface);border:1px solid rgba(201,168,76,0.1);">
-    ${playerCard(aName, aDone, aMax)}
+    ${playerCard(aName, aUid, aDone, aMax)}
     <div style="font-family:'Cinzel',serif;font-size:0.58rem;letter-spacing:1.5px;color:var(--gold-dim);text-transform:uppercase;flex-shrink:0;">vs</div>
-    ${playerCard(oName, oDone, oMax)}
+    ${playerCard(oName, oUid, oDone, oMax)}
   </div>
   <div style="height:2px;background:rgba(201,168,76,0.08);margin-bottom:18px;"><div style="height:100%;background:rgba(201,168,76,0.35);width:${pct}%;transition:width 0.5s;"></div></div>`;
 }
@@ -1954,7 +1958,7 @@ function _dbOpeningView(debate, uid, photoMap) {
 
   return _dbPhaseHdr('① საწყისი ეტაპი',
     _dbTimerRow('dbTurnTimer','სვლა:') + '&nbsp;&nbsp;' + _dbTimerRow('dbTotalTimer','სულ:'))
-    + _dbProgressBar(tArr.length, 10, debate.authorNickname||'?', `${aCount}/5`, debate.opponentNickname||'?', `${oCount}/5`)
+    + _dbProgressBar(tArr.length, 10, debate.authorNickname||'?', `${aCount}/5`, debate.opponentNickname||'?', `${oCount}/5`, debate.authorUid, debate.opponentUid, photoMap)
     + _dbTurnsHtml(turns, debate.authorUid, debate.authorNickname, debate.opponentNickname, photoMap)
     + (mine ? _dbSubmitForm()
              : uid ? `<div class="db-waiting">⏳ ${agoraEscape(other||'?')}-ის ჯერია...</div>` : '');
@@ -2019,7 +2023,7 @@ function _dbFinalView(debate, uid, photoMap) {
 
   return _dbPhaseHdr('③ საბოლოო პაექრობა',
     _dbTimerRow('dbTurnTimer','სვლა:') + '&nbsp;&nbsp;' + _dbTimerRow('dbTotalTimer','სულ:'))
-    + _dbProgressBar(tArr.length, 20, debate.authorNickname||'?', `${aCount}/10`, debate.opponentNickname||'?', `${oCount}/10`)
+    + _dbProgressBar(tArr.length, 20, debate.authorNickname||'?', `${aCount}/10`, debate.opponentNickname||'?', `${oCount}/10`, debate.authorUid, debate.opponentUid, photoMap)
     + _dbTurnsHtml(turns, debate.authorUid, debate.authorNickname, debate.opponentNickname, photoMap)
     + (mine ? _dbSubmitForm()
              : uid ? `<div class="db-waiting">⏳ ${agoraEscape(other||'?')}-ის ჯერია...</div>` : '');
