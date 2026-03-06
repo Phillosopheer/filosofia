@@ -29,10 +29,8 @@ async function doTotpVerify() {
       document.getElementById('logoutBtn').classList.add('active');
       document.body.classList.add('admin-mode');
       closeModal('totpModal');
-      updateFab();
-      updateHeaderButtons();
-      fetchPendingNotes();
       window._pendingAuthData = null;
+      setTimeout(() => { window.location.href = '/admin.html'; }, 300);
     } else {
       errEl.innerText = '❌ კოდი არასწორია! სცადე თავიდან.';
     }
