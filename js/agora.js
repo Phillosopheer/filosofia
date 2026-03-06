@@ -1921,7 +1921,7 @@ function _dbSubmitForm() {
     <label class="db-struct-label">VI. დასკვნა <span class="db-struct-opt">(არასავალდებულო)</span></label>
     <textarea id="dbStructConclusion" class="db-textarea" rows="2" placeholder="შეაჯამე შენი პოზიცია..."></textarea>
 
-    <div id="dbStructCounter" style="font-family:\'Cinzel\',serif;font-size:0.6rem;color:var(--text-dim);text-align:right;margin-top:12px;letter-spacing:1px;">0 / 200</div>
+    <div id="dbStructCounter" style="font-family:\'Cinzel\',serif;font-size:0.6rem;color:var(--text-dim);text-align:right;margin-top:12px;letter-spacing:1px;">0 სიმბოლო (მინ. 200)</div>
     <div id="dbTurnError" class="db-error"></div>
     <button id="dbSubmitTurnBtn" class="db-btn db-btn-gold db-btn-full" style="margin-top:12px;">პასუხი →</button>
   </div>`;
@@ -2296,7 +2296,9 @@ function _dbBindActions(container, thread, debate, uid) {
     const preview = _dbBuildStructBody();
     const structCounter = container.querySelector('#dbStructCounter');
     if (structCounter) {
-      structCounter.textContent = `${preview.length} / 200`;
+      structCounter.textContent = preview.length >= 200
+        ? `${preview.length.toLocaleString()} სიმბოლო`
+        : `${preview.length} სიმბოლო (მინ. 200)`;
       structCounter.style.color = preview.length >= 200 ? 'var(--gold)' : 'var(--text-dim)';
     }
   }
