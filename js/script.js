@@ -1792,52 +1792,81 @@ function showToast(msg, type) {
 function showConfirmToast(msg, onConfirm) {
   const existing = document.getElementById('__confirm__');
   if (existing) existing.remove();
-
-  const style = document.createElement('style');
-  style.id = '__confirm_style__';
   const existingStyle = document.getElementById('__confirm_style__');
   if (existingStyle) existingStyle.remove();
-  style.textContent = `
-    @keyframes __fadeIn__ { from { opacity:0; } to { opacity:1; } }
-    @keyframes __slideUp__ { from { opacity:0; transform:translateY(24px) scale(0.97); } to { opacity:1; transform:translateY(0) scale(1); } }
-    #__confirm__ { animation: __fadeIn__ 0.25s ease; }
-    #__confirm_box__ { animation: __slideUp__ 0.3s cubic-bezier(0.16,1,0.3,1); }
-    #__confirm_yes__:hover { background: linear-gradient(135deg,#d4b55c,#c9a84c) !important; box-shadow: 0 4px 20px rgba(201,168,76,0.35) !important; transform: translateY(-1px); }
-    #__confirm_no__:hover { border-color: rgba(201,168,76,0.45) !important; color: #f0e6c8 !important; }
-  `;
+
+  // Inject styles
+  const style = document.createElement('style');
+  style.id = '__confirm_style__';
+  style.textContent = [
+    '@keyframes cfFadeIn{from{opacity:0}to{opacity:1}}',
+    '@keyframes cfSlideUp{from{opacity:0;transform:translateY(22px) scale(0.96)}to{opacity:1;transform:translateY(0) scale(1)}}',
+    '#__confirm__{position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(5,4,2,0.83);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);animation:cfFadeIn 0.25s ease;}',
+    '#__confirm_box__{background:#13110d;border:1px solid rgba(201,168,76,0.3);padding:42px 36px 34px;max-width:340px;width:88%;text-align:center;position:relative;box-shadow:0 20px 60px rgba(0,0,0,0.7),0 0 50px rgba(201,168,76,0.05);animation:cfSlideUp 0.32s cubic-bezier(0.16,1,0.3,1);}',
+    '#__confirm_box__ .cf-corner{position:absolute;width:13px;height:13px;border-color:rgba(201,168,76,0.5);border-style:solid;}',
+    '#__confirm_icon__{width:48px;height:48px;margin:0 auto 18px;border:1px solid rgba(201,168,76,0.35);border-radius:50%;display:flex;align-items:center;justify-content:center;}',
+    '#__confirm_divider__{display:flex;align-items:center;gap:10px;margin-bottom:18px;}',
+    '#__confirm_divider__ .cf-line{flex:1;height:1px;background:linear-gradient(to right,transparent,rgba(201,168,76,0.25),transparent);}',
+    '#__confirm_divider__ .cf-dot{width:4px;height:4px;background:#c9a84c;border-radius:50%;opacity:0.5;flex-shrink:0;}',
+    '#__confirm_msg__{color:rgba(240,230,200,0.72);font-size:0.97rem;line-height:1.7;margin-bottom:28px;font-style:italic;font-family:inherit;}',
+    '#__confirm_btns__{display:flex;gap:11px;}',
+    '#__confirm_no__{flex:1;padding:12px 8px;background:transparent;border:1px solid rgba(201,168,76,0.2);color:rgba(240,230,200,0.48);cursor:pointer;font-size:0.83rem;font-family:inherit;letter-spacing:0.09em;transition:all 0.25s;}',
+    '#__confirm_no__:hover{border-color:rgba(201,168,76,0.45);color:#f0e6c8;}',
+    '#__confirm_yes__{flex:1;padding:12px 8px;background:linear-gradient(135deg,#c9a84c,#a8852e);border:none;color:#0d0b08;cursor:pointer;font-size:0.83rem;font-family:inherit;font-weight:700;letter-spacing:0.09em;transition:all 0.25s;box-shadow:0 4px 16px rgba(201,168,76,0.2);}',
+    '#__confirm_yes__:hover{background:linear-gradient(135deg,#d4b55c,#c9a84c);box-shadow:0 6px 24px rgba(201,168,76,0.35);transform:translateY(-1px);}'
+  ].join('');
   document.head.appendChild(style);
 
+  // Build overlay
   const overlay = document.createElement('div');
   overlay.id = '__confirm__';
-  overlay.style.cssText = 'position:fixed;inset:0;z-index:99998;display:flex;align-items:center;justify-content:center;background:rgba(5,4,2,0.82);backdrop-filter:blur(7px);';
 
-  overlay.innerHTML =
-    '<div id="__confirm_box__" style="background:#13110d;border:1px solid rgba(201,168,76,0.28);padding:44px 38px 36px;max-width:360px;width:90%;text-align:center;position:relative;box-shadow:0 0 60px rgba(201,168,76,0.06),0 20px 60px rgba(0,0,0,0.65);">' +
-      '<div style="position:absolute;top:10px;left:10px;width:14px;height:14px;border-top:1px solid rgba(201,168,76,0.55);border-left:1px solid rgba(201,168,76,0.55);"></div>' +
-      '<div style="position:absolute;top:10px;right:10px;width:14px;height:14px;border-top:1px solid rgba(201,168,76,0.55);border-right:1px solid rgba(201,168,76,0.55);"></div>' +
-      '<div style="position:absolute;bottom:10px;left:10px;width:14px;height:14px;border-bottom:1px solid rgba(201,168,76,0.55);border-left:1px solid rgba(201,168,76,0.55);"></div>' +
-      '<div style="position:absolute;bottom:10px;right:10px;width:14px;height:14px;border-bottom:1px solid rgba(201,168,76,0.55);border-right:1px solid rgba(201,168,76,0.55);"></div>' +
-      '<div style="width:50px;height:50px;margin:0 auto 20px;border:1px solid rgba(201,168,76,0.38);border-radius:50%;display:flex;align-items:center;justify-content:center;">' +
-        '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' +
-      '</div>' +
-      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">' +
-        '<span style="flex:1;height:1px;background:linear-gradient(to right,transparent,rgba(201,168,76,0.28),transparent);"></span>' +
-        '<span style="width:4px;height:4px;background:#c9a84c;border-radius:50%;opacity:0.55;flex-shrink:0;"></span>' +
-        '<span style="flex:1;height:1px;background:linear-gradient(to left,transparent,rgba(201,168,76,0.28),transparent);"></span>' +
-      '</div>' +
-      '<p style="color:rgba(240,230,200,0.75);font-size:1rem;line-height:1.7;margin-bottom:32px;font-style:italic;letter-spacing:0.03em;font-family:\'EBGaramond\',\'Cormorant Garamond\',Georgia,serif;">' + msg + '</p>' +
-      '<div style="display:flex;gap:12px;">' +
-        '<button id="__confirm_no__"  style="flex:1;padding:12px 10px;background:transparent;border:1px solid rgba(201,168,76,0.22);color:rgba(240,230,200,0.5);cursor:pointer;font-size:0.85rem;font-family:inherit;letter-spacing:0.1em;transition:all 0.25s ease;">გაუქმება</button>' +
-        '<button id="__confirm_yes__" style="flex:1;padding:12px 10px;background:linear-gradient(135deg,#c9a84c,#a8852e);border:none;color:#0e0c09;cursor:pointer;font-size:0.85rem;font-family:inherit;font-weight:700;letter-spacing:0.1em;transition:all 0.25s ease;box-shadow:0 4px 18px rgba(201,168,76,0.18);">დიახ</button>' +
-      '</div>' +
-    '</div>';
+  const box = document.createElement('div');
+  box.id = '__confirm_box__';
 
-  document.body.appendChild(overlay);
-  document.getElementById('__confirm_yes__').addEventListener('click', function() {
-    overlay.remove(); style.remove(); onConfirm();
+  // Corners
+  [['top:10px;left:10px;border-width:1px 0 0 1px'],['top:10px;right:10px;border-width:1px 1px 0 0'],['bottom:10px;left:10px;border-width:0 0 1px 1px'],['bottom:10px;right:10px;border-width:0 1px 1px 0']].forEach(function(s){
+    var c=document.createElement('div'); c.className='cf-corner'; c.style.cssText=s[0]; box.appendChild(c);
   });
-  document.getElementById('__confirm_no__').addEventListener('click', function() { overlay.remove(); style.remove(); });
-  overlay.addEventListener('click', function(e) { if (e.target === overlay) { overlay.remove(); style.remove(); } });
+
+  // Icon
+  var icon = document.createElement('div');
+  icon.id = '__confirm_icon__';
+  icon.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+  box.appendChild(icon);
+
+  // Divider
+  var divider = document.createElement('div');
+  divider.id = '__confirm_divider__';
+  divider.innerHTML = '<div class="cf-line"></div><div class="cf-dot"></div><div class="cf-line"></div>';
+  box.appendChild(divider);
+
+  // Message
+  var p = document.createElement('p');
+  p.id = '__confirm_msg__';
+  p.textContent = msg;
+  box.appendChild(p);
+
+  // Buttons
+  var btns = document.createElement('div');
+  btns.id = '__confirm_btns__';
+  var btnNo = document.createElement('button');
+  btnNo.id = '__confirm_no__';
+  btnNo.textContent = 'გაუქმება';
+  var btnYes = document.createElement('button');
+  btnYes.id = '__confirm_yes__';
+  btnYes.textContent = 'დიახ';
+  btns.appendChild(btnNo);
+  btns.appendChild(btnYes);
+  box.appendChild(btns);
+
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+
+  function close() { overlay.remove(); style.remove(); }
+  btnYes.addEventListener('click', function() { close(); onConfirm(); });
+  btnNo.addEventListener('click', close);
+  overlay.addEventListener('click', function(e) { if (e.target === overlay) close(); });
 }
 
 function showMsg(el, text, show) {
