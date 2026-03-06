@@ -2043,7 +2043,7 @@ function _dbOpeningView(debate, uid, photoMap) {
   const isParticipant = uid === debate.authorUid || uid === debate.opponentUid;
 
   return _dbPhaseHdr('① საწყისი ეტაპი',
-    _dbTimerRow('dbTurnTimer','სვლა:') + '&nbsp;&nbsp;' + _dbTimerRow('dbTotalTimer','სულ:'))
+    _dbTimerRow('dbTurnTimer','საპასუხო დრო:') + '&nbsp;&nbsp;' + _dbTimerRow('dbTotalTimer','სულ:'))
     + _dbProgressBar(tArr.length, 10, debate.authorNickname||'?', `${aCount}/5`, debate.opponentNickname||'?', `${oCount}/5`, debate.authorUid, debate.opponentUid, photoMap)
     + _dbTurnsHtml(turns, debate.authorUid, debate.authorNickname, debate.opponentNickname, photoMap)
     + (mine ? _dbSubmitForm()
@@ -2058,7 +2058,7 @@ function _dbCrossAskView(debate, uid) {
   const askerNick  = debate.currentTurn === debate.authorUid
     ? agoraEscape(debate.authorNickname||'?')
     : agoraEscape(debate.opponentNickname||'?');
-  return _dbPhaseHdr(roundLabel, _dbTimerRow('dbTurnTimer','ვადა:') + '&nbsp;&nbsp;' + _dbTimerRow('dbTotalTimer','სულ:'))
+  return _dbPhaseHdr(roundLabel, _dbTimerRow('dbTurnTimer','საპასუხო დრო:') + '&nbsp;&nbsp;' + _dbTimerRow('dbTotalTimer','სულ:'))
     + (isAsker ? `
       <div style="color:var(--text-dim);font-size:0.88rem;margin-bottom:16px;line-height:1.75;font-family:'EB Garamond',serif;">
         გამოაქვეყნე <strong style="color:var(--text)">5–20 კითხვა</strong>. ოპონენტი მხოლოდ
@@ -2081,7 +2081,7 @@ function _dbCrossAnswerView(debate, uid) {
   const answers    = debate[crossKey]?.answers   || {};
   const qArr       = Object.entries(questions).sort(([a],[b]) => Number(a)-Number(b));
 
-  let html = _dbPhaseHdr(roundLabel, _dbTimerRow('dbTurnTimer','ვადა:') + '&nbsp;&nbsp;' + _dbTimerRow('dbTotalTimer','სულ:'));
+  let html = _dbPhaseHdr(roundLabel, _dbTimerRow('dbTurnTimer','საპასუხო დრო:') + '&nbsp;&nbsp;' + _dbTimerRow('dbTotalTimer','სულ:'));
   html += `<div style="font-family:'Cinzel',serif;font-size:0.6rem;letter-spacing:1px;color:var(--text-dim);margin-bottom:14px;">${Object.keys(answers).length} / ${qArr.length} პასუხი</div>`;
 
   qArr.forEach(([idx, q]) => {
@@ -2151,7 +2151,7 @@ function _dbFinalView(debate, uid, photoMap) {
   const endBtn = endSection;
 
   return _dbPhaseHdr('③ საბოლოო პაექრობა',
-    _dbTimerRow('dbTurnTimer','სვლა:') + '&nbsp;&nbsp;' + _dbTimerRow('dbTotalTimer','სულ:'))
+    _dbTimerRow('dbTurnTimer','საპასუხო დრო:') + '&nbsp;&nbsp;' + _dbTimerRow('dbTotalTimer','სულ:'))
     + _dbProgressBar(tArr.length, 20, debate.authorNickname||'?', `${aCount}/10`, debate.opponentNickname||'?', `${oCount}/10`, debate.authorUid, debate.opponentUid, photoMap)
     + _dbTurnsHtml(turns, debate.authorUid, debate.authorNickname, debate.opponentNickname, photoMap)
     + (mine ? _dbSubmitForm() : isParticipant ? `<div class="db-waiting">⏳ ${agoraEscape(other||'?')}-ის ჯერია...</div>` : '')
