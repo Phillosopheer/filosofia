@@ -1695,11 +1695,13 @@ export default async function handler(req, res) {
     }
 
     // შეატყობინე მეორე მხარეს
-    const otherUid = user.uid === debate.authorUid ? debate.opponentUid : debate.authorUid;
+    const otherUid    = user.uid === debate.authorUid ? debate.opponentUid : debate.authorUid;
+    const endUserData = await fbGet(`/users/${user.uid}`);
+    const endNick     = endUserData?.nickname || "მომხმარებელი";
     await writeNotification(otherUid, {
       type:    "debate-turn",
       threadId,
-      message: `⚑ ${nickname}-მა დებატის ადრე დასრულება მოითხოვა. შენც დათანხმდები?`
+      message: `⚑ ${endNick}-მა დებატის ადრე დასრულება მოითხოვა. შენც დათანხმდები?`
     });
 
     return res.json({ ok: true, judging: false });
