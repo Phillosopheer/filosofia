@@ -1528,7 +1528,7 @@ export default async function handler(req, res) {
         type:    "debate-turn",
         threadId,
         fromName: nickname,
-        message: `⚔️ ${nickname}-მა სვლა გააკეთა. შენი ჯერია!`
+        message: `⚔️ ${nickname}-მა გიპასუხა. შენი ჯერია!`
       });
     }
 
@@ -1688,11 +1688,11 @@ export default async function handler(req, res) {
     if (user.uid !== debate.authorUid && user.uid !== debate.opponentUid)
       return res.status(403).json({ error: "მხოლოდ მონაწილეებს შეუძლიათ" });
 
-    const endVotes = debate.endVotes || {};
-    endVotes[user.uid] = true;
-    await fbPatch(`/agora-debates/${threadId}`, { endVotes });
+    // sub-path patch — race condition-ის თავიდან ასაცილებლად
+    await fbPatch(`/agora-debates/${threadId}/endVotes`, { [user.uid]: true });
+    const freshVotes = (await fbGet(`/agora-debates/${threadId}/endVotes`)) || {};
 
-    const bothAgreed = endVotes[debate.authorUid] && endVotes[debate.opponentUid];
+    const bothAgreed = freshVotes[debate.authorUid] && freshVotes[debate.opponentUid];
     if (bothAgreed) {
       const freshDebate = await fbGet(`/agora-debates/${threadId}`);
       await judgeDebate(freshDebate, threadId, null);
