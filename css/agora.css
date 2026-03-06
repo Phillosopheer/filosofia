@@ -1648,3 +1648,66 @@
   margin-top: 4px;
 }
 
+
+/* --- Players Bar (Progress) --- */
+.db-players-bar {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid rgba(201,168,76,0.1);
+  box-sizing: border-box;
+  width: 100%;
+}
+.db-player-card {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+.db-player-card-opp {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+.db-player-info {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
+.db-player-nick {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.62rem;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.db-player-dots {
+  line-height: 1;
+}
+.db-vs-label {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.58rem;
+  letter-spacing: 1.5px;
+  color: var(--gold-dim);
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.db-progress-line {
+  height: 2px;
+  background: rgba(201,168,76,0.08);
+  margin-bottom: 18px;
+}
+.db-progress-fill {
+  height: 100%;
+  background: rgba(201,168,76,0.35);
+  transition: width 0.5s;
+}
