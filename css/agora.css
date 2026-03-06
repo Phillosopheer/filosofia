@@ -1711,3 +1711,39 @@
   background: rgba(201,168,76,0.35);
   transition: width 0.5s;
 }
+
+/* --- Player turn counter (e.g. 2/5) --- */
+.db-player-count {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.58rem;
+  letter-spacing: 1px;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+
+/* --- Early end button --- */
+.db-end-wrap {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(201,168,76,0.1);
+  text-align: center;
+}
+.db-btn-end {
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: 0;
+  background: none;
+  border: 1px solid rgba(201,168,76,0.25);
+  color: var(--text-dim);
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.6rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 10px 18px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.db-btn-end:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
