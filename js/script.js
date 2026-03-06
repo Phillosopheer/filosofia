@@ -692,133 +692,8 @@ try {
 }
 }
 
-// ========== USERS MANAGEMENT ==========
-let _banTargetUid = null;
 
-async function openUsersPanel() {
-  const listEl = document.getElementById('usersList');
-  listEl.innerHTML = '<p style="color:var(--text-dim);text-align:center;padding:30px;">⏳ იტვირთება...</p>';
-  openModal('usersModal');
-  try {
-    const token = await getValidIdToken();
-    const res = await fetch('/api/ban-user', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken: token, action: 'list' })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'შეცდომა');
-    renderUsersList(data.users || []);
-  } catch(e) {
-    listEl.innerHTML = '<p style="color:#f87171;text-align:center;padding:30px;">❌ ' + e.message + '</p>';
-  }
-}
 
-function renderUsersList(users) {
-  const listEl = document.getElementById('usersList');
-  if (!users.length) {
-    listEl.innerHTML = '<p style="color:var(--text-dim);text-align:center;padding:40px;">მომხმარებლები არ არის</p>';
-    return;
-  }
-  listEl.innerHTML = '';
-  users.forEach(u => {
-    const isBanned = u.banned;
-    const daysLeft = u.bannedUntil ? Math.max(1, Math.ceil((u.bannedUntil - Date.now()) / 86400000)) : null;
-    const banLabel = isBanned
-      ? (daysLeft ? '🔴 დაბლოკილია ' + daysLeft + ' დღე' : '🔴 დაბლოკილია')
-      : '🟢 აქტიური';
-    const banColor = isBanned ? '#f87171' : '#4ade80';
-
-    const card = document.createElement('div');
-    card.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:14px 16px;margin-bottom:8px;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;gap:12px;';
-    card.innerHTML =
-      '<div style="min-width:0;flex:1;">' +
-        '<div style="font-weight:600;color:var(--ivory);font-size:0.95rem;">' + u.nickname + '</div>' +
-        '<div style="color:var(--text-dim);font-size:0.78rem;margin-top:2px;">' + u.email + '</div>' +
-        '<div style="margin-top:4px;font-size:0.75rem;color:' + banColor + ';">' + banLabel + '</div>' +
-      '</div>' +
-      '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">' +
-        '<span style="color:var(--gold-dim);font-size:0.8rem;">📝 ' + u.articlesCount + '</span>' +
-        '<button class="um-menu-btn" data-uid="' + u.uid + '" data-banned="' + isBanned + '" style="padding:7px 14px;background:rgba(180,145,60,0.1);border:1px solid rgba(180,145,60,0.3);border-radius:7px;color:var(--accent);cursor:pointer;font-size:0.82rem;font-family:inherit;">⚙️ მართვა</button>' +
-      '</div>';
-    listEl.appendChild(card);
-  });
-
-  listEl.querySelectorAll('.um-menu-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const uid    = btn.dataset.uid;
-      const banned = btn.dataset.banned === 'true';
-      showUserMenu(btn, uid, banned);
-    });
-  });
-}
-
-let _activeUserMenu = null;
-function showUserMenu(anchorBtn, uid, isBanned) {
-  if (_activeUserMenu) { _activeUserMenu.remove(); _activeUserMenu = null; }
-
-  const menu = document.createElement('div');
-  menu.style.cssText = 'position:fixed;z-index:9999;background:#1a1810;border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,0.7);min-width:190px;overflow:hidden;';
-
-  const items = [];
-  if (!isBanned) {
-    items.push({ icon: '🚫', label: 'ბანი', color: '#f87171', action: function() { openBanDaysModal(uid); } });
-  } else {
-    items.push({ icon: '✅', label: 'განბლოკვა', color: '#4ade80', action: function() { userAction('unban', uid, null); } });
-  }
-  items.push({ icon: '🗑', label: 'წაშლა', color: '#f87171', action: function() {
-    showConfirmToast('დარწმუნებული ხარ? მომხმარებელი სამუდამოდ წაიშლება!', function() { userAction('delete', uid, null); });
-  }});
-  items.push({ icon: '✕', label: 'გაუქმება', color: 'var(--text-dim)', action: function() { menu.remove(); _activeUserMenu = null; } });
-
-  items.forEach(function(item, i) {
-    const menuBtn = document.createElement('button');
-    menuBtn.style.cssText = 'display:flex;align-items:center;gap:10px;width:100%;padding:12px 16px;background:none;border:none;' +
-      (i < items.length - 1 ? 'border-bottom:1px solid rgba(255,255,255,0.06);' : '') +
-      'color:' + item.color + ';cursor:pointer;font-size:0.88rem;font-family:inherit;text-align:left;';
-    menuBtn.innerHTML = '<span>' + item.icon + '</span><span>' + item.label + '</span>';
-    menuBtn.addEventListener('click', function() { menu.remove(); _activeUserMenu = null; item.action(); });
-    menu.appendChild(menuBtn);
-  });
-
-  const rect = anchorBtn.getBoundingClientRect();
-  menu.style.top   = (rect.bottom + 6) + 'px';
-  menu.style.right = (window.innerWidth - rect.right) + 'px';
-  document.body.appendChild(menu);
-  _activeUserMenu = menu;
-
-  setTimeout(function() {
-    document.addEventListener('click', function closeMenu(ev) {
-      if (!menu.contains(ev.target)) { menu.remove(); _activeUserMenu = null; document.removeEventListener('click', closeMenu); }
-    });
-  }, 50);
-}
-
-function openBanDaysModal(uid) {
-  _banTargetUid = uid;
-  document.getElementById('banDaysInput').value = '30';
-  openModal('banDaysModal');
-  setTimeout(function() { document.getElementById('banDaysInput').focus(); }, 100);
-}
-
-async function userAction(action, uid, days) {
-  try {
-    const token = await getValidIdToken();
-    const body  = { idToken: token, action: action, targetUid: uid };
-    if (days) body.days = parseInt(days);
-    const res  = await fetch('/api/ban-user', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'შეცდომა');
-    showToast(data.message, data.message && data.message.includes('✅') ? 'success' : 'error');
-    closeModal('banDaysModal');
-    await openUsersPanel();
-  } catch(e) {
-    showToast(e.message, 'error');
-  }
-}
 
 function init() {
 const addBtn = document.getElementById('glossaryAddBtn');
@@ -1712,7 +1587,6 @@ function revealHeader() {
 function updateHeaderButtons() {
 const submitBtn   = document.getElementById('submitBtn');
 const pendingBtn  = document.getElementById('pendingBtn');
-const usersBtn    = document.getElementById('usersBtn');
 const registerBtn = document.getElementById('registerBtn');
 const lockBtn     = document.getElementById('lockBtn');
 const avatarWrap2 = document.getElementById('avatarWrap');
@@ -1721,7 +1595,6 @@ if (idToken) {
   // Admin logged in
   submitBtn.style.display   = 'none';
   pendingBtn.style.display  = 'flex';
-  if (usersBtn) usersBtn.style.display = 'flex';
   registerBtn.style.display = 'none';
   lockBtn.style.display     = 'none';
   if (avatarWrap2) avatarWrap2.style.display = 'flex';
@@ -1732,7 +1605,6 @@ if (idToken) {
   // Regular user logged in
   submitBtn.style.display   = 'flex';
   pendingBtn.style.display  = 'none';
-  if (usersBtn) usersBtn.style.display = 'none';
   registerBtn.style.display = 'none';
   lockBtn.style.display     = 'none';
   if (avatarWrap2) avatarWrap2.style.display = 'flex';
@@ -1742,7 +1614,6 @@ if (idToken) {
   // Nobody logged in
   submitBtn.style.display   = 'flex';
   pendingBtn.style.display  = 'none';
-  if (usersBtn) usersBtn.style.display = 'none';
   registerBtn.style.display = 'flex';
   lockBtn.style.display     = 'flex';
   if (avatarWrap2) avatarWrap2.style.display = 'none';
@@ -2608,16 +2479,7 @@ document.getElementById('menuBtn').addEventListener('click', toggleMenu);
 document.getElementById('logoBtn').addEventListener('click', () => { localStorage.removeItem('lastCategoryId'); window.location.href = '/'; });
 document.getElementById('submitBtn').addEventListener('click', openPublicSubmission);
 document.getElementById('pendingBtn').addEventListener('click', function(){ window.location.href = '/admin.html'; });
-const usersBtnEl = document.getElementById('usersBtn');
-if (usersBtnEl) usersBtnEl.addEventListener('click', openUsersPanel);
-document.getElementById('closeUsersModalBtn').addEventListener('click', function() { closeModal('usersModal'); });
-document.getElementById('closeBanDaysModalBtn').addEventListener('click', function() { closeModal('banDaysModal'); });
-document.getElementById('banDaysConfirmBtn').addEventListener('click', function() {
-  const days = parseInt(document.getElementById('banDaysInput').value);
-  if (!days || days < 1) { showToast('შეიყვანე სწორი დღეების რაოდენობა', 'error'); return; }
-  if (_banTargetUid) userAction('ban', _banTargetUid, days);
-});
-document.getElementById('banDaysCancelBtn').addEventListener('click', function() { closeModal('banDaysModal'); });
+
 document.getElementById('logoutBtn').addEventListener('click', doLogout);
 document.getElementById('lockBtn').addEventListener('click', handleAuthBtn);
 document.getElementById('sidebarOverlay').addEventListener('click', toggleMenu);
