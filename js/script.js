@@ -1792,24 +1792,52 @@ function showToast(msg, type) {
 function showConfirmToast(msg, onConfirm) {
   const existing = document.getElementById('__confirm__');
   if (existing) existing.remove();
+
+  const style = document.createElement('style');
+  style.id = '__confirm_style__';
+  const existingStyle = document.getElementById('__confirm_style__');
+  if (existingStyle) existingStyle.remove();
+  style.textContent = `
+    @keyframes __fadeIn__ { from { opacity:0; } to { opacity:1; } }
+    @keyframes __slideUp__ { from { opacity:0; transform:translateY(24px) scale(0.97); } to { opacity:1; transform:translateY(0) scale(1); } }
+    #__confirm__ { animation: __fadeIn__ 0.25s ease; }
+    #__confirm_box__ { animation: __slideUp__ 0.3s cubic-bezier(0.16,1,0.3,1); }
+    #__confirm_yes__:hover { background: linear-gradient(135deg,#d4b55c,#c9a84c) !important; box-shadow: 0 4px 20px rgba(201,168,76,0.35) !important; transform: translateY(-1px); }
+    #__confirm_no__:hover { border-color: rgba(201,168,76,0.45) !important; color: #f0e6c8 !important; }
+  `;
+  document.head.appendChild(style);
+
   const overlay = document.createElement('div');
   overlay.id = '__confirm__';
-  overlay.style.cssText = 'position:fixed;inset:0;z-index:99998;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:99998;display:flex;align-items:center;justify-content:center;background:rgba(5,4,2,0.82);backdrop-filter:blur(7px);';
+
   overlay.innerHTML =
-    '<div style="background:#1a1610;border:1px solid rgba(239,68,68,0.4);border-radius:14px;padding:28px 28px 22px;max-width:340px;width:90%;text-align:center;box-shadow:0 16px 48px rgba(0,0,0,0.7);">' +
-      '<div style="font-size:2rem;margin-bottom:12px;">⚠️</div>' +
-      '<p style="color:#e8e0d0;font-size:0.92rem;line-height:1.6;margin-bottom:22px;">' + msg + '</p>' +
-      '<div style="display:flex;gap:10px;">' +
-        '<button id="__confirm_yes__" style="flex:1;padding:11px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.5);border-radius:8px;color:#f87171;cursor:pointer;font-size:0.88rem;font-family:inherit;font-weight:600;">დიახ</button>' +
-        '<button id="__confirm_no__"  style="flex:1;padding:11px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:var(--text-dim);cursor:pointer;font-size:0.88rem;font-family:inherit;">გაუქმება</button>' +
+    '<div id="__confirm_box__" style="background:#13110d;border:1px solid rgba(201,168,76,0.28);padding:44px 38px 36px;max-width:360px;width:90%;text-align:center;position:relative;box-shadow:0 0 60px rgba(201,168,76,0.06),0 20px 60px rgba(0,0,0,0.65);">' +
+      '<div style="position:absolute;top:10px;left:10px;width:14px;height:14px;border-top:1px solid rgba(201,168,76,0.55);border-left:1px solid rgba(201,168,76,0.55);"></div>' +
+      '<div style="position:absolute;top:10px;right:10px;width:14px;height:14px;border-top:1px solid rgba(201,168,76,0.55);border-right:1px solid rgba(201,168,76,0.55);"></div>' +
+      '<div style="position:absolute;bottom:10px;left:10px;width:14px;height:14px;border-bottom:1px solid rgba(201,168,76,0.55);border-left:1px solid rgba(201,168,76,0.55);"></div>' +
+      '<div style="position:absolute;bottom:10px;right:10px;width:14px;height:14px;border-bottom:1px solid rgba(201,168,76,0.55);border-right:1px solid rgba(201,168,76,0.55);"></div>' +
+      '<div style="width:50px;height:50px;margin:0 auto 20px;border:1px solid rgba(201,168,76,0.38);border-radius:50%;display:flex;align-items:center;justify-content:center;">' +
+        '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' +
+      '</div>' +
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">' +
+        '<span style="flex:1;height:1px;background:linear-gradient(to right,transparent,rgba(201,168,76,0.28),transparent);"></span>' +
+        '<span style="width:4px;height:4px;background:#c9a84c;border-radius:50%;opacity:0.55;flex-shrink:0;"></span>' +
+        '<span style="flex:1;height:1px;background:linear-gradient(to left,transparent,rgba(201,168,76,0.28),transparent);"></span>' +
+      '</div>' +
+      '<p style="color:rgba(240,230,200,0.75);font-size:1rem;line-height:1.7;margin-bottom:32px;font-style:italic;letter-spacing:0.03em;font-family:\'EBGaramond\',\'Cormorant Garamond\',Georgia,serif;">' + msg + '</p>' +
+      '<div style="display:flex;gap:12px;">' +
+        '<button id="__confirm_no__"  style="flex:1;padding:12px 10px;background:transparent;border:1px solid rgba(201,168,76,0.22);color:rgba(240,230,200,0.5);cursor:pointer;font-size:0.85rem;font-family:inherit;letter-spacing:0.1em;transition:all 0.25s ease;">გაუქმება</button>' +
+        '<button id="__confirm_yes__" style="flex:1;padding:12px 10px;background:linear-gradient(135deg,#c9a84c,#a8852e);border:none;color:#0e0c09;cursor:pointer;font-size:0.85rem;font-family:inherit;font-weight:700;letter-spacing:0.1em;transition:all 0.25s ease;box-shadow:0 4px 18px rgba(201,168,76,0.18);">დიახ</button>' +
       '</div>' +
     '</div>';
+
   document.body.appendChild(overlay);
   document.getElementById('__confirm_yes__').addEventListener('click', function() {
-    overlay.remove(); onConfirm();
+    overlay.remove(); style.remove(); onConfirm();
   });
-  document.getElementById('__confirm_no__').addEventListener('click', function() { overlay.remove(); });
-  overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); });
+  document.getElementById('__confirm_no__').addEventListener('click', function() { overlay.remove(); style.remove(); });
+  overlay.addEventListener('click', function(e) { if (e.target === overlay) { overlay.remove(); style.remove(); } });
 }
 
 function showMsg(el, text, show) {
