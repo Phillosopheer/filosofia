@@ -1857,6 +1857,7 @@ function _dbProgressBar(done, total, aName, aCountRaw, oName, oCountRaw, aUid, o
       ${avatarEl}
       <div class="db-player-info">
         <div class="db-player-nick">${agoraEscape(nick)}</div>
+        <div class="db-player-count">${doneCnt} / ${maxCnt}</div>
         <div class="db-player-dots">${dots}</div>
       </div>
     </div>`;
@@ -2020,12 +2021,21 @@ function _dbFinalView(debate, uid, photoMap) {
   const mine   = uid === debate.currentTurn;
   const other  = uid === debate.authorUid ? debate.opponentNickname : debate.authorNickname;
 
+  const myEndVote   = uid ? (debate.endVotes || {})[uid] : null;
+  const totalEndVotes = Object.keys(debate.endVotes || {}).length;
+  const endBtn = uid ? `<div class="db-end-wrap">
+    ${myEndVote
+      ? `<div class="db-waiting" style="font-size:0.78rem;">⏳ ელოდება მეორე მხარის თანხმობას... (${totalEndVotes}/2)</div>`
+      : `<button id="dbEndDebateBtn" class="db-btn db-btn-end">⚑ დებატის დასრულება (ორივეს თანხმობით)</button>`
+    }
+  </div>` : '';
+
   return _dbPhaseHdr('③ საბოლოო პაექრობა',
     _dbTimerRow('dbTurnTimer','სვლა:') + '&nbsp;&nbsp;' + _dbTimerRow('dbTotalTimer','სულ:'))
     + _dbProgressBar(tArr.length, 20, debate.authorNickname||'?', `${aCount}/10`, debate.opponentNickname||'?', `${oCount}/10`, debate.authorUid, debate.opponentUid, photoMap)
     + _dbTurnsHtml(turns, debate.authorUid, debate.authorNickname, debate.opponentNickname, photoMap)
-    + (mine ? _dbSubmitForm()
-             : uid ? `<div class="db-waiting">⏳ ${agoraEscape(other||'?')}-ის ჯერია...</div>` : '');
+    + (mine ? _dbSubmitForm() : uid ? `<div class="db-waiting">⏳ ${agoraEscape(other||'?')}-ის ჯერია...</div>` : '')
+    + endBtn;
 }
 
 // ── Verdict screen ───────────────────────────────────────────
@@ -2048,16 +2058,26 @@ function _dbVerdictView(debate) {
 
   const aN = debate.authorNickname || '?';
   const oN = debate.opponentNickname || '?';
+  const isDraw = v.result === 'draw' || !v.winnerUid;
 
-  return `<div class="db-verdict-wrap">`
-    + _dbPhaseHdr('⚖ AI კრიტიკოსი — ვერდიქტი', '')
-    + `<div class="db-verdict-winner">
+  const winnerBox = isDraw
+    ? `<div class="db-verdict-winner">
+        <div class="db-verdict-crown">⚡</div>
+        <div class="db-verdict-label" style="margin-bottom:6px;text-transform:uppercase;letter-spacing:2px;font-family:'Cinzel',serif;font-size:0.62rem;">შედეგი</div>
+        <div class="db-verdict-name" style="font-size:1.3rem;letter-spacing:4px;">ფ რ ე</div>
+        ${v.reason ? `<div class="db-verdict-label" style="margin-top:10px;">${agoraEscape(v.reason)}</div>` : ''}
+      </div>`
+    : `<div class="db-verdict-winner">
         <div class="db-verdict-crown">🏆</div>
         <div class="db-verdict-label" style="margin-bottom:6px;text-transform:uppercase;letter-spacing:2px;font-family:'Cinzel',serif;font-size:0.62rem;">გამარჯვებული</div>
         <div class="db-verdict-name">${agoraEscape(v.winnerNickname||'?')}</div>
         ${v.reason ? `<div class="db-verdict-label" style="margin-top:10px;">${agoraEscape(v.reason)}</div>` : ''}
         ${v.forfeitUid ? `<div style="margin-top:8px;font-size:0.8rem;color:#f87171;font-family:'EB Garamond',serif;">⚠ სვლის გამოტოვების გამო</div>` : ''}
-      </div>`
+      </div>`;
+
+  return `<div class="db-verdict-wrap">`
+    + _dbPhaseHdr('⚖ AI კრიტიკოსი — ვერდიქტი', '')
+    + winnerBox
     + (v.analysis ? `<div class="db-verdict-analysis" style="margin-bottom:16px;">${agoraEscape(v.analysis)}</div>` : '')
     + `<div class="db-verdict-scores">${scoreBlock(aN)}${scoreBlock(oN)}</div>`
     + `</div>`;
@@ -2112,6 +2132,12 @@ function _dbBindActions(container, thread, debate, uid) {
     btn.addEventListener('click', function() {
       _dbSubmitAnswer(tid, parseInt(this.dataset.idx), this.dataset.ans, this);
     });
+  });
+
+  // end debate early (mutual)
+  const endBtn = container.querySelector('#dbEndDebateBtn');
+  if (endBtn) endBtn.addEventListener('click', () => {
+    showConfirmToast('დებატი ადრე დასრულდება — AI შეაფასებს ჯამურ შედეგს. დასტური?', () => _dbRequestEnd(tid, endBtn));
   });
 }
 
@@ -2169,6 +2195,32 @@ async function _dbCancel(tid, btn) {
     if (ok) { showToast('გამოწვევა გაუქმდა.','info'); agoraShowList(_agoraListPage); }
     else { showToast(data.error||'შეცდომა','error'); btn.disabled=false; }
   } catch { showToast('📡 კავშირის შეცდომა','error'); btn.disabled=false; }
+}
+
+async function _dbRequestEnd(tid, btn) {
+  btn.disabled = true;
+  const origText = btn.textContent;
+  btn.textContent = '...';
+  try {
+    const tok = await agoraGetValidToken();
+    const { ok, data } = await agoraFetch({ action: 'request-end-debate', threadId: tid, userToken: tok });
+    if (ok) {
+      if (data.judging) {
+        showToast('ორივე მხარე დათანხმდა — AI შეაფასებს!', 'success');
+      } else {
+        showToast('შენი ხმა ჩაიწერა. ელოდება მეორე მხარეს...', 'info');
+      }
+      setTimeout(() => agoraOpenThread(tid), 800);
+    } else {
+      showToast(data.error || 'შეცდომა', 'error');
+      btn.disabled = false;
+      btn.textContent = origText;
+    }
+  } catch {
+    showToast('📡 კავშირის შეცდომა', 'error');
+    btn.disabled = false;
+    btn.textContent = origText;
+  }
 }
 
 async function _dbSubmitTurn(tid, btn, quickType) {
