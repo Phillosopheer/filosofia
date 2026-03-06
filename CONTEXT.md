@@ -19,7 +19,7 @@
 ## 🎨 ᲓᲘᲖᲐᲘᲜᲘᲡ ᲛᲙᲐᲪᲠᲘ ᲬᲔᲡᲔᲑᲘ (ყოველთვის დაიცავი!)
 
 1. **ფერები** — `#0e0c0a` (ფონი), `#161310` (surface), `#c9a84c` (gold), `#e8dfc8` (text), `#b8ad95` (text-dim). **ლურჯი, მწვანე, ნებისმიერი "ცივი" ფერი — კატეგორიულად აკრძალულია!**
-2. **ღილაკები** — არასოდეს browser-default! ყოველი ღილაკი სტილიზებული (gold border, dark background, hover effects).
+2. **ღილაკები** — არასოდეს browser-default! `-webkit-appearance:none` სავალდებულო მობაილზე. ყოველი ღილაკი სტილიზებული (gold border, dark background, hover effects).
 3. **Dropdown/popup** — ფონი `#161310` ან `#1e1a15`, border `rgba(201,168,76,0.2)`, box-shadow dark.
 4. **ანიმაცია** — fadeIn, smooth transitions. Abrupt jumps — არა.
 5. **მობაილი** — ყოველი ახალი UI ელემენტი მობაილზეც გამართული (fixed positioning, vh/vw).
@@ -42,7 +42,7 @@
 
 ---
 
-## ✅ CURRENT STATE (March 1, 2026 — Session 47)
+## ✅ CURRENT STATE (March 6, 2026 — Session 52)
 
 - ✅ Frontend on Vercel — **Ready**
 - ✅ GitHub: **PRIVATE** 🔒 (Phillosopheer/filosofia)
@@ -71,7 +71,6 @@
 - ✅ წაშლილი Firebase აქაუნთი — ავტო logout
 - ✅ მომხმარებლის ბლოკვის სისტემა
 - ✅ VPN/Proxy/Tor + Incognito — რეგისტრაციაზე ბლოკი
-- ✅ მომხმარებლების მართვის პანელი (ბანი/განბლოკვა/წაშლა)
 - ✅ alert()/confirm() → Toast + ConfirmDialog
 - ✅ Brevo API — 300 email/დღე
 - ✅ IP ბანის სისტემა + lastIp
@@ -91,79 +90,155 @@
 - ✅ **Gemini გასაღებები** — 12 ცალი, 168,000 req/დღე
 - ✅ **🔍 თემების ძებნა** — Session 47
 - ✅ **AI Prompt ქართული — გაუმჯობესება** — Session 47
+- ✅ **🔧 Glossary Firebase Rules — `.write` დაემატა (admin-only)** — Session 48
+- ✅ **🖥️ Admin პანელი — ცალკე გვერდი (`admin.html`)** — Session 49
+- ✅ **📱 Admin პანელი — მობილური hamburger nav** — Session 49
+- ✅ **👥 Admin პანელი — მომხმარებლები სწორად იტვირთება** — Session 49
+- ✅ **🚫 Header — usersBtn ამოღებულია** (ადმინ პანელში გადატანილი) — Session 49
+- ✅ **⬆️ GitHub Uploader — სრული redesign + ყველა ფაილი** — Session 49
+- ✅ **🖼️ სტატიების ფოტო — სრულად ჩანს ყველა მოწყობილობაზე** — Session 49
+- ✅ **⚔️ 1vs1 დებატების სისტემა — Interactive Prototype დამტკიცდა** — Session 50
+- ✅ **⚔️ api/agora.js — debate ლოგიკა სრულად** — Session 51
+- ✅ **⚔️ js/agora.js — debate UI ინტეგრაცია** — Session 51
+- ✅ **⚔️ index.html — ახალი thread modal (type selector + opponent)** — Session 51
+- ✅ **⚔️ Debate UI — სრული redesign (CSS classes, ღილაკები, turn cards)** — Session 52
+- ✅ **⚔️ Turn cards — ავატარი + სახელი + ტექსტი სწორად გაყოფილი** — Session 52
+- ✅ **⚔️ Progress bar — dots (⬤/○) player cards vs-ით** — Session 52
+- ✅ **⚔️ სვლა — მინ. 200 სიმბოლო + counter + quick buttons** — Session 52
 
 ---
 
-## ✅ Session 47-ში გაკეთებული (სრული)
+## ✅ Session 52-ში გაკეთებული (სრული)
 
-### 🔍 თემების ძებნა (Search):
-- `index.html`: `#agoraSearchWrap` — საძიებო ველი `agoraListView`-ში, `agoraDescription`-ის ქვემოთ
-- `index.html`: `#agoraSearchInput`, `#agoraSearchClear`, `#agoraSearchResults`
-- `api/agora.js`: `search-threads` action — `/agora-threads/` სკანი, title+body ძებნა, max 30 შედეგი
-- `js/agora.js`: `agoraInitSearch()` — openAgora()-ში გამოძახება
-- `js/agora.js`: `agoraDoSearch(query)` — 350ms debounce, results div
-- `js/agora.js`: `agoraSearchClearState()` — ძებნის გასუფთავება
-- `css/agora.css`: `.agora-search-wrap`, `.agora-search-input`, `.agora-search-clear`, `.agora-search-count`
-- ძებნის შედეგზე კლიკი → ასუფთავებს search-ს და ხსნის thread-ს
+### ⚔ Debate UI — Redesign (`js/agora.js` + `css/agora.css`)
 
-### 🤖 AI Prompt ქართული — გაუმჯობესება:
-- thread prompt + reply prompt — ორივეში დაემატა:
-  `⚠️ ᲔᲜᲝᲑᲠᲘᲕᲘ ᲬᲔᲡᲘ: message ველი წერე სრულყოფილ, სალიტერატურო ქართულად. გამოიყენე გრამატიკულად სწორი, ბუნებრივი ქართული წინადადებები. ნუ გამოიყენებ გაუმართავ სიტყვათა კომბინაციებს.`
-- `message` — "მოკლე" → "2-3 წინადადებით კონკრეტულად"
-- შედეგი: AI-ს ქართული შესამჩნევად გაუმჯობესდა, patronizing კომენტარი წარმატებით ამოიცნო
+**`css/agora.css`** (+386 ხაზი — ახალი debate CSS section):
+- `.db-btn`, `.db-btn-gold`, `.db-btn-danger` — `-webkit-appearance:none`, browser-default ღილაკები მობაილზე მოქმედია
+- `.db-textarea`, `.db-q-input` — dark background, `-webkit-appearance:none`, focus ring
+- `.db-turn-card`, `.db-turn-meta`, `.db-turn-nick`, `.db-turn-body` — turn card ავატარებით
+- `.db-verdict-winner`, `.db-verdict-scores` — verdict ეკრანი
+- `.db-waiting`, `.db-submit-wrap`, `.db-phase-hdr` — ყველა inline style → class
 
----
-
-## ✅ Session 46-ში გაკეთებული (სრული)
-
-### ✂️ Selection Quote + Multiple Quotes:
-- `_agoraQuote` (single) → `_agoraQuotes = []` (array)
-- `agoraAddQuote(q)`, `agoraRemoveQuote(index)`, `agoraUpdateQuoteStack()`
-- "↩ ციტირება" ღილაკი: პირველ რიგში **selection** (მონიშნული ტექსტი), fallback — მთელი body
-- **ერთი ლოგიკა** desktop + mobile — bubble გაუქმდა
-- `api/agora.js`: `quotes` array შენახვა; backward compat (`quotedBody` ძველი)
-- Reply card: `r.quotes` (ახალი) ან `r.quotedBody` (ძველი)
-
-### 🤖 AI მოდერაციის გამკაცრება:
-- Thread prompt: კულინარია/სპორტი/ყოველდღიური → `philosophical:false`; კონკრეტული მაგალითები
-- Reply prompt: **patronizing/დახვეწილი დამცირება** ამოიცნობა
-- `quote` ველი — AI აბრუნებს კონკრეტულ პრობლემურ ფრაზას
-- Error message-ში: `❝ "კონკრეტული ფრაზა"`
-
-### ⚠️ Warning Toast redesign:
-- მუქი ფონი `#1a1410`, gold border
-- **✕ ღილაკი** — სანამ მომხმარებელი არ დახურავს (auto-hide გაუქმდა)
-- `.agora-warn-msg` + `.agora-warn-quote`
-
-### 🚫 Admin დაბლოკილების პანელი:
-- "🚫 დაბლოკილები" ღილაკი — ჩანს მხოლოდ ადმინს, `agoraShowList`-ში
-- `agoraOpenBannedPanel()` — panel: avatar, nickname, დრო, "განბლოკვა"
-- `api/agora.js` → `get-agora-banned`: `/agora-warnings/` სკანი + nickname lookup
-- `api/agora.js` → `unban-agora`: warnings reset + Firebase Auth enable + banned-emails წაშლა
+**`js/agora.js`:**
+- Opponent search: `#4ade80` (მწვანე) → `#c9a84c` (gold) ✅
+- Turn cards: `_dbTurnsHtml(turnsObj, authorUid, authorNick, oppNick, myUid, myPhoto)` — ახლა 6 პარამეტრი! ავატარი + სახელი + ტექსტი გაყოფილი
+- Progress bar `_dbProgressBar` — player dots card (⬤/○) + vs + progress line
+- Submit form — **quick buttons**: `#dbAgreeBtn` (✓ გეთანხმები) + `#dbNoAnswerBtn` (— პასუხი არ მაქვს) → confirm → პირდაპირ იგზავნება
+- `_dbSubmitTurn(tid, btn, quickType)` — **3 პარამეტრი**, quickType: 'agree'|'no_answer'|undefined
+- Character counter `#dbTurnCounter` — 0/200, ოქრო ხდება 200-ზე
+- მინ. **200 სიმბოლო** (ადრე: 5)
 
 ---
 
-## Firebase Rules (სრული — Session 45):
+## ✅ Session 51-ში გაკეთებული (სრული)
+
+### ⚔ 1vs1 დებატების სისტემა — კოდირება
+
+**`api/agora.js`** (1025 → 1600 ხაზი):
+- **კონსტანტები:** `INVITE_TIMEOUT_MS` (6სთ), `TURN_TIMEOUT_MS` (6სთ), `TOTAL_DEBATE_MS` (24სთ), `DEBATE_BAN_DAYS` (7), `OPENING_TURNS_EACH` (5), `FINAL_TURNS_EACH` (10)
+- **Helper functions:** `getDebateNickname`, `banForMissedTurn`, `judgeDebate` (Gemini 3 კრიტერიუმი), `checkDebateTimeouts` (lazy expiry)
+- **Actions (9 ახალი):** `find-user`, `get-debate`, `create-debate`, `accept-debate`, `decline-debate`, `cancel-debate`, `submit-turn`, `submit-cross-questions`, `submit-cross-answer`
+
+**`js/agora.js`** (1594 → 2153 ხაზი):
+- State: `_newThreadType`, `_debateOpponentUid`, `_debateOpponentNick`, `_debateTimerIds`
+- `agoraThreadCard` — debate badge-ები
+- `agoraOpenThread` — debate thread → debate UI
+- `agoraOpenNewThreadModal` — type selector (საჯარო/1vs1), opponent search (400ms debounce)
+- Notifications — debate ტიპები
+- Debate UI ფუნქციები სრულად
+
+**`index.html`:**
+- newThreadModal — type selector (`#typeBtnPublic`, `#typeBtnDebate`)
+- `#debateOpponentWrap` — opponent search field
+
+---
+
+## ⚠️ ᲓᲔᲑᲐᲢᲘᲡ სისტემა — კრიტიკული ინფო (Session 51+)
+
+### Firebase სტრუქტურა:
+```
+agora-debates/{threadId}: {
+  threadId, authorUid, authorNickname,
+  opponentUid, opponentNickname,
+  phase: "pending"|"opening"|"cross-asking"|"cross-answering"|"final"|"verdict"|"cancelled",
+  invitedAt, inviteDeadline,
+  currentTurn, turnDeadline, startedAt, totalDeadline,
+  opening: { 0:{uid,nickname,body,createdAt}, ... },
+  cross: { questions:{}, answers:{}, askerUid },
+  final: { 0:{uid,nickname,body,createdAt}, ... },
+  verdict: { analysis, winnerUid, winnerNickname, reason, scores, forfeitUid, createdAt }
+}
+```
+
+### Debate კონსტანტები (`api/agora.js`):
+- `INVITE_TIMEOUT_MS = 6h` — გამოწვევა ვადაგასული → გაუქმება, ჯარიმა არ არის
+- `TURN_TIMEOUT_MS = 6h` — სვლის ვადა → 7-დღიანი ბანი
+- `TOTAL_DEBATE_MS = 24h` — სრული დებატის ვადა
+- `DEBATE_BAN_DAYS = 7`
+- `OPENING_TURNS_EACH = 5` (სულ 10)
+- `FINAL_TURNS_EACH = 10` (სულ 20)
+- `CROSS_MIN_Q = 5`, `CROSS_MAX_Q = 20`
+
+### Debate UI IDs (`js/agora.js`):
+- `#typeBtnPublic`, `#typeBtnDebate` — modal type selector
+- `#debateOpponentWrap`, `#debateOpponentInput`, `#debateOpponentStatus`, `#debateOpponentFound`
+- `#dbAcceptBtn`, `#dbDeclineBtn`, `#dbCancelBtn` — invite/pending screens
+- `#dbTurnInput`, `#dbSubmitTurnBtn`, `#dbTurnError`, `#dbTurnCounter` — turn submit
+- `#dbAgreeBtn`, `#dbNoAnswerBtn` — quick turn buttons (Session 52)
+- `#dbCrossQList`, `#dbAddQBtn`, `#dbSubmitQBtn`, `#dbCrossError` — cross questions
+- `.db-ans-btn[data-idx][data-ans]` — cross answers
+- `#dbInviteTimer`, `#dbTurnTimer`, `#dbTotalTimer` — countdown timers
+
+### Debate Submit ლოგიკა (Session 52):
+- `_dbSubmitTurn(tid, btn, quickType)` — **3 პარამეტრი!**
+  - `quickType='agree'` → body = '✓ გეთანხმები', 200 სიმბ. არ სჭირდება
+  - `quickType='no_answer'` → body = '— პასუხი არ მაქვს', 200 სიმბ. არ სჭირდება
+  - `quickType=undefined` → textarea, **მინ. 200 სიმბოლო**
+- `_dbTurnsHtml(turnsObj, authorUid, authorNick, oppNick, myUid, myPhoto)` — **6 პარამეტრი!**
+
+---
+
+## ✅ Session 50-ში გაკეთებული (სრული)
+
+### ⚔ 1vs1 დებატების სისტემა — Interactive Prototype
+- **Prototype ფაილი:** `debate-prototype-v2.html` — 8 ეკრანი, სრულად ინტერაქტიური
+- **დამტკიცებული სახელები:** Opening→საწყისი, Cross→დაკითხვა, Final→საბოლოო პაექრობა, AI Referee→AI კრიტიკოსი
+- **დამტკიცებული ლოგიკა:** გამოწვევა 6სთ→გაუქმება (ჯარიმა არ არის), სვლა 6სთ→7-დღიანი ბანი
+
+---
+
+## ✅ Session 49-ში გაკეთებული (სრული)
+
+### 🖥️ Admin პანელი (`admin.html` + `js/admin.js` + `css/admin.css`):
+- ცალკე გვერდი — `admin.html` root-ში
+- **მობილური nav:** hamburger ღილაკი (☰) → slide-in sidebar + overlay + X ანიმაცია
+- **მომხმარებლები:** `loadUsers()` → `ban-user.js` API (`action: "list"`) გამოიყენება Firebase Rules-ის გვერდის ავლით (Service Account)
+- **CSP fix:** ყველა `onclick=""` inline → `addEventListener` + event delegation
+- **XSS:** `escHtml()` ფუნქცია — ყველა user input escape-ირდება
+
+### 🚫 Header — usersBtn ამოღება
+### ⬆️ GitHub Uploader — redesign (ოქროს კუთხეები, shimmer progress bar)
+### 🖼️ სტატიების ფოტო fix (`max-height:none!important; object-fit:unset!important;`)
+
+---
+
+## Firebase Rules (სრული):
 ```json
 {
   "rules": {
-    ".read": false, ".write": false,
-    "notes": { ".read": true, ".write": "auth != null" },
-    "glossary": { ".read": true },
-    "pending-notes": { ".read": "auth != null", ".write": true },
-    "bot-blocks": { ".read": true, ".write": true },
-    "bot-ratelimit": { ".read": true, ".write": true },
-    "bot-ratelimit-sub": { ".read": true, ".write": true },
-    "bot-cat-warn": { ".read": true, ".write": true },
+    "notes": { ".read": true, ".write": false },
     "users": {
-      ".indexOn": ["fpHash"],
       "$uid": {
-        ".read": "auth != null && auth.uid == $uid",
+        ".read": true,
         ".write": "auth != null && auth.uid == $uid"
       }
     },
-    "admins": { ".read": "auth != null", ".write": false },
-    "usernames": { ".read": true, ".write": "auth != null" },
+    "admins": { ".read": true, ".write": false },
+    "usernames": { ".read": true, ".write": false },
+    "glossary": {
+      ".read": true,
+      ".write": "auth != null && auth.uid == 'bOZ9pQ95e6RwQ6ZD6p5MUzzEvld2'"
+    },
     "banned-fingerprints": { ".read": true, ".write": false },
     "banned-users": { ".read": false, ".write": false },
     "banned-ips": { ".read": true, ".write": false },
@@ -171,6 +246,7 @@
     "agora-threads":  { ".read": true, ".write": false },
     "agora-replies":  { ".read": true, ".write": false },
     "agora-warnings": { ".read": false, ".write": false },
+    "agora-debates":  { ".read": true, ".write": false },
     "notifications": {
       "$uid": { ".read": false, ".write": false }
     }
@@ -185,7 +261,6 @@
 - `TOTP_SECRET` — TOTP 2FA
 - `GEMINI_KEY_1` ... `GEMINI_KEY_12` — 12 გასაღები, rotation ავტომატური (429/403 → შემდეგი)
 - `BREVO_KEY` — Brevo API key
-- ~~RESEND_KEY~~ — აღარ გამოიყენება
 
 ### Admin:
 - UID: `bOZ9pQ95e6RwQ6ZD6p5MUzzEvld2`
@@ -196,6 +271,7 @@
 ## ⚠️ ᲨᲔᲛᲓᲔᲒ ASSISTANT — ᲙᲠᲘᲢᲘᲙᲣᲚᲘ ᲬᲔᲡᲔᲑᲘ:
 
 ### ფაილები:
+- **Glossary** — ნოდარი ტერმინებს **საიტის შიგნიდან ამატებს** (admin პანელი). Firebase Rules-ში `glossary`-ს **აუცილებლად უნდა ჰქონდეს** `.write`: `"auth != null && auth.uid == 'bOZ9pQ95e6RwQ6ZD6p5MUzzEvld2'"` — **არასოდეს წაშალო!**
 - `BREVO_KEY` / `FIREBASE_SERVICE_ACCOUNT` — **არასოდეს GitHub-ზე!** 🔴
 - `getAdminToken()` — **ნუ შეცვლი!** (send-code.js, ban-user.js, reset-password.js, agora.js)
 - `reset-password.js`-ში — `identitytoolkit` scope სავალდებულოა!
@@ -207,6 +283,13 @@
 - App Check ENFORCED — Firebase server-side Service Account-ით!
 - AI მოდელი — **gemma-3-27b-it** — **არასოდეს შეცვალო!**
 
+### Admin პანელი (`admin.html`):
+- **ცალკე გვერდია** — `admin.html` root-ში, `js/admin.js`, `css/admin.css`
+- **მობილური nav:** `#admHamburger` → `#admNav.open` + `#admNavOverlay.show` + `body.nav-open`
+- **მომხმარებლები:** `loadUsers()` → `/api/ban-user` (`action:"list"`) — **არასოდეს პირდაპირ Firebase `/users`-ზე!** (Rules კრძალავს)
+- **CSP:** ყველა ღილაკი event delegation-ით, `escHtml()` — XSS protection
+- `banUserByUid()` — **script.js-ში დარჩა** (pending panel-ს სჭირდება)
+
 ### Agora-სპეციფიური:
 - `currentUser`/`userToken`/`idToken` — `let` ცვლადები `script.js`-ში! გამოიყენე: `typeof currentUser !== 'undefined'`
 - ადმინი: avatar — `localStorage.getItem('adminPhoto')`, nickname — `localStorage.getItem('adminDisplayName')`
@@ -217,7 +300,7 @@
 - `showToast(msg, type)` — success/error/info
 - `showConfirmToast(msg, fn)` — confirm()-ის ნაცვლად
 - `closeAgora()` — `document.body.style.overflow = ''` სავალდებულო!
-- **`_agoraQuotes = []`** — array! (არა `_agoraQuote` single — Session 46-ში შეიცვალა)
+- **`_agoraQuotes = []`** — array! (არა `_agoraQuote` single)
 - Quote ღილაკი: selection პირველი, fallback — მთელი body. **Bubble გაუქმებულია!**
 - `quotes` array Firebase-ში: `[{ replyId, body, author, num }]` — max 10
 - Reply card: `r.quotes` (ახალი) ან `r.quotedBody` (ძველი, backward compat)
@@ -231,10 +314,34 @@
 - `_userCardCache` — user card cache, agora.js global
 - **Search:** `agoraInitSearch()` — openAgora()-ში გამოძახება; `search-threads` action api-ში
 
+### Debate-სპეციფიური (Session 51+):
+- `_newThreadType` — 'public' ან 'debate' (global state)
+- `_debateOpponentUid`, `_debateOpponentNick` — modal-ში ინახება
+- `_debateTimerIds` — countdown timer IDs (clearInterval-ისთვის)
+- `agoraRenderDebateView(thread, debate, container)` — მთავარი debate UI router
+- `_dbClearTimers()` — thread switch-ზე გამოიძახება
+- Debate phases: `pending → opening → cross-asking → cross-answering → final → verdict`
+- `find-user` action — auth სჭირდება, nickname → {uid, nickname, photoURL}
+- `agora-debates/{threadId}` — Firebase-ში ინახება (`.read:true, .write:false`)
+- **`_dbSubmitTurn(tid, btn, quickType)`** — 3 პარამეტრი! quickType: 'agree'|'no_answer'|undefined
+- **`_dbTurnsHtml(..., myUid, myPhoto)`** — 6 პარამეტრი!
+- მინ. სვლის სიგრძე: **200 სიმბოლო** (quick buttons-ს არ სჭირდება)
+
+### GitHub Uploader:
+- `#uploaderModal` — `index.html`-ში, `js/script.js`-ში ლოგიკა
+- Tabs: JS / CSS / HTML / API / ROOT / ＋
+- JS tab: `script.js`, `agora.js`, `extras.js`, `admin.js`
+- CSS tab: `style.css`, `agora.css`, `admin.css`
+- HTML tab: `index.html`, `admin.html`
+- API tab: `agora.js`, `gemini.js`, `ban-user.js`, `review.js`, `send-code.js`, `reset-password.js`, `verify-totp.js`
+- ROOT tab: `vercel.json`, `sitemap.xml`, `robots.txt`
+- **👁 eye ღილაკი:** `#upTokenEye` — token ჩვენება/დამალვა (`js/script.js`-ში)
+- Styled checkbox: `#upSaveCb`, `#upSaveTick`, `#upRememberLabel`
+
 ### დიზაინი:
 - gold `#c9a84c`, bg `#0e0c0a`, surface `#161310`
 - **ლურჯი/ცივი ფერები — კატეგორიულად აკრძალულია!**
-- ღილაკები — ყოველთვის სტილიზებული, არასოდეს browser-default
+- ღილაკები — ყოველთვის სტილიზებული, `-webkit-appearance:none` სავალდებულო მობაილზე
 - მობაილი — `position: fixed`, `left/right: 8px`
 
 ---
@@ -245,15 +352,16 @@
 
 ---
 
-## ⚠️ TODO (Session 48+):
-1. Forum — Admin pin/unpin thread
-2. Forum — სტატისტიკა profile popup-ში
-3. Firebase Storage — avatar (ამჟამად base64 DB-ში)
-4. Meta URLs — canonical, og:url
-5. robots.txt — sitemap URL ძველია
-6. CSP — connect-src-ში filosofia-xi.vercel.app ჯერ კიდევ არის
-7. Telegram Bot — მონიტორინგი
-8. Domain → საკუთარი domain
+## ⚠️ TODO (Session 53+):
+1. **⚔ ტესტირება** — დებატის სრული ციკლი ლაივზე
+2. Forum — Admin pin/unpin thread
+3. Forum — სტატისტიკა profile popup-ში
+4. Firebase Storage — avatar (ამჟამად base64 DB-ში)
+5. Meta URLs — canonical, og:url
+6. robots.txt — sitemap URL ძველია
+7. CSP — connect-src-ში filosofia-xi.vercel.app ჯერ კიდევ არის
+8. Telegram Bot — მონიტორინგი
+9. Domain → საკუთარი domain
 
 ---
 
@@ -266,18 +374,21 @@
 │   ├── send-code.js
 │   ├── ban-user.js
 │   ├── reset-password.js
-│   ├── agora.js              ← Session 47-ში განახლდა
+│   ├── agora.js              ← Session 51-ში განახლდა (+debate ლოგიკა)
 │   └── verify-totp.js
 ├── css/
 │   ├── style.css
-│   ├── agora.css             ← Session 47-ში განახლდა
+│   ├── agora.css             ← Session 52-ში განახლდა (+debate CSS classes)
+│   ├── admin.css
 │   └── fonts/
 ├── js/
 │   ├── script.js
-│   ├── agora.js              ← Session 47-ში განახლდა
+│   ├── agora.js              ← Session 52-ში განახლდა (+debate UI redesign)
+│   ├── admin.js
 │   ├── extras.js
 │   └── firebase-app-compat.js
-├── index.html                ← Session 47-ში განახლდა
+├── index.html                ← Session 51-ში განახლდა (modal type selector)
+├── admin.html
 ├── philosopher-bg.jpg
 ├── philosopher-bg.webp
 ├── sitemap.xml
@@ -319,7 +430,7 @@ const firebaseConfig = {
 ## 📋 Instructions for Next Assistant
 - ZIP → `/mnt/user-data/uploads/` → unzip → read files
 - Modified files → `/mnt/user-data/outputs/` (js/ api/ css/ ქვეფოლდერებში)
-- Syntax check: `node --check js/agora.js && node --check api/agora.js`
+- Syntax check: `node --input-type=module < api/agora.js && node --check js/agora.js`
 - `present_files` tool for sharing
 - **ფაილების სახელები** — იხილე "AGORA ფაილების სახელები" სექცია!
 - **დიზაინი** — იხილე "ᲓᲘᲖᲐᲘᲜᲘᲡ ᲛᲙᲐᲪᲠᲘ ᲬᲔᲡᲔᲑᲘ" სექცია!
