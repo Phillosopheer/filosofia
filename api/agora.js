@@ -22,6 +22,16 @@ const MAX_THREAD_BODY  = 50000;  // პრაქტიკულად ული�
 const MAX_REPLY_BODY   = 50000;  // პრაქტიკულად ულიმიტო
 const MAX_TITLE_LEN    = 80;
 
+// ── დებატების კონსტანტები ──────────────────────────────────
+const INVITE_TIMEOUT_MS  = 6 * 3600 * 1000;   // 6 სთ — მოწვევის ვადა (გაუქმება, ჯარიმა არ არის)
+const TURN_TIMEOUT_MS    = 6 * 3600 * 1000;   // 6 სთ — სვლის ვადა (ჯარიმა!)
+const TOTAL_DEBATE_MS    = 24 * 3600 * 1000;  // 24 სთ — დებატის სრული ვადა
+const DEBATE_BAN_DAYS    = 7;
+const OPENING_TURNS_EACH = 5;    // 5+5 = 10 სვლა გახსნაში
+const FINAL_TURNS_EACH   = 10;   // 10+10 = 20 სვლა ბოლოში
+const CROSS_MIN_Q        = 5;
+const CROSS_MAX_Q        = 20;
+
 
 // ============================================================
 // Service Account Token (identitytoolkit scope ჩართულია)
@@ -362,6 +372,136 @@ function containsEmoji(text) {
 
 
 // ============================================================
+// DEBATE HELPERS
+// ============================================================
+
+async function getDebateNickname(uid) {
+  try {
+    const d = await fbGet(`/users/${uid}`);
+    return d?.nickname || "მომხმარებელი";
+  } catch { return "მომხმარებელი"; }
+}
+
+async function banForMissedTurn(uid) {
+  try {
+    const email       = await lookupEmailByUid(uid);
+    const bannedUntil = Date.now() + DEBATE_BAN_DAYS * 86400000;
+    await disableAuthUser(uid);
+    await fbPatch(`/agora-warnings/${uid}`, {
+      banned: true, bannedAt: Date.now(), reason: "debate_missed_turn"
+    });
+    if (email) {
+      const safeEmail = email.replace(/[.#$[\]@]/g, '_');
+      await fbSet(`/banned-emails/${safeEmail}`, {
+        bannedUntil, banDays: DEBATE_BAN_DAYS, reason: "debate_missed_turn"
+      });
+    }
+  } catch { /* silent */ }
+}
+
+async function judgeDebate(debate, threadId, forfeitUid = null) {
+  try {
+    const opening = debate.opening ? Object.values(debate.opening).sort((a,b)=>a.createdAt-b.createdAt) : [];
+    const finalT  = debate.final   ? Object.values(debate.final).sort((a,b)=>a.createdAt-b.createdAt) : [];
+    const crossQ  = debate.cross?.questions ? Object.values(debate.cross.questions).sort((a,b)=>a.createdAt-b.createdAt) : [];
+    const crossA  = debate.cross?.answers   ? Object.values(debate.cross.answers).sort((a,b)=>a.createdAt-b.createdAt) : [];
+
+    const authorName   = debate.authorNickname   || "ავტორი";
+    const opponentName = debate.opponentNickname || "ოპონენტი";
+
+    let transcript = `=== საწყისი ეტაპი ===\n`;
+    opening.forEach(t => { transcript += `[${t.nickname}]: ${t.body}\n\n`; });
+
+    if (crossQ.length) {
+      transcript += `\n=== დაკითხვა ===\n`;
+      crossQ.forEach((q, i) => {
+        const a = crossA[i];
+        transcript += `კითხვა: ${q.body}\nპასუხი: ${a ? (a.answer==="yes"?"კი":a.answer==="no"?"არა":"არ ვიცი") : "—"}\n\n`;
+      });
+    }
+
+    if (finalT.length) {
+      transcript += `\n=== საბოლოო პაექრობა ===\n`;
+      finalT.forEach(t => { transcript += `[${t.nickname}]: ${t.body}\n\n`; });
+    }
+
+    const forfeitNote = forfeitUid
+      ? `\n⚠️ შენიშვნა: ${forfeitUid===debate.authorUid ? authorName : opponentName}-მა სვლა ვადაში ვერ გააკეთა (ჩავარდნა).`
+      : "";
+
+    const prompt = `შენ ხარ ფილოსოფიური დებატის AI კრიტიკოსი. გაანალიზე ქვემოთ მოცემული 1vs1 სადებატო სესია.
+
+მონაწილეები:
+- ${authorName} (ავტორი/გამომწვევი)
+- ${opponentName} (ოპონენტი)
+${forfeitNote}
+
+${transcript}
+
+შეაფასე სამი კრიტერიუმით (0-10):
+1. ignored_points — ვის არგუმენტები დარჩა უპასუხოდ (მაღალი = ცუდი)
+2. logic_score — ლოგიკის სიმყარე და თანმიმდევრულობა (მაღალი = კარგი)
+3. cross_score — დაკითხვის ეტაპის სტრატეგიული გამოყენება (მაღალი = კარგი)
+
+⚠️ ᲔᲜᲝᲑᲠᲘᲕᲘ ᲬᲔᲡᲘ: ყველა ველი წერე სრულყოფილ, სალიტერატურო ქართულად.
+
+უპასუხე მხოლოდ JSON:
+{"winner":"${authorName} ან ${opponentName}","winner_uid":"შესაბამისი UID","reason":"2-3 წინადადება — რატომ გაიმარჯვა","analysis":"3-4 წინადადება — დებატის მიმოხილვა","scores":{"${authorName}":{"ignored_points":0,"logic_score":0,"cross_score":0},"${opponentName}":{"ignored_points":0,"logic_score":0,"cross_score":0}}}`;
+
+    const text = await callGemini(prompt);
+    if (!text) throw new Error("Gemini no response");
+
+    const m = text.match(/\{[\s\S]*\}/);
+    const verdict = JSON.parse(m ? m[0] : text);
+
+    const winnerUid      = verdict.winner_uid === debate.opponentUid ? debate.opponentUid : debate.authorUid;
+    const winnerNickname = winnerUid === debate.authorUid ? authorName : opponentName;
+
+    const verdictData = {
+      analysis:        verdict.analysis || "",
+      winnerUid,
+      winnerNickname,
+      reason:          verdict.reason || "",
+      scores:          verdict.scores || {},
+      forfeitUid:      forfeitUid || null,
+      createdAt:       Date.now()
+    };
+
+    await fbPatch(`/agora-debates/${threadId}`, { phase: "verdict", verdict: verdictData });
+    await fbPatch(`/agora-threads/${threadId}`,  { debateStatus: "finished", debatePhase: "verdict" });
+
+    for (const uid of [debate.authorUid, debate.opponentUid]) {
+      await writeNotification(uid, {
+        type: "debate-verdict", threadId, winnerUid, winnerNickname,
+        message: `⚖️ AI კრიტიკოსმა დებატი შეაფასა — გამარჯვებული: ${winnerNickname}`
+      });
+    }
+  } catch { /* silent */ }
+}
+
+async function checkDebateTimeouts(debate, threadId, now) {
+  if (!debate || debate.phase === "verdict" || debate.phase === "cancelled") return false;
+
+  // მოწვევა ვადაგასული → გაუქმება, ჯარიმა არ არის
+  if (debate.phase === "pending" && now > debate.inviteDeadline) {
+    await fbPatch(`/agora-debates/${threadId}`, { phase: "cancelled" });
+    await fbPatch(`/agora-threads/${threadId}`,  { debateStatus: "cancelled" });
+    return true;
+  }
+
+  // სვლის ვადა ამოიწურა → ჯარიმა + AI განაჩენი
+  const activePhases = ["opening", "cross-asking", "cross-answering", "final"];
+  if (activePhases.includes(debate.phase) && debate.turnDeadline && now > debate.turnDeadline) {
+    const forfeitUid = debate.currentTurn;
+    await banForMissedTurn(forfeitUid);
+    await judgeDebate(debate, threadId, forfeitUid);
+    return true;
+  }
+
+  return false;
+}
+
+// ============================================================
 // მთავარი HANDLER
 // ============================================================
 export default async function handler(req, res) {
@@ -527,6 +667,24 @@ export default async function handler(req, res) {
 
       const result = paginate(replies, parseInt(page) || 1, REPLIES_PER_PAGE);
       return res.json(result);
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
+    }
+  }
+
+
+  // ============================================================
+  // action: 'get-debate' — დებატის მდგომარეობა (auth არ სჭირდება)
+  // ============================================================
+  if (action === "get-debate") {
+    const { threadId } = body;
+    if (!threadId) return res.status(400).json({ error: "threadId სავალდებულოა" });
+    try {
+      const debate = await fbGet(`/agora-debates/${threadId}`);
+      if (!debate) return res.status(404).json({ error: "დებატი ვერ მოიძებნა" });
+      const changed = await checkDebateTimeouts(debate, threadId, now);
+      const fresh   = changed ? await fbGet(`/agora-debates/${threadId}`) : debate;
+      return res.json({ debate: { threadId, ...fresh } });
     } catch (e) {
       return res.status(500).json({ error: e.message });
     }
@@ -1020,6 +1178,423 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: e.message });
     }
   }
+
+  // ============================================================
+  // action: 'find-user' — nickname-ით მომხმარებლის მოძიება
+  // ============================================================
+  if (action === "find-user") {
+    const { nickname } = body;
+    if (!nickname || nickname.trim().length < 2)
+      return res.status(400).json({ error: "nickname სავალდებულოა" });
+    try {
+      const users = await fbGet("/users");
+      if (!users) return res.json({ user: null });
+      const q = nickname.trim().toLowerCase();
+      const match = Object.entries(users).find(([, d]) =>
+        (d.nickname || "").toLowerCase() === q
+      );
+      if (!match) return res.json({ user: null });
+      const [uid, d] = match;
+      if (uid === user.uid) return res.status(400).json({ error: "საკუთარ თავს ვერ გამოიწვევ" });
+      return res.json({ user: { uid, nickname: d.nickname, photoURL: d.photoURL || null } });
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
+    }
+  }
+
+
+  // ============================================================
+  // action: 'create-debate' — 1vs1 დებატის გამოწვევა
+  // ============================================================
+  if (action === "create-debate") {
+    const { title, threadBody, opponentUid } = body;
+
+    if (!title || title.trim().length < 5)
+      return res.status(400).json({ error: "სათაური მინ. 5 სიმბოლო" });
+    if (title.trim().length > MAX_TITLE_LEN)
+      return res.status(400).json({ error: `სათაური მაქს. ${MAX_TITLE_LEN} სიმბოლო` });
+    if (!threadBody || threadBody.trim().length < 10)
+      return res.status(400).json({ error: "შინაარსი მინ. 10 სიმბოლო" });
+    if (!opponentUid)
+      return res.status(400).json({ error: "ოპონენტის UID სავალდებულოა" });
+    if (opponentUid === user.uid)
+      return res.status(400).json({ error: "საკუთარ თავს ვერ გამოიწვევ" });
+    if (containsEmoji(title) || containsEmoji(threadBody))
+      return res.status(400).json({ error: "emoji-ები აკრძალულია" });
+
+    // ოპონენტი არსებობს?
+    const oppData = await fbGet(`/users/${opponentUid}`);
+    if (!oppData) return res.status(404).json({ error: "ოპონენტი ვერ მოიძებნა" });
+
+    // ოპონენტი დაბლოკილია?
+    const oppWarn = await fbGet(`/agora-warnings/${opponentUid}`);
+    if (oppWarn?.banned) return res.status(400).json({ error: "ოპონენტი ამჟამად დაბლოკილია" });
+
+    // AI მოდერაცია
+    const modResult = await moderateThread(title.trim(), threadBody.trim());
+    if (modResult.abuse) {
+      const warnData = await fbGet(`/agora-warnings/${user.uid}`);
+      const count    = (warnData?.count || 0) + 1;
+      if (count >= MAX_WARNINGS) {
+        await banUserForAbuse(user.uid);
+        return res.status(403).json({ warned: true, banned: true, count: MAX_WARNINGS, message: `🚫 3/3 გაფრთხილება. ${BAN_DAYS} დღით დაიბლოკე.` });
+      }
+      await fbSet(`/agora-warnings/${user.uid}`, { count, lastWarningAt: now, reason: "abuse" });
+      return res.status(403).json({ warned: true, banned: false, count, max: MAX_WARNINGS, quote: modResult.quote || "", message: `⚠️ გაფრთხილება ${count}/${MAX_WARNINGS}: ${modResult.message || ""}` });
+    }
+    if (!modResult.philosophical) {
+      return res.status(400).json({ error: `🏛️ თემა ფილოსოფიასთან არ არის დაკავშირებული. ${modResult.message || ""}`, quote: modResult.quote || "" });
+    }
+
+    const userData       = await fbGet(`/users/${user.uid}`);
+    const authorNickname = body.authorName || userData?.nickname || "მომხმარებელი";
+    const oppNickname    = oppData.nickname || "მომხმარებელი";
+
+    // Thread შექმნა
+    const threadData = {
+      title:           title.trim(),
+      body:            threadBody.trim(),
+      authorUid:       user.uid,
+      authorName:      authorNickname,
+      authorAvatar:    body.authorAvatar || userData?.photoURL || null,
+      type:            "debate",
+      debateStatus:    "pending",
+      debatePhase:     "pending",
+      opponentUid,
+      opponentNickname: oppNickname,
+      createdAt:       now,
+      editedAt:        null,
+      replyCount:      0,
+      status:          "open",
+      pinned:          false
+    };
+
+    const threadId = await fbPush("/agora-threads", threadData);
+    if (!threadId) return res.status(500).json({ error: "დებატის შექმნა ვერ მოხერხდა" });
+
+    // Debate record
+    await fbSet(`/agora-debates/${threadId}`, {
+      threadId,
+      authorUid:       user.uid,
+      authorNickname,
+      opponentUid,
+      opponentNickname: oppNickname,
+      phase:           "pending",
+      invitedAt:       now,
+      inviteDeadline:  now + INVITE_TIMEOUT_MS,
+      currentTurn:     null,
+      turnDeadline:    null,
+      startedAt:       null,
+      totalDeadline:   null,
+      opening:         {},
+      cross:           { questions: {}, answers: {}, askerUid: user.uid },
+      final:           {}
+    });
+
+    // topicsCount + 1
+    try {
+      const newCount = (userData?.topicsCount || 0) + 1;
+      await fbPatch(`/users/${user.uid}`, { topicsCount: newCount });
+    } catch { /* silent */ }
+
+    // ოპონენტს შეტყობინება
+    await writeNotification(opponentUid, {
+      type:        "debate-invite",
+      threadId,
+      fromUid:     user.uid,
+      fromName:    authorNickname,
+      fromAvatar:  body.authorAvatar || userData?.photoURL || null,
+      threadTitle: title.trim(),
+      message:     `⚔️ ${authorNickname} გიწვევს 1vs1 დებატში: "${title.trim()}"`,
+      deadline:    now + INVITE_TIMEOUT_MS
+    });
+
+    return res.json({ ok: true, threadId });
+  }
+
+
+  // ============================================================
+  // action: 'accept-debate' — ოპონენტი იღებს გამოწვევას
+  // ============================================================
+  if (action === "accept-debate") {
+    const { threadId } = body;
+    if (!threadId) return res.status(400).json({ error: "threadId სავალდებულოა" });
+
+    const debate = await fbGet(`/agora-debates/${threadId}`);
+    if (!debate) return res.status(404).json({ error: "დებატი ვერ მოიძებნა" });
+    if (debate.phase !== "pending") return res.status(400).json({ error: "გამოწვევა აღარ არის მოლოდინის სტატუსში" });
+    if (debate.opponentUid !== user.uid) return res.status(403).json({ error: "ეს გამოწვევა შენთვის არ არის" });
+    if (now > debate.inviteDeadline) {
+      await fbPatch(`/agora-debates/${threadId}`, { phase: "cancelled" });
+      await fbPatch(`/agora-threads/${threadId}`,  { debateStatus: "cancelled" });
+      return res.status(400).json({ error: "გამოწვევის ვადა ამოიწურა" });
+    }
+
+    const startedAt     = now;
+    const totalDeadline = now + TOTAL_DEBATE_MS;
+    const turnDeadline  = now + TURN_TIMEOUT_MS;
+
+    await fbPatch(`/agora-debates/${threadId}`, {
+      phase:         "opening",
+      currentTurn:   debate.authorUid,   // ავტორი პირველი
+      startedAt,
+      totalDeadline,
+      turnDeadline
+    });
+    await fbPatch(`/agora-threads/${threadId}`, {
+      debateStatus: "active",
+      debatePhase:  "opening"
+    });
+
+    // ავტორს შეტყობინება
+    await writeNotification(debate.authorUid, {
+      type:        "debate-accepted",
+      threadId,
+      fromUid:     user.uid,
+      fromName:    debate.opponentNickname,
+      message:     `⚔️ ${debate.opponentNickname}-მა მიიღო შენი გამოწვევა! დებატი დაიწყო.`,
+      threadTitle: (await fbGet(`/agora-threads/${threadId}`))?.title || ""
+    });
+
+    return res.json({ ok: true, phase: "opening", currentTurn: debate.authorUid });
+  }
+
+
+  // ============================================================
+  // action: 'decline-debate' — ოპონენტი უარყოფს გამოწვევას
+  // ============================================================
+  if (action === "decline-debate") {
+    const { threadId } = body;
+    if (!threadId) return res.status(400).json({ error: "threadId სავალდებულოა" });
+
+    const debate = await fbGet(`/agora-debates/${threadId}`);
+    if (!debate) return res.status(404).json({ error: "დებატი ვერ მოიძებნა" });
+    if (debate.phase !== "pending") return res.status(400).json({ error: "გამოწვევა აღარ არის მოლოდინის სტატუსში" });
+    if (debate.opponentUid !== user.uid) return res.status(403).json({ error: "ეს გამოწვევა შენთვის არ არის" });
+
+    await fbPatch(`/agora-debates/${threadId}`, { phase: "cancelled", declinedAt: now });
+    await fbPatch(`/agora-threads/${threadId}`,  { debateStatus: "cancelled" });
+
+    await writeNotification(debate.authorUid, {
+      type:     "debate-declined",
+      threadId,
+      fromName: debate.opponentNickname,
+      message:  `⚔️ ${debate.opponentNickname}-მა უარი თქვა გამოწვევაზე.`
+    });
+
+    return res.json({ ok: true });
+  }
+
+
+  // ============================================================
+  // action: 'cancel-debate' — ავტორი აუქმებს მოლოდინ გამოწვევას
+  // ============================================================
+  if (action === "cancel-debate") {
+    const { threadId } = body;
+    if (!threadId) return res.status(400).json({ error: "threadId სავალდებულოა" });
+
+    const debate = await fbGet(`/agora-debates/${threadId}`);
+    if (!debate) return res.status(404).json({ error: "დებატი ვერ მოიძებნა" });
+    if (debate.phase !== "pending") return res.status(400).json({ error: "მხოლოდ მოლოდინის დებატი შეიძლება გაუქმდეს" });
+    if (debate.authorUid !== user.uid && !isAdmin) return res.status(403).json({ error: "მხოლოდ ავტორი ან ადმინი" });
+
+    await fbPatch(`/agora-debates/${threadId}`, { phase: "cancelled", cancelledAt: now });
+    await fbPatch(`/agora-threads/${threadId}`,  { debateStatus: "cancelled" });
+
+    return res.json({ ok: true });
+  }
+
+
+  // ============================================================
+  // action: 'submit-turn' — სვლა საწყის ან საბოლოო ეტაპზე
+  // ============================================================
+  if (action === "submit-turn") {
+    const { threadId, turnBody } = body;
+    if (!threadId) return res.status(400).json({ error: "threadId სავალდებულოა" });
+    if (!turnBody || turnBody.trim().length < 5)
+      return res.status(400).json({ error: "სვლა მინ. 5 სიმბოლო" });
+    if (turnBody.trim().length > 2000)
+      return res.status(400).json({ error: "სვლა მაქს. 2000 სიმბოლო" });
+    if (containsEmoji(turnBody))
+      return res.status(400).json({ error: "emoji-ები აკრძალულია" });
+
+    const debate = await fbGet(`/agora-debates/${threadId}`);
+    if (!debate) return res.status(404).json({ error: "დებატი ვერ მოიძებნა" });
+    if (debate.phase !== "opening" && debate.phase !== "final")
+      return res.status(400).json({ error: "ამ ეტაპზე სვლა შეუძლებელია" });
+    if (debate.currentTurn !== user.uid)
+      return res.status(403).json({ error: "ახლა მეორე მხარის სვლაა" });
+
+    // ვადა შემოწმება
+    if (now > debate.turnDeadline) {
+      await banForMissedTurn(user.uid);
+      await judgeDebate(debate, threadId, user.uid);
+      return res.status(403).json({ error: "⏰ სვლის ვადა ამოიწურა. AI კრიტიკოსი განსჯის დებატს." });
+    }
+    // 24-სთ ლიმიტი
+    if (debate.totalDeadline && now > debate.totalDeadline) {
+      await judgeDebate(debate, threadId, null);
+      return res.status(400).json({ error: "⏰ 24-საათიანი ლიმიტი ამოიწურა. AI განიხილავს." });
+    }
+
+    const phaseKey = debate.phase; // "opening" or "final"
+    const turns    = debate[phaseKey] || {};
+    const turnIdx  = Object.keys(turns).length;
+    const maxTurns = phaseKey === "opening" ? OPENING_TURNS_EACH * 2 : FINAL_TURNS_EACH * 2;
+
+    if (turnIdx >= maxTurns)
+      return res.status(400).json({ error: "ამ ეტაპის სვლები ამოიწურა" });
+
+    const userData   = await fbGet(`/users/${user.uid}`);
+    const nickname   = body.authorName || userData?.nickname || "მომხმარებელი";
+    const newTurn    = { uid: user.uid, nickname, body: turnBody.trim(), createdAt: now };
+
+    await fbPatch(`/agora-debates/${threadId}/${phaseKey}`, { [turnIdx]: newTurn });
+
+    const nextIdx = turnIdx + 1;
+    const otherUid = user.uid === debate.authorUid ? debate.opponentUid : debate.authorUid;
+
+    if (nextIdx >= maxTurns) {
+      // ეტაპი დასრულდა
+      if (phaseKey === "opening") {
+        // opening → cross-asking
+        await fbPatch(`/agora-debates/${threadId}`, {
+          phase:       "cross-asking",
+          currentTurn: debate.authorUid,
+          turnDeadline: now + TURN_TIMEOUT_MS,
+          debatePhase: "cross"
+        });
+        await fbPatch(`/agora-threads/${threadId}`, { debatePhase: "cross" });
+        await writeNotification(debate.authorUid, {
+          type: "debate-turn", threadId,
+          message: "⚔️ საწყისი ეტაპი დასრულდა! შენი ჯერია — გამოაქვეყნე კითხვები დაკითხვის ეტაპისთვის."
+        });
+      } else {
+        // final → verdict
+        const freshDebate = await fbGet(`/agora-debates/${threadId}`);
+        await judgeDebate({ ...freshDebate, [phaseKey]: { ...turns, [turnIdx]: newTurn } }, threadId, null);
+      }
+    } else {
+      // შემდეგი სვლა
+      await fbPatch(`/agora-debates/${threadId}`, {
+        currentTurn:  otherUid,
+        turnDeadline: now + TURN_TIMEOUT_MS
+      });
+      await writeNotification(otherUid, {
+        type:    "debate-turn",
+        threadId,
+        fromName: nickname,
+        message: `⚔️ ${nickname}-მა სვლა გააკეთა. შენი ჯერია!`
+      });
+    }
+
+    return res.json({ ok: true, turnIdx, nextTurn: nextIdx < maxTurns ? otherUid : null });
+  }
+
+
+  // ============================================================
+  // action: 'submit-cross-questions' — ავტორი სვამს კითხვებს
+  // ============================================================
+  if (action === "submit-cross-questions") {
+    const { threadId, questions } = body;
+    if (!threadId) return res.status(400).json({ error: "threadId სავალდებულოა" });
+    if (!Array.isArray(questions) || questions.length < CROSS_MIN_Q)
+      return res.status(400).json({ error: `მინ. ${CROSS_MIN_Q} კითხვა საჭიროა` });
+    if (questions.length > CROSS_MAX_Q)
+      return res.status(400).json({ error: `მაქს. ${CROSS_MAX_Q} კითხვა` });
+
+    const debate = await fbGet(`/agora-debates/${threadId}`);
+    if (!debate) return res.status(404).json({ error: "დებატი ვერ მოიძებნა" });
+    if (debate.phase !== "cross-asking") return res.status(400).json({ error: "ეს ეტაპი არ არის cross-asking" });
+    if (debate.currentTurn !== user.uid) return res.status(403).json({ error: "ახლა შენი ჯერი არ არის" });
+    if (now > debate.turnDeadline) {
+      await banForMissedTurn(user.uid);
+      await judgeDebate(debate, threadId, user.uid);
+      return res.status(403).json({ error: "⏰ ვადა ამოიწურა" });
+    }
+
+    // კითხვები შევინახოთ
+    const qObj = {};
+    questions.forEach((q, i) => {
+      const text = String(q).trim();
+      if (text.length > 0) qObj[i] = { body: text.substring(0, 500), createdAt: now };
+    });
+
+    await fbPatch(`/agora-debates/${threadId}/cross`, { questions: qObj });
+    await fbPatch(`/agora-debates/${threadId}`, {
+      phase:       "cross-answering",
+      currentTurn: debate.opponentUid,
+      turnDeadline: now + TURN_TIMEOUT_MS
+    });
+    await fbPatch(`/agora-threads/${threadId}`, { debatePhase: "cross" });
+
+    await writeNotification(debate.opponentUid, {
+      type:    "debate-turn",
+      threadId,
+      message: `⚔️ კითხვები გამოქვეყნდა! უპასუხე ${questions.length} კითხვაზე.`
+    });
+
+    return res.json({ ok: true, questionCount: Object.keys(qObj).length });
+  }
+
+
+  // ============================================================
+  // action: 'submit-cross-answer' — ოპონენტი პასუხობს
+  // ============================================================
+  if (action === "submit-cross-answer") {
+    const { threadId, questionIdx, answer } = body;
+    if (!threadId) return res.status(400).json({ error: "threadId სავალდებულოა" });
+    if (!["yes","no","idk"].includes(answer))
+      return res.status(400).json({ error: "პასუხი: yes / no / idk" });
+    if (questionIdx === undefined || questionIdx === null)
+      return res.status(400).json({ error: "questionIdx სავალდებულოა" });
+
+    const debate = await fbGet(`/agora-debates/${threadId}`);
+    if (!debate) return res.status(404).json({ error: "დებატი ვერ მოიძებნა" });
+    if (debate.phase !== "cross-answering") return res.status(400).json({ error: "ეს ეტაპი არ არის cross-answering" });
+    if (debate.opponentUid !== user.uid) return res.status(403).json({ error: "მხოლოდ ოპონენტი პასუხობს" });
+    if (now > debate.turnDeadline) {
+      await banForMissedTurn(user.uid);
+      await judgeDebate(debate, threadId, user.uid);
+      return res.status(403).json({ error: "⏰ ვადა ამოიწურა" });
+    }
+
+    const questions   = debate.cross?.questions || {};
+    const totalQ      = Object.keys(questions).length;
+    const answers     = debate.cross?.answers   || {};
+
+    if (answers[questionIdx] !== undefined)
+      return res.status(400).json({ error: "ეს კითხვა უკვე პასუხგაცემულია" });
+    if (questions[questionIdx] === undefined)
+      return res.status(400).json({ error: "კითხვა ვერ მოიძებნა" });
+
+    await fbPatch(`/agora-debates/${threadId}/cross/answers`, {
+      [questionIdx]: { answer, createdAt: now }
+    });
+
+    const newAnswerCount = Object.keys(answers).length + 1;
+
+    if (newAnswerCount >= totalQ) {
+      // ყველა კითხვა პასუხგაცემულია → final
+      await fbPatch(`/agora-debates/${threadId}`, {
+        phase:        "final",
+        currentTurn:  debate.authorUid,
+        turnDeadline: now + TURN_TIMEOUT_MS
+      });
+      await fbPatch(`/agora-threads/${threadId}`, { debatePhase: "final" });
+      await writeNotification(debate.authorUid, {
+        type:    "debate-turn",
+        threadId,
+        message: "⚔️ დაკითხვა დასრულდა! საბოლოო პაექრობა იწყება — შენი ჯერია."
+      });
+      return res.json({ ok: true, allAnswered: true, nextPhase: "final" });
+    } else {
+      // კიდევ კითხვები რჩება
+      await fbPatch(`/agora-debates/${threadId}`, { turnDeadline: now + TURN_TIMEOUT_MS });
+      return res.json({ ok: true, answered: newAnswerCount, total: totalQ });
+    }
+  }
+
 
   return res.status(400).json({ error: "უცნობი action" });
 }
