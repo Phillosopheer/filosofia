@@ -1819,19 +1819,51 @@ function _dbTurnsHtml(turnsObj, authorUid, authorNick, oppNick, myUid, myPhoto) 
 function _dbSubmitForm() {
   return `<div class="db-submit-wrap">
     <label class="db-label">შენი სვლა</label>
-    <textarea id="dbTurnInput" class="db-textarea" rows="5" placeholder="არგუმენტი... (მინ. 5 სიმბოლო)"></textarea>
+
+    <div style="display:flex;gap:8px;margin-bottom:14px;">
+      <button id="dbAgreeBtn" class="db-btn db-btn-gold" style="flex:1;font-size:0.6rem;padding:10px 8px;">✓ გეთანხმები</button>
+      <button id="dbNoAnswerBtn" class="db-btn" style="flex:1;font-size:0.6rem;padding:10px 8px;background:none;border:1px solid rgba(201,168,76,0.2);color:var(--text-dim);">— პასუხი არ მაქვს</button>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+      <div style="flex:1;height:1px;background:rgba(201,168,76,0.12);"></div>
+      <span style="font-family:'Cinzel',serif;font-size:0.55rem;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;white-space:nowrap;">ან პასუხი გაეცი</span>
+      <div style="flex:1;height:1px;background:rgba(201,168,76,0.12);"></div>
+    </div>
+
+    <textarea id="dbTurnInput" class="db-textarea" rows="6" placeholder="არგუმენტი... (მინ. 200 სიმბოლო)"></textarea>
+    <div id="dbTurnCounter" style="font-family:'Cinzel',serif;font-size:0.6rem;color:var(--text-dim);text-align:right;margin-top:4px;letter-spacing:1px;">0 / 200</div>
     <div id="dbTurnError" class="db-error"></div>
     <button id="dbSubmitTurnBtn" class="db-btn db-btn-gold db-btn-full" style="margin-top:10px;">სვლის გაკეთება →</button>
   </div>`;
 }
 
-function _dbProgressBar(done, total, aName, aCount, oName, oCount) {
+function _dbProgressBar(done, total, aName, aCountRaw, oName, oCountRaw) {
+  // e.g. aCountRaw = "1/5" → extract numbers
+  const [aDone, aMax] = aCountRaw.split('/').map(Number);
+  const [oDone, oMax] = oCountRaw.split('/').map(Number);
   const pct = Math.round((done / total) * 100);
-  return `<div style="display:flex;justify-content:space-between;font-family:'Cinzel',serif;font-size:0.6rem;letter-spacing:1px;color:var(--text-dim);margin-bottom:6px;">
-    <span>${agoraEscape(aName)}: ${aCount}</span>
-    <span>${agoraEscape(oName)}: ${oCount}</span>
+
+  function playerCard(nick, doneCnt, maxCnt) {
+    const initials = (nick||'?')[0].toUpperCase();
+    const dots = Array.from({length: maxCnt}, (_, i) =>
+      `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;margin:0 2px;background:${i < doneCnt ? 'var(--gold)' : 'rgba(201,168,76,0.15)'};"></span>`
+    ).join('');
+    return `<div style="display:flex;align-items:center;gap:8px;">
+      <div style="width:26px;height:26px;border-radius:50%;background:var(--surface2);border:1px solid rgba(201,168,76,0.25);display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-size:0.65rem;color:var(--gold-dim);flex-shrink:0;">${initials}</div>
+      <div>
+        <div style="font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:1px;color:var(--text-dim);margin-bottom:4px;">${agoraEscape(nick)}</div>
+        <div style="line-height:1;">${dots}</div>
+      </div>
+    </div>`;
+  }
+
+  return `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px;padding:12px 14px;background:var(--surface);border:1px solid rgba(201,168,76,0.1);">
+    ${playerCard(aName, aDone, aMax)}
+    <div style="font-family:'Cinzel',serif;font-size:0.58rem;letter-spacing:1.5px;color:var(--gold-dim);text-transform:uppercase;flex-shrink:0;">vs</div>
+    ${playerCard(oName, oDone, oMax)}
   </div>
-  <div style="height:3px;background:rgba(201,168,76,0.1);margin-bottom:20px;"><div style="height:100%;background:var(--gold);width:${pct}%;transition:width 0.4s;"></div></div>`;
+  <div style="height:2px;background:rgba(201,168,76,0.08);margin-bottom:18px;"><div style="height:100%;background:rgba(201,168,76,0.35);width:${pct}%;transition:width 0.5s;"></div></div>`;
 }
 
 // ── Main router ──────────────────────────────────────────────
@@ -2040,6 +2072,28 @@ function _dbBindActions(container, thread, debate, uid) {
   const submitTurnBtn = container.querySelector('#dbSubmitTurnBtn');
   if (submitTurnBtn) submitTurnBtn.addEventListener('click', () => _dbSubmitTurn(tid, submitTurnBtn));
 
+  // character counter
+  const ta = container.querySelector('#dbTurnInput');
+  const counter = container.querySelector('#dbTurnCounter');
+  if (ta && counter) {
+    ta.addEventListener('input', () => {
+      const len = ta.value.trim().length;
+      counter.textContent = `${len} / 200`;
+      counter.style.color = len >= 200 ? 'var(--gold)' : 'var(--text-dim)';
+    });
+  }
+
+  // quick buttons
+  const agreeBtn = container.querySelector('#dbAgreeBtn');
+  if (agreeBtn) agreeBtn.addEventListener('click', () => {
+    showConfirmToast('„გეთანხმები" — გაიგზავნოს?', () => _dbSubmitTurn(tid, agreeBtn, 'agree'));
+  });
+
+  const noAnsBtn = container.querySelector('#dbNoAnswerBtn');
+  if (noAnsBtn) noAnsBtn.addEventListener('click', () => {
+    showConfirmToast('„პასუხი არ მაქვს" — გაიგზავნოს?', () => _dbSubmitTurn(tid, noAnsBtn, 'no_answer'));
+  });
+
   const addQBtn = container.querySelector('#dbAddQBtn');
   if (addQBtn) _dbInitQForm(container, tid);
 
@@ -2106,25 +2160,36 @@ async function _dbCancel(tid, btn) {
   } catch { showToast('📡 კავშირის შეცდომა','error'); btn.disabled=false; }
 }
 
-async function _dbSubmitTurn(tid, btn) {
-  const ta   = document.getElementById('dbTurnInput');
+async function _dbSubmitTurn(tid, btn, quickType) {
+  const ta    = document.getElementById('dbTurnInput');
   const errEl = document.getElementById('dbTurnError');
-  if (!ta) return;
-  const body = ta.value.trim();
   if (errEl) errEl.style.display = 'none';
-  if (!body || body.length < 5) {
-    if (errEl) { errEl.textContent='მინ. 5 სიმბოლო'; errEl.style.display='block'; }
-    return;
+
+  let body;
+  if (quickType === 'agree') {
+    body = '✓ გეთანხმები';
+  } else if (quickType === 'no_answer') {
+    body = '— პასუხი არ მაქვს';
+  } else {
+    if (!ta) return;
+    body = ta.value.trim();
+    if (!body || body.length < 200) {
+      if (errEl) { errEl.textContent = `მინ. 200 სიმბოლო (ახლა: ${body.length})`; errEl.style.display = 'block'; }
+      return;
+    }
   }
-  btn.disabled=true; btn.textContent='იგზავნება...';
+
+  btn.disabled = true;
+  const origText = btn.textContent;
+  btn.textContent = 'იგზავნება...';
   try {
     const tok  = await agoraGetValidToken();
     const user = agoraGetUser();
     const authorName = user?.nickname || localStorage.getItem('userNickname') || 'მომხმარებელი';
     const { ok, data } = await agoraFetch({ action:'submit-turn', threadId:tid, turnBody:body, userToken:tok, authorName });
     if (ok) { showToast('✅ სვლა გაკეთდა!','success'); setTimeout(()=>agoraOpenThread(tid), 600); }
-    else { showToast(data.error||'შეცდომა','error'); btn.disabled=false; btn.textContent='სვლის გაკეთება →'; }
-  } catch { showToast('📡 კავშირის შეცდომა','error'); btn.disabled=false; btn.textContent='სვლის გაკეთება →'; }
+    else { showToast(data.error||'შეცდომა','error'); btn.disabled=false; btn.textContent=origText; }
+  } catch { showToast('📡 კავშირის შეცდომა','error'); btn.disabled=false; btn.textContent=origText; }
 }
 
 async function _dbSubmitQuestions(container, tid, btn) {
