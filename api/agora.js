@@ -349,6 +349,50 @@ abuse:true — შემდეგი ტიპები:
   }
 }
 
+async function moderateDebateTurn(turnBody, threadTitle, opponentNick) {
+  const prompt = `შენ ხარ ფილოსოფიური 1vs1 დებატების მკაცრი AI მოდერატორი.
+
+დებატის თემა: "${threadTitle}"
+ოპონენტი: ${opponentNick}
+
+მომხმარებლის სვლა:
+${turnBody}
+
+შეამოწმე:
+
+"abuse": true/false
+
+abuse:true — შემდეგი ტიპები:
+
+პირდაპირი: გინება, ლანძღვა, შეურაცხყოფა, სპამი.
+
+დახვეწილი/პატრონიზმი — გარეგნულად "თავაზიანი", მაგრამ შინაარსით პიროვნებას ამცირებს:
+- "გაგების დონე", "ეტაპი", "საფეხური" — პიროვნებაზე მიმართული
+- "გისურვებ წარმატებას განვითარებაში" — ზემოდან ქვემოთ ტონი
+- "შენი მოსაზრება ამხელს გონებრივ ჩარჩოს" — ინტელექტის გაკრიტიკება
+- ქება+დამცირება: "კარგია რომ ცდილობ, მაგრამ ამ საკითხს გაგება სჭირდება"
+
+მაგ: "შენი არგუმენტი სუსტია, რადგან X მიზეზით" → abuse:false (კრიტიკა, მაგრამ არა დამცირება)
+მაგ: "ეს პოზიცია ეწინააღმდეგება კანტის მოსაზრებას" → abuse:false
+
+"quote": კონკრეტული პრობლემური ფრაზა (თუ abuse:true; თუ კარგია — "")
+"message": ქართული განმარტება — 2-3 წინადადებით კონკრეტულად ახსენი რა არის პრობლემა.
+
+⚠️ ᲔᲜᲝᲑᲠᲘᲕᲘ ᲬᲔᲡᲘ: message სრულყოფილ, სალიტერატურო ქართულად.
+
+უპასუხე მხოლოდ JSON, სხვა არაფერი:
+{"abuse":true/false,"quote":"პრობლემური ფრაზა ან empty string","message":"განმარტება ქართულად"}`;
+
+  const text = await callGemini(prompt);
+  if (!text) return { abuse: false, message: "" };
+  try {
+    const m = text.match(/\{[\s\S]*?\}/);
+    return JSON.parse(m ? m[0] : text);
+  } catch {
+    return { abuse: false, message: "" };
+  }
+}
+
 // ============================================================
 // პაგინაციის helper
 // ============================================================
@@ -1068,6 +1112,23 @@ export default async function handler(req, res) {
       return res.status(403).json({ error: "⏰ წაშლის 1-საათიანი ვადა ამოიწურა. ადმინს მიმართე." });
     }
 
+    // დებატის შემთხვევაში — ოპონენტს შეატყობინე
+    if (thread.type === "debate") {
+      const debate4del = await fbGet(`/agora-debates/${threadId}`);
+      if (debate4del && debate4del.phase !== "verdict" && debate4del.phase !== "cancelled") {
+        const otherUid4del = user.uid === debate4del.authorUid ? debate4del.opponentUid : debate4del.authorUid;
+        if (otherUid4del) {
+          const delUserData = await fbGet(`/users/${user.uid}`);
+          const delNick = delUserData?.nickname || "მომხმარებელი";
+          await writeNotification(otherUid4del, {
+            type: "debate-turn", threadId,
+            message: `⚔️ ${delNick}-მა დებატის თემა წაშალა — "${(thread.title || "").substring(0, 50)}"`,
+          });
+          await fbPatch(`/agora-debates/${threadId}`, { phase: "cancelled" });
+        }
+      }
+    }
+
     await fbPatch(`/agora-threads/${threadId}`, { status: "deleted" });
 
     // topicsCount - 1
@@ -1475,6 +1536,21 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "ამ ეტაპზე სვლა შეუძლებელია" });
     if (debate.currentTurn !== user.uid)
       return res.status(403).json({ error: "ახლა მეორე მხარის სვლაა" });
+
+    // AI მოდერაცია — abuse check
+    const thread4mod = await fbGet(`/agora-threads/${threadId}`);
+    const oppNick4mod = user.uid === debate.authorUid ? debate.opponentNickname : debate.authorNickname;
+    const modTurn = await moderateDebateTurn(turnBody.trim(), thread4mod?.title || "", oppNick4mod || "ოპონენტი");
+    if (modTurn.abuse) {
+      const warnData = await fbGet(`/agora-warnings/${user.uid}`);
+      const count    = (warnData?.count || 0) + 1;
+      if (count >= MAX_WARNINGS) {
+        await banUserForAbuse(user.uid);
+        return res.status(403).json({ warned: true, banned: true, count: MAX_WARNINGS, message: `🚫 3/3 გაფრთხილება. ${BAN_DAYS} დღით დაიბლოკე.` });
+      }
+      await fbSet(`/agora-warnings/${user.uid}`, { count, lastWarningAt: now, reason: "debate_abuse" });
+      return res.status(403).json({ warned: true, banned: false, count, max: MAX_WARNINGS, quote: modTurn.quote || "", message: `⚠️ გაფრთხილება ${count}/${MAX_WARNINGS}: ${modTurn.message || "შეურაცხმყოფელი შინაარსი."}` });
+    }
 
     // ვადა შემოწმება
     if (now > debate.turnDeadline) {
