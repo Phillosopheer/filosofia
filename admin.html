@@ -11,9 +11,14 @@
 <body>
 
 <header class="adm-header">
-  <div class="adm-logo">
-    ΦΙΛΟΣΟΦΙΑ
-    <span class="adm-logo-sub">/ ადმინ პანელი</span>
+  <div class="adm-header-left">
+    <button class="adm-hamburger" id="admHamburger" aria-label="მენიუ">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="adm-logo">
+      ΦΙΛΟΣΟΦΙΑ
+      <span class="adm-logo-sub">/ ადმინ პანელი</span>
+    </div>
   </div>
   <div class="adm-header-right">
     <a href="/" class="adm-back">← მთავარი</a>
@@ -21,8 +26,10 @@
   </div>
 </header>
 
+<div class="adm-nav-overlay" id="admNavOverlay"></div>
+
 <div class="adm-layout">
-  <nav class="adm-nav">
+  <nav class="adm-nav" id="admNav">
     <div class="nav-section">
       <span class="nav-label">მთავარი</span>
       <div class="nav-item active" data-view="dashboard"><span class="nav-icon">◈</span> დაფა</div>
