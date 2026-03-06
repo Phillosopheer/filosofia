@@ -2113,16 +2113,27 @@ function _dbVerdictView(debate) {
   const v = debate.verdict;
   if (!v) return `<div class="db-waiting">⚖ AI კრიტიკოსი ვერდიქტს ამზადებს...</div>`;
 
-  function bar(n) {
-    return `<div style="height:3px;background:rgba(201,168,76,0.1);margin-top:3px;"><div style="height:100%;background:var(--gold);width:${Math.round((n/10)*100)}%;transition:width 0.5s;"></div></div>`;
+  function barGold(n) {
+    return `<div style="height:3px;background:rgba(201,168,76,0.1);margin-top:3px;margin-bottom:8px;"><div style="height:100%;background:var(--gold);width:${Math.round((n/10)*100)}%;transition:width 0.5s;"></div></div>`;
+  }
+  function barRed(n) {
+    return `<div style="height:3px;background:rgba(248,113,113,0.12);margin-top:3px;margin-bottom:8px;"><div style="height:100%;background:#f87171;width:${Math.round((n/10)*100)}%;transition:width 0.5s;"></div></div>`;
   }
   function scoreBlock(nick) {
-    const s = (v.scores||{})[nick] || {};
+    const s  = (v.scores||{})[nick] || {};
+    const ip = s.ignored_points || 0;
+    const ipColor = ip <= 3 ? 'var(--gold)' : ip <= 6 ? '#f59e0b' : '#f87171';
     return `<div class="db-score-item">
       <div class="db-score-nick">${agoraEscape(nick)}</div>
-      <div style="font-family:'EB Garamond',serif;font-size:0.82rem;color:var(--text-dim);margin-bottom:3px;">ლოგიკა: <span class="db-score-val" style="font-size:0.85rem;">${s.logic_score||0}/10</span> ${bar(s.logic_score||0)}</div>
-      <div style="font-family:'EB Garamond',serif;font-size:0.82rem;color:var(--text-dim);margin-bottom:3px;">დაკითხვა: <span class="db-score-val" style="font-size:0.85rem;">${s.cross_score||0}/10</span> ${bar(s.cross_score||0)}</div>
-      <div style="font-family:'EB Garamond',serif;font-size:0.82rem;color:var(--text-dim);">გამ. პ.: <span class="db-score-val" style="font-size:0.85rem;">${s.ignored_points||0}/10</span> ${bar(s.ignored_points||0)}</div>
+      <div class="db-score-row"><span class="db-score-label">ლოგიკა</span><span class="db-score-val">${s.logic_score||0} / 10</span></div>
+      ${barGold(s.logic_score||0)}
+      <div class="db-score-row"><span class="db-score-label">დაკითხვა</span><span class="db-score-val">${s.cross_score||0} / 10</span></div>
+      ${barGold(s.cross_score||0)}
+      <div class="db-score-row">
+        <span class="db-score-label">უპასუხო არგუმენტები<br><span style="font-size:0.6rem;opacity:0.55;">ნაკლები = უკეთ</span></span>
+        <span class="db-score-val" style="color:${ipColor};">${ip} / 10</span>
+      </div>
+      ${barRed(ip)}
     </div>`;
   }
 
