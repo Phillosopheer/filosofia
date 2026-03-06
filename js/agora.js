@@ -344,15 +344,18 @@ async function agoraOpenThread(threadId) {
         paginEl.innerHTML   = '';
         if (replyFEl) replyFEl.innerHTML = '';
         const debate = debRes.data.debate;
-        // fetch both players' photos from Firebase
+        // Firebase SDK-ით ორივე მოთამაშის ფოტო (App Check ავტომატური)
         const photoMap = {};
         try {
-          const [aRes, oRes] = await Promise.all([
-            fbFetch(`${FIREBASE_DB}/users/${debate.authorUid}/photoURL.json`),
-            fbFetch(`${FIREBASE_DB}/users/${debate.opponentUid}/photoURL.json`)
+          const db = firebase.database();
+          const [aSnap, oSnap] = await Promise.all([
+            db.ref(`users/${debate.authorUid}/photoURL`).once('value'),
+            db.ref(`users/${debate.opponentUid}/photoURL`).once('value')
           ]);
-          if (aRes.ok) { const p = await aRes.json(); if (p) photoMap[debate.authorUid] = p; }
-          if (oRes.ok) { const p = await oRes.json(); if (p) photoMap[debate.opponentUid] = p; }
+          const aPhoto = aSnap.val();
+          const oPhoto = oSnap.val();
+          if (aPhoto) photoMap[debate.authorUid]   = aPhoto;
+          if (oPhoto) photoMap[debate.opponentUid] = oPhoto;
         } catch(e) { /* ფოტო ვერ ჩაიტვირთა — initials გამოჩნდება */ }
         agoraRenderDebateView(data.thread, debate, repliesEl, photoMap);
       } else {
