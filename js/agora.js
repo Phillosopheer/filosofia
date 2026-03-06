@@ -860,10 +860,10 @@ function agoraOpenNewThreadModal() {
           if (ok && data.user) {
             _debateOpponentUid  = data.user.uid;
             _debateOpponentNick = data.user.nickname;
-            if (oppStatus) { oppStatus.textContent = '✓'; oppStatus.style.color = '#4ade80'; }
+            if (oppStatus) { oppStatus.textContent = '✓'; oppStatus.style.color = '#c9a84c'; }
             if (oppFound) {
               oppFound.textContent    = `✓ ${data.user.nickname}`;
-              oppFound.style.color    = '#4ade80';
+              oppFound.style.color    = '#c9a84c';
               oppFound.style.display  = 'block';
             }
           } else {
@@ -1788,32 +1788,40 @@ function _dbTimerRow(id, label) {
 }
 
 function _dbPhaseHdr(label, timerHtml) {
-  return `<div style="font-family:'Cinzel',serif;font-size:0.72rem;letter-spacing:3px;color:var(--gold);text-transform:uppercase;border-bottom:1px solid rgba(201,168,76,0.2);padding-bottom:10px;margin:24px 0 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+  return `<div class="db-phase-hdr">
     <span>${label}</span>
     ${timerHtml ? `<span style="display:flex;align-items:center;gap:4px;">${timerHtml}</span>` : ''}
   </div>`;
 }
 
-function _dbTurnsHtml(turnsObj, authorUid, authorNick, oppNick) {
+function _dbTurnsHtml(turnsObj, authorUid, authorNick, oppNick, myUid, myPhoto) {
   if (!turnsObj || !Object.keys(turnsObj).length)
-    return `<div style="color:var(--text-dim);font-size:0.88rem;font-style:italic;padding:10px 0;">ჯერ სვლა არ გაკეთებულა</div>`;
-  return Object.values(turnsObj)
-    .sort((a, b) => a.createdAt - b.createdAt)
-    .map(t => {
-      const isA = t.uid === authorUid;
-      return `<div style="margin-bottom:12px;padding:14px 18px;background:var(--surface);border:1px solid rgba(201,168,76,${isA?'0.22':'0.1'});border-left:3px solid ${isA?'var(--gold)':'var(--gold-dim)'};">
-        <div style="font-family:'Cinzel',serif;font-size:0.6rem;letter-spacing:1.5px;color:${isA?'var(--gold)':'var(--text-dim)'};margin-bottom:8px;">${agoraEscape(t.nickname||'?')}</div>
-        <div style="font-size:0.95rem;color:var(--text);line-height:1.75;white-space:pre-wrap;">${agoraEscape(t.body)}</div>
-      </div>`;
-    }).join('');
+    return `<div class="db-empty-turns">ჯერ სვლა არ გაკეთებულა</div>`;
+  const entries = Object.values(turnsObj).sort((a, b) => a.createdAt - b.createdAt);
+  return entries.map((t, idx) => {
+    const isA     = t.uid === authorUid;
+    const nick    = agoraEscape(t.nickname || '?');
+    const initial = (t.nickname || '?')[0].toUpperCase();
+    const avatarHtml = (t.uid === myUid && myPhoto)
+      ? `<img class="agora-author-avatar" src="${agoraEscape(myPhoto)}" alt="">`
+      : `<div class="agora-author-avatar agora-author-avatar-placeholder">${initial}</div>`;
+    return `<div class="db-turn-card ${isA ? 'db-turn-author' : ''}">
+      <div class="db-turn-meta">
+        <span class="db-turn-num">#${idx + 1}</span>
+        ${avatarHtml}
+        <span class="db-turn-nick">${nick}</span>
+      </div>
+      <div class="db-turn-body">${agoraEscape(t.body)}</div>
+    </div>`;
+  }).join('');
 }
 
 function _dbSubmitForm() {
-  return `<div style="margin-top:20px;border-top:1px solid rgba(201,168,76,0.15);padding-top:18px;">
-    <label style="font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:2px;color:var(--text-dim);display:block;margin-bottom:8px;text-transform:uppercase;">შენი სვლა</label>
-    <textarea id="dbTurnInput" rows="5" style="width:100%;background:var(--surface);border:1px solid rgba(201,168,76,0.25);color:var(--text);font-family:'EB Garamond',serif;font-size:0.98rem;padding:12px;resize:vertical;outline:none;line-height:1.7;" placeholder="არგუმენტი... (მინ. 5 სიმბოლო)"></textarea>
-    <div id="dbTurnError" style="color:#f87171;font-size:0.82rem;margin-top:6px;display:none;"></div>
-    <button id="dbSubmitTurnBtn" style="margin-top:10px;background:rgba(201,168,76,0.08);border:1px solid var(--gold);color:var(--gold);font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:2px;padding:10px 24px;cursor:pointer;text-transform:uppercase;width:100%;">სვლის გაკეთება →</button>
+  return `<div class="db-submit-wrap">
+    <label class="db-label">შენი სვლა</label>
+    <textarea id="dbTurnInput" class="db-textarea" rows="5" placeholder="არგუმენტი... (მინ. 5 სიმბოლო)"></textarea>
+    <div id="dbTurnError" class="db-error"></div>
+    <button id="dbSubmitTurnBtn" class="db-btn db-btn-gold db-btn-full" style="margin-top:10px;">სვლის გაკეთება →</button>
   </div>`;
 }
 
@@ -1869,17 +1877,17 @@ function agoraRenderDebateView(thread, debate, container) {
 function _dbInviteScreen(debate) {
   return `
     ${_dbPhaseHdr('⚔ გამოწვევა მოგივიდა', _dbTimerRow('dbInviteTimer','ᲕᲐᲓᲐ:'))}
-    <div style="background:var(--surface);border:1px solid rgba(201,168,76,0.2);padding:22px;text-align:center;margin-bottom:16px;">
-      <div style="font-family:'Cinzel',serif;font-size:0.82rem;color:var(--text);letter-spacing:2px;margin-bottom:6px;">${agoraEscape(debate.authorNickname||'?')}</div>
-      <div style="color:var(--text-dim);font-size:0.9rem;font-style:italic;">გიწვევს 1vs1 ფილოსოფიურ დებატში</div>
+    <div class="db-invite-box">
+      <div class="db-invite-name">${agoraEscape(debate.authorNickname||'?')}</div>
+      <div class="db-invite-sub">გიწვევს 1vs1 ფილოსოფიურ დებატში</div>
     </div>
-    <div style="background:var(--surface);border:1px solid rgba(201,168,76,0.12);padding:14px 18px;margin-bottom:18px;font-size:0.87rem;color:var(--text-dim);line-height:1.85;">
-      ① საწყისი ეტაპი — 5+5 სვლა &nbsp;·&nbsp; ② დაკითხვა — კი/არა/არ ვიცი &nbsp;·&nbsp; ③ საბოლოო — 10+10 სვლა &nbsp;·&nbsp; ⚖ AI კრიტიკოსი<br>
-      <span style="color:#f87171;font-size:0.82rem;">⚠ ყოველ სვლაზე 6 სთ. სვლის გამოტოვება = 7-დღიანი ბანი.</span>
+    <div class="db-rules-box">
+      ① საწყისი ეტაპი — 5+5 სვლა &nbsp;·&nbsp; ② დაკითხვა — კი/არა/არ ვიცი &nbsp;·&nbsp; ③ საბოლოო — 10+10 სვლა &nbsp;·&nbsp; ⚖ AI კრიტიკოსი
+      <span class="db-warn">⚠ ყოველ სვლაზე 6 სთ. სვლის გამოტოვება = 7-დღიანი ბანი.</span>
     </div>
-    <div style="display:flex;gap:10px;">
-      <button id="dbAcceptBtn" style="flex:1;background:rgba(201,168,76,0.08);border:1px solid var(--gold);color:var(--gold);font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:2px;padding:12px;cursor:pointer;text-transform:uppercase;">✓ მივიღო</button>
-      <button id="dbDeclineBtn" style="flex:1;background:rgba(224,85,85,0.07);border:1px solid rgba(224,85,85,0.4);color:#e05555;font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:2px;padding:12px;cursor:pointer;text-transform:uppercase;">✕ უარი</button>
+    <div class="db-btn-row">
+      <button id="dbAcceptBtn" class="db-btn db-btn-gold">✓ მივიღო</button>
+      <button id="dbDeclineBtn" class="db-btn db-btn-danger">✕ უარი</button>
     </div>`;
 }
 
@@ -1887,11 +1895,9 @@ function _dbInviteScreen(debate) {
 function _dbPendingScreen(debate) {
   return `
     ${_dbPhaseHdr('⏳ პასუხს ელოდება', _dbTimerRow('dbInviteTimer','ᲕᲐᲓᲐ:'))}
-    <div style="text-align:center;color:var(--text-dim);font-size:0.92rem;margin-bottom:24px;font-style:italic;">
-      ${agoraEscape(debate.opponentNickname||'?')} ჯერ არ გამოხმაურებულა
-    </div>
-    <div style="text-align:center;">
-      <button id="dbCancelBtn" style="background:rgba(224,85,85,0.07);border:1px solid rgba(224,85,85,0.3);color:#e05555;font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:2px;padding:10px 24px;cursor:pointer;text-transform:uppercase;">✕ გამოწვევის გაუქმება</button>
+    <div class="db-pending-msg">${agoraEscape(debate.opponentNickname||'?')} ჯერ არ გამოხმაურებულა</div>
+    <div class="db-pending-center">
+      <button id="dbCancelBtn" class="db-btn db-btn-danger">✕ გამოწვევის გაუქმება</button>
     </div>`;
 }
 
@@ -1903,13 +1909,14 @@ function _dbOpeningView(debate, uid) {
   const oCount = tArr.filter(t=>t.uid===debate.opponentUid).length;
   const mine   = uid === debate.currentTurn;
   const other  = uid === debate.authorUid ? debate.opponentNickname : debate.authorNickname;
+  const myPhoto = agoraGetUser()?.photoURL || null;
 
   return _dbPhaseHdr('① საწყისი ეტაპი',
     _dbTimerRow('dbTurnTimer','სვლა:') + '&nbsp;&nbsp;' + _dbTimerRow('dbTotalTimer','სულ:'))
     + _dbProgressBar(tArr.length, 10, debate.authorNickname||'?', `${aCount}/5`, debate.opponentNickname||'?', `${oCount}/5`)
-    + _dbTurnsHtml(turns, debate.authorUid, debate.authorNickname, debate.opponentNickname)
+    + _dbTurnsHtml(turns, debate.authorUid, debate.authorNickname, debate.opponentNickname, uid, myPhoto)
     + (mine ? _dbSubmitForm()
-             : uid ? `<div style="text-align:center;padding:20px;color:var(--text-dim);font-style:italic;">⏳ ${agoraEscape(other||'?')}-ის სვლაა...</div>` : '');
+             : uid ? `<div class="db-waiting">⏳ ${agoraEscape(other||'?')}-ის სვლაა...</div>` : '');
 }
 
 // ── Cross-asking phase ───────────────────────────────────────
@@ -1917,15 +1924,15 @@ function _dbCrossAskView(debate, uid) {
   const isAsker = uid === debate.authorUid;
   return _dbPhaseHdr('② დაკითხვა', _dbTimerRow('dbTurnTimer','ვადა:') + '&nbsp;&nbsp;' + _dbTimerRow('dbTotalTimer','სულ:'))
     + (isAsker ? `
-      <div style="color:var(--text-dim);font-size:0.88rem;margin-bottom:16px;line-height:1.75;">
+      <div style="color:var(--text-dim);font-size:0.88rem;margin-bottom:16px;line-height:1.75;font-family:'EB Garamond',serif;">
         გამოაქვეყნე <strong style="color:var(--text)">5–20 კითხვა</strong>. ოპონენტი მხოლოდ
         <strong style="color:#4ade80">კი</strong> / <strong style="color:#f87171">არა</strong> / <span style="color:var(--text-dim)">არ ვიცი</span>-ით პასუხობს.
       </div>
       <div id="dbCrossQList"></div>
-      <button id="dbAddQBtn" style="background:none;border:1px dashed rgba(201,168,76,0.3);color:var(--text-dim);font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:1.5px;padding:8px 14px;cursor:pointer;margin-bottom:12px;">+ კითხვის დამატება</button>
-      <div id="dbCrossError" style="color:#f87171;font-size:0.82rem;margin-bottom:8px;display:none;"></div>
-      <button id="dbSubmitQBtn" style="background:rgba(201,168,76,0.08);border:1px solid var(--gold);color:var(--gold);font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:2px;padding:10px 24px;cursor:pointer;text-transform:uppercase;width:100%;">კითხვების გამოქვეყნება (მინ. 5)</button>`
-    : `<div style="text-align:center;padding:24px;color:var(--text-dim);font-style:italic;">⏳ ოპონენტი კითხვებს ამზადებს...</div>`);
+      <button id="dbAddQBtn" class="db-btn" style="background:none;border:1px dashed rgba(201,168,76,0.3);color:var(--text-dim);font-size:0.62rem;letter-spacing:1.5px;padding:8px 14px;margin-bottom:12px;">+ კითხვის დამატება</button>
+      <div id="dbCrossError" class="db-error" style="margin-bottom:8px;"></div>
+      <button id="dbSubmitQBtn" class="db-btn db-btn-gold db-btn-full">კითხვების გამოქვეყნება (მინ. 5)</button>`
+    : `<div class="db-waiting">⏳ ოპონენტი კითხვებს ამზადებს...</div>`);
 }
 
 // ── Cross-answering phase ────────────────────────────────────
@@ -1943,15 +1950,15 @@ function _dbCrossAnswerView(debate, uid) {
     const done = ans !== undefined;
     const aLabel = done ? (ans.answer==='yes'?'✓ კი':ans.answer==='no'?'✗ არა':'— არ ვიცი') : '';
     const aColor = done ? (ans.answer==='yes'?'#4ade80':ans.answer==='no'?'#f87171':'var(--text-dim)') : '';
-    html += `<div style="background:var(--surface);border:1px solid rgba(201,168,76,0.14);padding:14px 18px;margin-bottom:8px;">
-      <div style="font-size:0.92rem;color:var(--text);margin-bottom:10px;line-height:1.6;">${agoraEscape(q.body)}</div>
+    html += `<div style="background:var(--surface);border:1px solid rgba(201,168,76,0.14);padding:14px 16px;margin-bottom:8px;">
+      <div style="font-family:'EB Garamond',serif;font-size:0.95rem;color:var(--text);margin-bottom:10px;line-height:1.65;">${agoraEscape(q.body)}</div>
       ${done
         ? `<div style="font-family:'Cinzel',serif;font-size:0.7rem;letter-spacing:1.5px;color:${aColor};">${aLabel}</div>`
         : isAns
-          ? `<div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <button class="db-ans-btn" data-idx="${idx}" data-ans="yes" style="background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.35);color:#4ade80;font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:1.5px;padding:6px 14px;cursor:pointer;">✓ კი</button>
-              <button class="db-ans-btn" data-idx="${idx}" data-ans="no"  style="background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.35);color:#f87171;font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:1.5px;padding:6px 14px;cursor:pointer;">✗ არა</button>
-              <button class="db-ans-btn" data-idx="${idx}" data-ans="idk" style="background:none;border:1px solid rgba(201,168,76,0.2);color:var(--text-dim);font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:1.5px;padding:6px 14px;cursor:pointer;">— არ ვიცი</button>
+          ? `<div class="db-ans-row">
+              <button class="db-ans-btn db-ans-btn-yes" data-idx="${idx}" data-ans="yes">✓ კი</button>
+              <button class="db-ans-btn db-ans-btn-no"  data-idx="${idx}" data-ans="no">✗ არა</button>
+              <button class="db-ans-btn db-ans-btn-idk" data-idx="${idx}" data-ans="idk">— არ ვიცი</button>
             </div>`
           : `<div style="color:var(--text-dim);font-size:0.8rem;font-style:italic;">პასუხი ჯერ არ არის</div>`
       }
@@ -1968,45 +1975,49 @@ function _dbFinalView(debate, uid) {
   const oCount = tArr.filter(t=>t.uid===debate.opponentUid).length;
   const mine   = uid === debate.currentTurn;
   const other  = uid === debate.authorUid ? debate.opponentNickname : debate.authorNickname;
+  const myPhoto = agoraGetUser()?.photoURL || null;
 
   return _dbPhaseHdr('③ საბოლოო პაექრობა',
     _dbTimerRow('dbTurnTimer','სვლა:') + '&nbsp;&nbsp;' + _dbTimerRow('dbTotalTimer','სულ:'))
     + _dbProgressBar(tArr.length, 20, debate.authorNickname||'?', `${aCount}/10`, debate.opponentNickname||'?', `${oCount}/10`)
-    + _dbTurnsHtml(turns, debate.authorUid, debate.authorNickname, debate.opponentNickname)
+    + _dbTurnsHtml(turns, debate.authorUid, debate.authorNickname, debate.opponentNickname, uid, myPhoto)
     + (mine ? _dbSubmitForm()
-             : uid ? `<div style="text-align:center;padding:20px;color:var(--text-dim);font-style:italic;">⏳ ${agoraEscape(other||'?')}-ის სვლაა...</div>` : '');
+             : uid ? `<div class="db-waiting">⏳ ${agoraEscape(other||'?')}-ის სვლაა...</div>` : '');
 }
 
 // ── Verdict screen ───────────────────────────────────────────
 function _dbVerdictView(debate) {
   const v = debate.verdict;
-  if (!v) return `<div style="text-align:center;padding:32px;color:var(--text-dim);">AI კრიტიკოსი ვერდიქტს ამზადებს...</div>`;
+  if (!v) return `<div class="db-waiting">⚖ AI კრიტიკოსი ვერდიქტს ამზადებს...</div>`;
 
   function bar(n) {
-    return `<div style="height:3px;background:rgba(201,168,76,0.1);margin-top:3px;"><div style="height:100%;background:var(--gold);width:${Math.round((n/10)*100)}%;"></div></div>`;
+    return `<div style="height:3px;background:rgba(201,168,76,0.1);margin-top:3px;"><div style="height:100%;background:var(--gold);width:${Math.round((n/10)*100)}%;transition:width 0.5s;"></div></div>`;
   }
   function scoreBlock(nick) {
     const s = (v.scores||{})[nick] || {};
-    return `<div style="background:var(--surface);border:1px solid rgba(201,168,76,0.14);padding:14px;">
-      <div style="font-family:'Cinzel',serif;font-size:0.6rem;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:10px;">${agoraEscape(nick)}</div>
-      <div style="font-size:0.82rem;color:var(--text-dim);margin-bottom:4px;">ლოგიკა: <span style="color:var(--gold)">${s.logic_score||0}/10</span> ${bar(s.logic_score||0)}</div>
-      <div style="font-size:0.82rem;color:var(--text-dim);margin-bottom:4px;">დაკითხვა: <span style="color:var(--gold)">${s.cross_score||0}/10</span> ${bar(s.cross_score||0)}</div>
-      <div style="font-size:0.82rem;color:var(--text-dim);">გამ. პუნქტი: <span style="color:var(--gold)">${s.ignored_points||0}/10</span> ${bar(s.ignored_points||0)}</div>
+    return `<div class="db-score-item">
+      <div class="db-score-nick">${agoraEscape(nick)}</div>
+      <div style="font-family:'EB Garamond',serif;font-size:0.82rem;color:var(--text-dim);margin-bottom:3px;">ლოგიკა: <span class="db-score-val" style="font-size:0.85rem;">${s.logic_score||0}/10</span> ${bar(s.logic_score||0)}</div>
+      <div style="font-family:'EB Garamond',serif;font-size:0.82rem;color:var(--text-dim);margin-bottom:3px;">დაკითხვა: <span class="db-score-val" style="font-size:0.85rem;">${s.cross_score||0}/10</span> ${bar(s.cross_score||0)}</div>
+      <div style="font-family:'EB Garamond',serif;font-size:0.82rem;color:var(--text-dim);">გამ. პ.: <span class="db-score-val" style="font-size:0.85rem;">${s.ignored_points||0}/10</span> ${bar(s.ignored_points||0)}</div>
     </div>`;
   }
 
   const aN = debate.authorNickname || '?';
   const oN = debate.opponentNickname || '?';
 
-  return _dbPhaseHdr('⚖ AI კრიტიკოსი — ვერდიქტი', '')
-    + (v.analysis ? `<div style="background:var(--surface);border:1px solid rgba(201,168,76,0.14);padding:18px;margin-bottom:16px;font-size:0.92rem;color:var(--text-dim);line-height:1.8;font-style:italic;">${agoraEscape(v.analysis)}</div>` : '')
-    + `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">${scoreBlock(aN)}${scoreBlock(oN)}</div>`
-    + `<div style="background:rgba(201,168,76,0.05);border:2px solid var(--gold);padding:22px;text-align:center;margin-bottom:12px;">
-        <div style="font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:3px;color:var(--text-dim);margin-bottom:10px;text-transform:uppercase;">გამარჯვებული</div>
-        <div style="font-family:'Cinzel',serif;font-size:1.05rem;letter-spacing:2px;color:var(--gold);">${agoraEscape(v.winnerNickname||'?')}</div>
-        ${v.reason ? `<div style="margin-top:10px;font-size:0.88rem;color:var(--text-dim);line-height:1.7;font-style:italic;">${agoraEscape(v.reason)}</div>` : ''}
-        ${v.forfeitUid ? `<div style="margin-top:8px;font-size:0.8rem;color:#f87171;">⚠ სვლის გამოტოვების გამო</div>` : ''}
-      </div>`;
+  return `<div class="db-verdict-wrap">`
+    + _dbPhaseHdr('⚖ AI კრიტიკოსი — ვერდიქტი', '')
+    + `<div class="db-verdict-winner">
+        <div class="db-verdict-crown">🏆</div>
+        <div class="db-verdict-label" style="margin-bottom:6px;text-transform:uppercase;letter-spacing:2px;font-family:'Cinzel',serif;font-size:0.62rem;">გამარჯვებული</div>
+        <div class="db-verdict-name">${agoraEscape(v.winnerNickname||'?')}</div>
+        ${v.reason ? `<div class="db-verdict-label" style="margin-top:10px;">${agoraEscape(v.reason)}</div>` : ''}
+        ${v.forfeitUid ? `<div style="margin-top:8px;font-size:0.8rem;color:#f87171;font-family:'EB Garamond',serif;">⚠ სვლის გამოტოვების გამო</div>` : ''}
+      </div>`
+    + (v.analysis ? `<div class="db-verdict-analysis" style="margin-bottom:16px;">${agoraEscape(v.analysis)}</div>` : '')
+    + `<div class="db-verdict-scores">${scoreBlock(aN)}${scoreBlock(oN)}</div>`
+    + `</div>`;
 }
 
 // ── Action binder ────────────────────────────────────────────
@@ -2051,10 +2062,10 @@ function _dbInitQForm(container, tid) {
     if (qCount >= 20) return;
     qCount++;
     const div = document.createElement('div');
-    div.style.cssText = 'display:flex;gap:8px;margin-bottom:8px;';
+    div.className = 'db-q-row';
     div.innerHTML = `
-      <textarea class="db-q-input" rows="2" style="flex:1;background:var(--surface);border:1px solid rgba(201,168,76,0.22);color:var(--text);font-family:'EB Garamond',serif;font-size:0.92rem;padding:8px;resize:vertical;outline:none;" placeholder="კითხვა ${qCount}..."></textarea>
-      <button class="db-rm-q" style="background:none;border:1px solid rgba(224,85,85,0.3);color:#e05555;font-size:0.8rem;padding:5px 8px;cursor:pointer;flex-shrink:0;align-self:flex-start;margin-top:2px;">✕</button>`;
+      <textarea class="db-q-input" rows="2" placeholder="კითხვა ${qCount}..."></textarea>
+      <button class="db-rm-q">✕</button>`;
     div.querySelector('.db-rm-q').addEventListener('click', () => { div.remove(); qCount--; });
     qList.appendChild(div);
   }
