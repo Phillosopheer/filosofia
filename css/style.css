@@ -1243,3 +1243,80 @@ select.tb-btn option { background:var(--surface); color:var(--text); }
   z-index: 2;
 }
 .avatar-delete-btn:hover { background: #e74c3c; transform: scale(1.15); }
+
+/* ===== CONFIRM MODAL ===== */
+#__confirm__ {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 999999 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(5,4,2,0.83) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  transform: none !important;
+  box-sizing: border-box !important;
+}
+#__confirm_box__ {
+  background: #13110d !important;
+  border: 1px solid rgba(201,168,76,0.3) !important;
+  padding: 42px 36px 34px !important;
+  max-width: 340px !important;
+  width: 88% !important;
+  text-align: center !important;
+  position: relative !important;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.7), 0 0 50px rgba(201,168,76,0.05) !important;
+  margin: auto !important;
+}
+#__confirm_icon__ {
+  width: 48px !important;
+  height: 48px !important;
+  margin: 0 auto 18px !important;
+  border: 1px solid rgba(201,168,76,0.35) !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+#__confirm_msg__ {
+  color: rgba(240,230,200,0.72) !important;
+  font-size: 0.97rem !important;
+  line-height: 1.7 !important;
+  margin-bottom: 28px !important;
+  font-style: italic !important;
+}
+#__confirm_btns__ {
+  display: flex !important;
+  gap: 11px !important;
+}
+#__confirm_no__ {
+  flex: 1 !important;
+  padding: 12px 8px !important;
+  background: transparent !important;
+  border: 1px solid rgba(201,168,76,0.2) !important;
+  color: rgba(240,230,200,0.48) !important;
+  cursor: pointer !important;
+  font-size: 0.83rem !important;
+  font-family: inherit !important;
+  letter-spacing: 0.09em !important;
+}
+#__confirm_yes__ {
+  flex: 1 !important;
+  padding: 12px 8px !important;
+  background: linear-gradient(135deg,#c9a84c,#a8852e) !important;
+  border: none !important;
+  color: #0d0b08 !important;
+  cursor: pointer !important;
+  font-size: 0.83rem !important;
+  font-family: inherit !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.09em !important;
+}
