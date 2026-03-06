@@ -29,6 +29,8 @@ const firebaseConfig = {
 if (typeof firebase !== 'undefined' && !firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
+// Activate AppCheck (same as main site)
+try { firebase.appCheck().activate('6LdepXIsAAAAAGPzEX8XfPPh1mMSeT8ZUod1Z5CC', true); } catch(e) {}
 
 async function fbFetch(url, opts) {
   opts = opts || {};

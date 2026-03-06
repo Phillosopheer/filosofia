@@ -2607,7 +2607,7 @@ function setupEventListeners() {
 document.getElementById('menuBtn').addEventListener('click', toggleMenu);
 document.getElementById('logoBtn').addEventListener('click', () => { localStorage.removeItem('lastCategoryId'); window.location.href = '/'; });
 document.getElementById('submitBtn').addEventListener('click', openPublicSubmission);
-document.getElementById('pendingBtn').addEventListener('click', openPendingPanel);
+document.getElementById('pendingBtn').addEventListener('click', function(){ window.location.href = '/admin.html'; });
 const usersBtnEl = document.getElementById('usersBtn');
 if (usersBtnEl) usersBtnEl.addEventListener('click', openUsersPanel);
 document.getElementById('closeUsersModalBtn').addEventListener('click', function() { closeModal('usersModal'); });
