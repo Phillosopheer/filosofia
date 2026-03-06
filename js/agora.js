@@ -836,6 +836,10 @@ function agoraOpenNewThreadModal() {
       if (submitBtn) submitBtn.textContent = 'გამოქვეყნება';
       btnPub.style.cssText = activeStyle;
       if (btnDeb) btnDeb.style.cssText = inactiveStyle;
+      // label + placeholder → restore defaults
+      const bodyLabel = document.getElementById('newThreadBodyLabel');
+      if (bodyLabel) bodyLabel.textContent = 'შინაარსი';
+      if (bodyEl) bodyEl.placeholder = 'შენი მოსაზრება... (მინ. 10 სიმბოლო)';
     });
   }
   if (btnDeb && !btnDeb.dataset.ntBound) {
@@ -846,6 +850,10 @@ function agoraOpenNewThreadModal() {
       if (submitBtn) submitBtn.textContent = '⚔ გამოწვევის გაგზავნა';
       btnDeb.style.cssText = activeStyle;
       if (btnPub) btnPub.style.cssText = inactiveStyle;
+      // label + placeholder → debate-specific
+      const bodyLabel = document.getElementById('newThreadBodyLabel');
+      if (bodyLabel) bodyLabel.textContent = 'შენი პოზიცია და არგუმენტები (გახდება I სვლა)';
+      if (bodyEl) bodyEl.placeholder = 'წარადგინე შენი თეზისი და საწყისი არგუმენტები. ეს ავტომატურად ჩაითვლება შენს პირველ სვლად (1/5).';
     });
   }
 
