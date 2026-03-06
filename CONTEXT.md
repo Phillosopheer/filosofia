@@ -39,7 +39,7 @@
 
 ---
 
-## ✅ CURRENT STATE (March 6, 2026 — Session 53 სრული)
+## ✅ CURRENT STATE (March 7, 2026 — Session 55 სრული)
 
 - ✅ Frontend on Vercel — **Ready**
 - ✅ GitHub: **PRIVATE** 🔒 (Phillosopheer/filosofia)
@@ -66,6 +66,40 @@
 - ✅ **🔍 თემების ძებნა**
 - ✅ **🖥️ Admin პანელი** — ცალკე გვერდი (`admin.html`)
 - ✅ **⚔️ 1vs1 დებატების სისტემა — სრული** (Session 51–53)
+
+---
+
+## ✅ Session 55-ში გაკეთებული — სრული სია
+
+### `api/agora.js`:
+1. **Auto first turn** — `accept-debate`-ზე `threadBody` ავტომატურად `opening[0]`-ად ჩაიწერება; `currentTurn` პირდაპირ ოპონენტზე გადადის
+2. **AI ცენზურა დებატებში** — `moderateDebateTurn()` ახალი ფუნქცია; `submit-turn`-ზე abuse check; 3 გაფრთხილება → 60 დღე ბანი
+3. **თემის წაშლა → notification** — დებატის წაშლისას ოპონენტს მოუვა: "X-მა დებატის თემა წაშალა"; debate → `cancelled`
+4. **1-საათიანი ლიმიტი** — უკვე იყო (`EDIT_WINDOW_MS`); ადმინის გარდა ვერავინ შლის 1 საათის შემდეგ ✅
+5. **maxTurnBody** — `2000` → `40,000` სიმბოლო
+
+### `js/agora.js`:
+6. **სტრუქტურირებული ფორმა — სრული** — tab/თავისუფალი რეჟიმი მოხსნილი; მხოლოდ სტრუქტურა: I.თეზისი II.არგუმენტები III.კონტრარგუმენტები IV.ანალოგია V.წყარო VI.დასკვნა
+7. **"გეთანხმები" / "პასუხი არ მაქვს" ღილაკები** — მოხსნილია
+8. **არგუმენტების ლიმიტი** — ულიმიტო (7-ის ლიმიტი მოხსნილი)
+9. **Counter** — `0 / 200` → `0 სიმბოლო (მინ. 200)` / `1,234 სიმბოლო` (ოქრო 200+)
+10. **Timer label** — `სვლა:` → `საპასუხო დრო:`
+
+### `css/agora.css`:
+11. **სტრუქტურირებული ფორმის CSS** — `.db-mode-tabs`, `.db-struct-label`, `.db-arg-row`, `.db-arg-num`, `.db-struct-divider`, `.db-struct-opt`, `.db-struct-add-btn`, `.db-struct-remove-btn`
+
+---
+
+## ✅ Session 54-ში გაკეთებული — სრული სია
+
+### Bug Fixes (`api/agora.js`):
+1. **Notification ტექსტი** — `"სვლა გააკეთა"` → `"გიპასუხა"` (submit-turn notification, სტრ.~1531)
+2. **Race condition `request-end-debate`** — `endVotes` ახლა sub-path-ზე იწერება: `fbPatch(.../endVotes, {[uid]: true})` + fresh read, ძველი მთლიანი object override აღარ ხდება
+
+### Bug Fixes (`js/agora.js`):
+3. **`closeAgora()` auto-refresh leak** — debate polling (12წმ interval) ახლა `closeAgora()`-შიც ჩერდება
+4. **Spectators (მაყურებლები)** — opening/final phase-ზე მესამე პირებს სრული შინაარსი ეჩვენებათ; "⏳ ჯერია..." მხოლოდ მონაწილეებს (isParticipant check)
+5. **Verdict transcript** — verdict screen-ზე ახლა სრული დებატი ჩანს: ① opening სვლები, ② cross I/II კითხვა+პასუხი, ③ final სვლები
 
 ---
 
@@ -249,8 +283,8 @@ pending → opening (5+5 სვლა)
 
 ---
 
-## ⚠️ TODO (Session 54+):
-1. **⚔ ტესტირება** — სრული დებატის ციკლი (ორი cross რაუნდი + ადრეული დასრულება)
+## ⚠️ TODO (Session 56+):
+1. **⚔ ტესტირება** — სრული დებატის ციკლი (ორი cross რაუნდი + ადრეული დასრულება + verdict transcript)
 2. Forum — Admin pin/unpin thread
 3. Forum — სტატისტიკა profile popup-ში
 4. Firebase Storage — avatar (ამჟამად base64 DB-ში)
@@ -266,14 +300,14 @@ pending → opening (5+5 სვლა)
 ```
 /
 ├── api/
-│   ├── agora.js        ← Session 53 განახლდა (cross2, endVotes, draw, AI prompt)
+│   ├── agora.js        ← Session 55 განახლდა (moderateDebateTurn, delete notification, auto first turn)
 │   ├── gemini.js, review.js, send-code.js, ban-user.js,
 │   │   reset-password.js, verify-totp.js
 ├── css/
 │   ├── agora.css       ← Session 53 განახლდა (score UI, end-banner, player-count)
 │   ├── style.css, admin.css, fonts/
 ├── js/
-│   ├── agora.js        ← Session 53 განახლდა (auto-refresh, end-vote, verdict UI)
+│   ├── agora.js        ← Session 55 განახლდა (structured form only, timer labels, საპასუხო დრო)
 │   ├── script.js, admin.js, extras.js, firebase-app-compat.js
 ├── index.html, admin.html
 ├── philosopher-bg.jpg/.webp
