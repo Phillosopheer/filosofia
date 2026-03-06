@@ -391,6 +391,21 @@
             <h2 style="font-family:'Cinzel',Georgia,serif;font-size:1.1rem;letter-spacing:2px;margin-bottom:22px;color:var(--ivory);">+ ახალი თემა</h2>
             <div class="agora-error" id="newThreadError"></div>
             <div class="agora-modal-group">
+                <label class="agora-modal-label">ტიპი</label>
+                <div style="display:flex;gap:8px;">
+                    <button id="typeBtnPublic" style="border:1px solid var(--gold);background:rgba(201,168,76,0.12);color:var(--gold);font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:1.5px;padding:8px 16px;cursor:pointer;">🏛 საჯარო</button>
+                    <button id="typeBtnDebate" style="border:1px solid rgba(201,168,76,0.25);background:none;color:var(--text-dim);font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:1.5px;padding:8px 16px;cursor:pointer;">⚔ 1vs1 დებატი</button>
+                </div>
+            </div>
+            <div class="agora-modal-group" id="debateOpponentWrap" style="display:none;">
+                <label class="agora-modal-label">ოპონენტი</label>
+                <div style="position:relative;">
+                    <input type="text" id="debateOpponentInput" class="agora-modal-input" placeholder="ოპონენტის nickname..." autocomplete="off" />
+                    <span id="debateOpponentStatus" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:0.9rem;"></span>
+                </div>
+                <div id="debateOpponentFound" style="display:none;font-size:0.8rem;margin-top:4px;font-family:'Cinzel',serif;letter-spacing:1px;"></div>
+            </div>
+            <div class="agora-modal-group">
                 <label class="agora-modal-label">სათაური <span id="titleCharCount" style="float:right;color:var(--text-dim);font-size:0.78rem;font-weight:400;">0 / 80</span></label>
                 <input type="text" id="newThreadTitle" class="agora-modal-input" maxlength="80" placeholder="თემის სათაური..." autocomplete="off" />
             </div>
