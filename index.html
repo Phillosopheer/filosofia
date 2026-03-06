@@ -1019,85 +1019,132 @@
     <script src="js/agora.js?v=45" defer></script>
     <!-- UPLOADER MODAL -->
     <div id="uploaderModal" class="modal" role="dialog" aria-modal="true">
-      <div class="modal-box wide" style="max-width:500px; background:var(--surface); border-top:2px solid var(--gold-dim); padding:24px 20px;">
-        <button class="modal-close" id="uploaderCloseBtn" aria-label="დახურვა">✕</button>
-        <div style="font-family:'Cinzel',Georgia,serif; font-size:0.85rem; letter-spacing:4px; color:var(--gold); text-transform:uppercase; margin-bottom:4px;">↑ GitHub Uploader</div>
-        <div style="font-family:'EB Garamond',serif; font-size:0.78rem; color:var(--text-dim); font-style:italic; margin-bottom:20px; letter-spacing:2px;">Phillosopheer / filosofia · main</div>
+      <div class="modal-box wide" style="max-width:520px; background:#161310; border:1px solid rgba(201,168,76,0.28); padding:0; position:relative; overflow:hidden;">
 
-        <!-- TOKEN -->
-        <div class="up-label">GitHub Token</div>
-        <div style="display:flex; gap:8px; margin-bottom:8px;">
-          <input type="password" id="upToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" class="up-input">
-          <button id="upCheckBtn" style="font-family:'Cinzel',serif; font-size:0.65rem; letter-spacing:2px; text-transform:uppercase; border:1px solid var(--border); background:var(--glass); color:var(--gold); padding:9px 14px; cursor:pointer; white-space:nowrap;">შემოწმება</button>
-        </div>
-        <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-          <input type="checkbox" id="upSave" checked style="accent-color:var(--gold); width:13px; height:13px;">
-          <label for="upSave" style="font-size:0.76rem; color:var(--text-dim); cursor:pointer;">დამახსოვრება</label>
-        </div>
-        <div style="display:flex; align-items:center; gap:7px; font-size:0.78rem; color:var(--text-dim); min-height:20px; margin-bottom:6px;">
-          <div id="upTokenDot" style="width:7px;height:7px;border-radius:50%;background:var(--text-dim);flex-shrink:0;"></div>
-          <span id="upTokenText">Token შეიყვანე</span>
-        </div>
+        <!-- corner decorations -->
+        <div style="position:absolute;top:10px;left:10px;width:16px;height:16px;border-top:1px solid rgba(201,168,76,0.5);border-left:1px solid rgba(201,168,76,0.5);pointer-events:none;"></div>
+        <div style="position:absolute;top:10px;right:10px;width:16px;height:16px;border-top:1px solid rgba(201,168,76,0.5);border-right:1px solid rgba(201,168,76,0.5);pointer-events:none;"></div>
+        <div style="position:absolute;bottom:10px;left:10px;width:16px;height:16px;border-bottom:1px solid rgba(201,168,76,0.5);border-left:1px solid rgba(201,168,76,0.5);pointer-events:none;"></div>
+        <div style="position:absolute;bottom:10px;right:10px;width:16px;height:16px;border-bottom:1px solid rgba(201,168,76,0.5);border-right:1px solid rgba(201,168,76,0.5);pointer-events:none;"></div>
 
-        <hr style="border:none;border-top:1px solid var(--border);margin:16px 0;">
-
-        <!-- TABS -->
-        <div class="up-label">ფაილები</div>
-        <div style="display:flex; gap:5px; flex-wrap:wrap; margin-bottom:14px;" id="upTabs">
-          <button class="up-tab active" data-tab="js">JS</button>
-          <button class="up-tab" data-tab="css">CSS</button>
-          <button class="up-tab" data-tab="html">HTML</button>
-          <button class="up-tab" data-tab="api">API</button>
-          <button class="up-tab" data-tab="root">Root</button>
-          <button class="up-tab" data-tab="custom">＋</button>
-        </div>
-
-        <!-- JS -->
-        <div class="up-group visible" id="upgroup-js">
-          <div class="up-slot" data-path="js/script.js"><div class="up-slot-top"><span class="up-sname">script.js</span><button class="up-xbtn">✕</button></div><div class="up-spath">js/script.js</div><label class="up-area"><input type="file"><div class="up-atext">📁 არჩიე</div></label><div class="up-status"></div></div>
-          <div class="up-slot" data-path="js/extras.js"><div class="up-slot-top"><span class="up-sname">extras.js</span><button class="up-xbtn">✕</button></div><div class="up-spath">js/extras.js</div><label class="up-area"><input type="file"><div class="up-atext">📁 არჩიე</div></label><div class="up-status"></div></div>
-        </div>
-
-        <!-- CSS -->
-        <div class="up-group" id="upgroup-css">
-          <div class="up-slot" data-path="css/style.css"><div class="up-slot-top"><span class="up-sname">style.css</span><button class="up-xbtn">✕</button></div><div class="up-spath">css/style.css</div><label class="up-area"><input type="file"><div class="up-atext">📁 არჩიე</div></label><div class="up-status"></div></div>
-        </div>
-
-        <!-- HTML -->
-        <div class="up-group" id="upgroup-html">
-          <div class="up-slot" data-path="index.html"><div class="up-slot-top"><span class="up-sname">index.html</span><button class="up-xbtn">✕</button></div><div class="up-spath">index.html</div><label class="up-area"><input type="file"><div class="up-atext">📁 არჩიე</div></label><div class="up-status"></div></div>
-        </div>
-
-        <!-- API -->
-        <div class="up-group" id="upgroup-api">
-          <div class="up-slot" data-path="api/gemini.js"><div class="up-slot-top"><span class="up-sname">gemini.js</span><button class="up-xbtn">✕</button></div><div class="up-spath">api/gemini.js</div><label class="up-area"><input type="file"><div class="up-atext">📁 არჩიე</div></label><div class="up-status"></div></div>
-        </div>
-
-        <!-- ROOT -->
-        <div class="up-group" id="upgroup-root">
-          <div class="up-slot" data-path="vercel.json"><div class="up-slot-top"><span class="up-sname">vercel.json</span><button class="up-xbtn">✕</button></div><div class="up-spath">vercel.json</div><label class="up-area"><input type="file"><div class="up-atext">📁 არჩიე</div></label><div class="up-status"></div></div>
-          <div class="up-slot" data-path="sitemap.xml"><div class="up-slot-top"><span class="up-sname">sitemap.xml</span><button class="up-xbtn">✕</button></div><div class="up-spath">sitemap.xml</div><label class="up-area"><input type="file"><div class="up-atext">📁 არჩიე</div></label><div class="up-status"></div></div>
-          <div class="up-slot" data-path="robots.txt"><div class="up-slot-top"><span class="up-sname">robots.txt</span><button class="up-xbtn">✕</button></div><div class="up-spath">robots.txt</div><label class="up-area"><input type="file"><div class="up-atext">📁 არჩიე</div></label><div class="up-status"></div></div>
-        </div>
-
-        <!-- CUSTOM -->
-        <div class="up-group" id="upgroup-custom">
-          <div style="border:1px dashed var(--gold-dim); padding:14px; background:var(--glass); margin-bottom:12px;">
-            <div class="up-label" style="margin-bottom:10px;">ნებისმიერი ფაილი</div>
-            <div style="display:flex; gap:6px;">
-              <input type="text" id="upCustomPath" placeholder="მაგ: js/newfile.js" class="up-input" style="flex:1; font-size:0.8rem;">
-              <button id="upAddCustomBtn" style="background:var(--glass);border:1px solid var(--border);color:var(--gold);padding:8px 12px;cursor:pointer;font-size:1rem;">＋</button>
+        <!-- HEADER -->
+        <div style="padding:22px 28px 18px; border-bottom:1px solid rgba(201,168,76,0.2); display:flex; align-items:flex-start; justify-content:space-between; gap:12px;">
+          <div>
+            <div style="font-family:'Cinzel',Georgia,serif; font-size:0.5rem; letter-spacing:0.26em; color:rgba(201,168,76,0.6); text-transform:uppercase; margin-bottom:5px; display:flex; align-items:center; gap:7px;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="opacity:0.7;flex-shrink:0;"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+              GitHub Uploader
             </div>
+            <div style="font-family:'EBGaramond','EB Garamond',Georgia,serif; font-size:0.88rem; color:#e8dfc8; font-style:italic; letter-spacing:0.04em;">Phillosopheer / filosofia · main</div>
           </div>
-          <div id="upCustomSlots"></div>
+          <button class="modal-close" id="uploaderCloseBtn" aria-label="დახურვა" style="width:30px;height:30px;border:1px solid rgba(201,168,76,0.25);background:transparent;color:rgba(240,230,200,0.5);cursor:pointer;font-size:0.9rem;flex-shrink:0;transition:all 0.2s;display:flex;align-items:center;justify-content:center;">✕</button>
         </div>
 
-        <hr style="border:none;border-top:1px solid var(--border);margin:14px 0 12px;">
+        <!-- BODY -->
+        <div style="padding:22px 28px 26px; overflow-y:auto; max-height:calc(90vh - 120px);">
 
-        <div id="upProgressWrap" style="background:var(--surface2);border:1px solid var(--border);height:3px;margin-bottom:12px;display:none;"><div id="upProgressBar" style="height:100%;background:var(--gold);transition:width 0.3s;width:0%;"></div></div>
-        <button id="upUploadBtn" style="width:100%;padding:13px;background:var(--gold-dim);border:1px solid var(--gold-dim);color:var(--bg);font-family:'Cinzel',serif;font-size:0.75rem;letter-spacing:3px;cursor:pointer;margin-bottom:8px;font-weight:600;">↑ ატვირთვა</button>
-        <button id="upClearAllBtn" style="width:100%;padding:10px;background:transparent;border:1px solid var(--border);color:var(--text-dim);font-family:'Cinzel',serif;font-size:0.68rem;letter-spacing:2px;cursor:pointer;">✕ გასუფთავება</button>
-        <div id="upLog" style="display:none;background:#080605;border:1px solid var(--border);padding:11px;font-family:monospace;font-size:0.71rem;color:var(--text-dim);max-height:140px;overflow-y:auto;line-height:1.9;margin-top:10px;"></div>
+          <!-- TOKEN SECTION -->
+          <div class="up-label">GitHub Token</div>
+          <div style="display:flex; gap:8px; margin-bottom:10px;">
+            <div style="position:relative; flex:1;">
+              <input type="password" id="upToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" class="up-input" style="padding-right:38px;">
+              <button id="upTokenEye" title="ჩვენება" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(240,230,200,0.4);cursor:pointer;font-size:0.85rem;padding:2px;transition:color 0.2s;">👁</button>
+            </div>
+            <button id="upCheckBtn">შემოწმება</button>
+          </div>
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin-bottom:10px;" id="upRememberLabel">
+            <div id="upSaveCb" style="width:15px;height:15px;border:1px solid rgba(201,168,76,0.3);background:#0e0c0a;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;">
+              <div id="upSaveTick" style="width:7px;height:7px;background:#c9a84c;transform:scale(1);transition:transform 0.15s;"></div>
+            </div>
+            <input type="checkbox" id="upSave" checked style="display:none;">
+            <span style="font-size:0.76rem; color:rgba(240,230,200,0.5); font-style:italic; font-family:'EBGaramond','EB Garamond',Georgia,serif; user-select:none;">დამახსოვრება</span>
+          </label>
+          <div class="up-token-status" style="margin-bottom:18px;">
+            <div id="upTokenDot" style="width:7px;height:7px;border-radius:50%;background:rgba(240,230,200,0.3);flex-shrink:0;transition:background 0.3s;"></div>
+            <span id="upTokenText" style="font-style:italic;">Token შეიყვანე</span>
+          </div>
+
+          <!-- DIVIDER -->
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+            <div style="flex:1;height:1px;background:rgba(201,168,76,0.2);"></div>
+            <div style="font-family:'Cinzel',serif;font-size:0.46rem;letter-spacing:0.26em;color:rgba(201,168,76,0.4);">ᲤᲐᲘᲚᲔᲑᲘ</div>
+            <div style="flex:1;height:1px;background:rgba(201,168,76,0.2);"></div>
+          </div>
+
+          <!-- TABS -->
+          <div class="up-tabs-wrap" id="upTabs">
+            <button class="up-tab active" data-tab="js">JS</button>
+            <button class="up-tab" data-tab="css">CSS</button>
+            <button class="up-tab" data-tab="html">HTML</button>
+            <button class="up-tab" data-tab="api">API</button>
+            <button class="up-tab" data-tab="root">ROOT</button>
+            <button class="up-tab" data-tab="custom">＋</button>
+          </div>
+
+          <!-- JS: script.js · agora.js · extras.js · admin.js -->
+          <div class="up-group visible" id="upgroup-js">
+            <div class="up-slot" data-path="js/script.js"><div class="up-slot-top"><span class="up-sname">script.js</span><button class="up-xbtn">✕</button></div><div class="up-spath">js/script.js</div><label class="up-area"><input type="file"><div class="up-atext">არჩიე ফাilი</div></label><div class="up-status"></div></div>
+            <div class="up-slot" data-path="js/agora.js"><div class="up-slot-top"><span class="up-sname">agora.js</span><button class="up-xbtn">✕</button></div><div class="up-spath">js/agora.js</div><label class="up-area"><input type="file"><div class="up-atext">არჩიე ფაილი</div></label><div class="up-status"></div></div>
+            <div class="up-slot" data-path="js/extras.js"><div class="up-slot-top"><span class="up-sname">extras.js</span><button class="up-xbtn">✕</button></div><div class="up-spath">js/extras.js</div><label class="up-area"><input type="file"><div class="up-atext">არჩიე ფაილი</div></label><div class="up-status"></div></div>
+            <div class="up-slot" data-path="js/admin.js"><div class="up-slot-top"><span class="up-sname">admin.js</span><button class="up-xbtn">✕</button></div><div class="up-spath">js/admin.js</div><label class="up-area"><input type="file"><div class="up-atext">არჩიე ფაილი</div></label><div class="up-status"></div></div>
+          </div>
+
+          <!-- CSS: style.css · agora.css · admin.css -->
+          <div class="up-group" id="upgroup-css">
+            <div class="up-slot" data-path="css/style.css"><div class="up-slot-top"><span class="up-sname">style.css</span><button class="up-xbtn">✕</button></div><div class="up-spath">css/style.css</div><label class="up-area"><input type="file"><div class="up-atext">არჩიე ფაილი</div></label><div class="up-status"></div></div>
+            <div class="up-slot" data-path="css/agora.css"><div class="up-slot-top"><span class="up-sname">agora.css</span><button class="up-xbtn">✕</button></div><div class="up-spath">css/agora.css</div><label class="up-area"><input type="file"><div class="up-atext">არჩიე ფაილი</div></label><div class="up-status"></div></div>
+            <div class="up-slot" data-path="css/admin.css"><div class="up-slot-top"><span class="up-sname">admin.css</span><button class="up-xbtn">✕</button></div><div class="up-spath">css/admin.css</div><label class="up-area"><input type="file"><div class="up-atext">არჩიე ფაილი</div></label><div class="up-status"></div></div>
+          </div>
+
+          <!-- HTML: index.html · admin.html -->
+          <div class="up-group" id="upgroup-html">
+            <div class="up-slot" data-path="index.html"><div class="up-slot-top"><span class="up-sname">index.html</span><button class="up-xbtn">✕</button></div><div class="up-spath">index.html</div><label class="up-area"><input type="file"><div class="up-atext">არჩიე ფაილი</div></label><div class="up-status"></div></div>
+            <div class="up-slot" data-path="admin.html"><div class="up-slot-top"><span class="up-sname">admin.html</span><button class="up-xbtn">✕</button></div><div class="up-spath">admin.html</div><label class="up-area"><input type="file"><div class="up-atext">არჩიე ფაილი</div></label><div class="up-status"></div></div>
+          </div>
+
+          <!-- API: agora.js · gemini.js · ban-user.js · review.js · send-code.js · reset-password.js · verify-totp.js -->
+          <div class="up-group" id="upgroup-api">
+            <div class="up-slot" data-path="api/agora.js"><div class="up-slot-top"><span class="up-sname">agora.js</span><button class="up-xbtn">✕</button></div><div class="up-spath">api/agora.js</div><label class="up-area"><input type="file"><div class="up-atext">არჩიე ფაილი</div></label><div class="up-status"></div></div>
+            <div class="up-slot" data-path="api/gemini.js"><div class="up-slot-top"><span class="up-sname">gemini.js</span><button class="up-xbtn">✕</button></div><div class="up-spath">api/gemini.js</div><label class="up-area"><input type="file"><div class="up-atext">არჩიე ფაილი</div></label><div class="up-status"></div></div>
+            <div class="up-slot" data-path="api/ban-user.js"><div class="up-slot-top"><span class="up-sname">ban-user.js</span><button class="up-xbtn">✕</button></div><div class="up-spath">api/ban-user.js</div><label class="up-area"><input type="file"><div class="up-atext">არჩიე ფაილი</div></label><div class="up-status"></div></div>
+            <div class="up-slot" data-path="api/review.js"><div class="up-slot-top"><span class="up-sname">review.js</span><button class="up-xbtn">✕</button></div><div class="up-spath">api/review.js</div><label class="up-area"><input type="file"><div class="up-atext">არჩიე ფაილი</div></label><div class="up-status"></div></div>
+            <div class="up-slot" data-path="api/send-code.js"><div class="up-slot-top"><span class="up-sname">send-code.js</span><button class="up-xbtn">✕</button></div><div class="up-spath">api/send-code.js</div><label class="up-area"><input type="file"><div class="up-atext">არჩიე ფაილი</div></label><div class="up-status"></div></div>
+            <div class="up-slot" data-path="api/reset-password.js"><div class="up-slot-top"><span class="up-sname">reset-password.js</span><button class="up-xbtn">✕</button></div><div class="up-spath">api/reset-password.js</div><label class="up-area"><input type="file"><div class="up-atext">არჩიე ფაილი</div></label><div class="up-status"></div></div>
+            <div class="up-slot" data-path="api/verify-totp.js"><div class="up-slot-top"><span class="up-sname">verify-totp.js</span><button class="up-xbtn">✕</button></div><div class="up-spath">api/verify-totp.js</div><label class="up-area"><input type="file"><div class="up-atext">არჩიე ფაილი</div></label><div class="up-status"></div></div>
+          </div>
+
+          <!-- ROOT: vercel.json · sitemap.xml · robots.txt -->
+          <div class="up-group" id="upgroup-root">
+            <div class="up-slot" data-path="vercel.json"><div class="up-slot-top"><span class="up-sname">vercel.json</span><button class="up-xbtn">✕</button></div><div class="up-spath">vercel.json</div><label class="up-area"><input type="file"><div class="up-atext">არჩიე ფაილი</div></label><div class="up-status"></div></div>
+            <div class="up-slot" data-path="sitemap.xml"><div class="up-slot-top"><span class="up-sname">sitemap.xml</span><button class="up-xbtn">✕</button></div><div class="up-spath">sitemap.xml</div><label class="up-area"><input type="file"><div class="up-atext">არჩიე ფაილი</div></label><div class="up-status"></div></div>
+            <div class="up-slot" data-path="robots.txt"><div class="up-slot-top"><span class="up-sname">robots.txt</span><button class="up-xbtn">✕</button></div><div class="up-spath">robots.txt</div><label class="up-area"><input type="file"><div class="up-atext">არჩიე ფაილი</div></label><div class="up-status"></div></div>
+          </div>
+
+          <!-- CUSTOM -->
+          <div class="up-group" id="upgroup-custom">
+            <div class="up-custom-add">
+              <div class="up-label" style="margin-bottom:10px;">ნებისმიერი ფაილი</div>
+              <div style="display:flex; gap:6px;">
+                <input type="text" id="upCustomPath" placeholder="მაგ: js/newfile.js" class="up-input" style="flex:1; font-size:0.78rem;">
+                <button id="upAddCustomBtn" style="background:transparent;border:1px solid rgba(201,168,76,0.3);color:#c9a84c;padding:8px 14px;cursor:pointer;font-size:1rem;transition:all 0.2s;font-family:'Cinzel',serif;">＋</button>
+              </div>
+            </div>
+            <div id="upCustomSlots"></div>
+          </div>
+
+          <!-- DIVIDER -->
+          <div style="height:1px;background:rgba(201,168,76,0.2);margin:18px 0 14px;"></div>
+
+          <!-- PROGRESS -->
+          <div id="upProgressWrap"><div id="upProgressBar"></div></div>
+
+          <!-- BUTTONS -->
+          <button id="upUploadBtn">↑ ატვირთვა</button>
+          <button id="upClearAllBtn">✕ გასუფთავება</button>
+
+          <!-- LOG -->
+          <div id="upLog"></div>
+
+        </div>
       </div>
     </div>
 
