@@ -14,10 +14,13 @@ let _notifData        = [];     // შეტყობინებების ca
 let _notifInterval    = null;
 
 // ── Debate state ──────────────────────────────────────────────
-let _newThreadType      = 'public';
-let _debateOpponentUid  = null;
-let _debateOpponentNick = null;
-let _debateTimerIds     = [];
+let _newThreadType       = 'public';
+let _debateOpponentUid   = null;
+let _debateOpponentNick  = null;
+let _debateTimerIds      = [];
+let _debateAutoRefreshId = null;   // polling interval for live phase changes
+let _debateWatchPhase    = null;   // last known phase (for change detection)
+let _debateWatchTid      = null;   // currently watched threadId
 
 // ===== DOM refs (ინიციალიზაციის შემდეგ) =====
 let _agoraView, _agoraListView, _agoraThreadView, _agoraTopbarTitle, _agoraBackBtn, _agoraNewBtn;
@@ -1766,6 +1769,45 @@ async function agoraDoSearch(query) {
 function _dbClearTimers() {
   _debateTimerIds.forEach(id => clearInterval(id));
   _debateTimerIds = [];
+  if (_debateAutoRefreshId) { clearInterval(_debateAutoRefreshId); _debateAutoRefreshId = null; }
+  _debateWatchPhase = null;
+  _debateWatchTid   = null;
+}
+
+// Auto-polling: re-render debate if phase changes (verdict arrival, end-vote, etc.)
+function _dbStartAutoRefresh(tid, currentPhase) {
+  if (_debateAutoRefreshId) clearInterval(_debateAutoRefreshId);
+  _debateWatchTid   = tid;
+  _debateWatchPhase = currentPhase;
+  _debateAutoRefreshId = setInterval(async () => {
+    try {
+      const { ok, data } = await agoraFetch({ action: 'get-debate', threadId: _debateWatchTid });
+      if (!ok || !data.debate) return;
+      const newPhase   = data.debate.phase;
+      const newEndVotes = Object.keys(data.debate.endVotes || {}).length;
+      const oldEndVotes = Object.keys(
+        (() => { try { return JSON.parse(sessionStorage.getItem('_dbEndVotes_' + _debateWatchTid) || '{}'); } catch { return {}; } })()
+      ).length;
+      // store endVotes count for comparison
+      sessionStorage.setItem('_dbEndVotes_' + _debateWatchTid, JSON.stringify(data.debate.endVotes || {}));
+
+      if (newPhase !== _debateWatchPhase || newEndVotes !== oldEndVotes) {
+        // phase changed or new end-vote appeared → reload the thread view silently
+        _debateWatchPhase = newPhase;
+        const container = document.getElementById('agoraReplies');
+        if (!container) return;
+        const photoMap = data.photoMap || {};
+        // get thread from current threadView
+        const threadData = _agoraCurrentThread;
+        if (threadData) agoraRenderDebateView(threadData, data.debate, container, photoMap);
+        // if verdict just arrived, stop polling
+        if (newPhase === 'verdict' || newPhase === 'cancelled') {
+          clearInterval(_debateAutoRefreshId);
+          _debateAutoRefreshId = null;
+        }
+      }
+    } catch { /* silent */ }
+  }, 12000); // every 12 seconds
 }
 
 function _dbCountdown(elId, deadline) {
@@ -1878,6 +1920,10 @@ function agoraRenderDebateView(thread, debate, container, photoMap) {
   const user  = agoraGetUser();
   const uid   = user?.uid;
   const phase = debate.phase;
+  // start polling for live changes (verdict, end-vote, phase change)
+  if (uid && phase !== 'verdict' && phase !== 'cancelled' && phase !== 'pending') {
+    _dbStartAutoRefresh(debate.threadId || thread.id, phase);
+  }
 
   let html = '';
 
@@ -2021,14 +2067,38 @@ function _dbFinalView(debate, uid, photoMap) {
   const mine   = uid === debate.currentTurn;
   const other  = uid === debate.authorUid ? debate.opponentNickname : debate.authorNickname;
 
-  const myEndVote   = uid ? (debate.endVotes || {})[uid] : null;
-  const totalEndVotes = Object.keys(debate.endVotes || {}).length;
-  const endBtn = uid ? `<div class="db-end-wrap">
-    ${myEndVote
-      ? `<div class="db-waiting" style="font-size:0.78rem;">⏳ ელოდება მეორე მხარის თანხმობას... (${totalEndVotes}/2)</div>`
-      : `<button id="dbEndDebateBtn" class="db-btn db-btn-end">⚑ დებატის დასრულება (ორივეს თანხმობით)</button>`
+  const endVotes    = debate.endVotes || {};
+  const myEndVote   = uid ? endVotes[uid] : null;
+  const otherUid2   = uid === debate.authorUid ? debate.opponentUid : debate.authorUid;
+  const otherEndVote = uid ? endVotes[otherUid2] : null;
+  const otherNickForEnd = uid === debate.authorUid
+    ? agoraEscape(debate.opponentNickname||'?')
+    : agoraEscape(debate.authorNickname||'?');
+
+  let endSection = '';
+  if (uid) {
+    if (myEndVote) {
+      // მე უკვე ხმა მისცე
+      endSection = `<div class="db-end-wrap">
+        <div class="db-waiting" style="font-size:0.78rem;">⏳ ელოდება ${otherNickForEnd}-ის თანხმობას...</div>
+      </div>`;
+    } else if (otherEndVote) {
+      // ოპონენტმა ხმა მისცა, მე ჯერ არა → prominent banner
+      endSection = `<div class="db-end-banner">
+        <div class="db-end-banner-text">⚑ ${otherNickForEnd} გთხოვს დებატი ადრე დაასრულო</div>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <button id="dbEndDebateBtn" class="db-btn db-btn-gold" style="flex:1;">✓ ვეთანხმები</button>
+          <button id="dbEndDeclineBtn" class="db-btn db-btn-danger" style="flex:1;">✕ უარი</button>
+        </div>
+      </div>`;
+    } else {
+      // ვერავინ ხმა არ მისცია
+      endSection = `<div class="db-end-wrap">
+        <button id="dbEndDebateBtn" class="db-btn db-btn-end">⚑ დებატის ადრე დასრულება (ორივეს თანხმობით)</button>
+      </div>`;
     }
-  </div>` : '';
+  }
+  const endBtn = endSection;
 
   return _dbPhaseHdr('③ საბოლოო პაექრობა',
     _dbTimerRow('dbTurnTimer','სვლა:') + '&nbsp;&nbsp;' + _dbTimerRow('dbTotalTimer','სულ:'))
@@ -2139,6 +2209,14 @@ function _dbBindActions(container, thread, debate, uid) {
   if (endBtn) endBtn.addEventListener('click', () => {
     showConfirmToast('დებატი ადრე დასრულდება — AI შეაფასებს ჯამურ შედეგს. დასტური?', () => _dbRequestEnd(tid, endBtn));
   });
+
+  // decline end-debate (ოპონენტის წინადადებაზე უარი)
+  const endDeclineBtn = container.querySelector('#dbEndDeclineBtn');
+  if (endDeclineBtn) endDeclineBtn.addEventListener('click', () => {
+    showToast('ადრეული დასრულება უარყოფილია.', 'info');
+    // clear opponent's vote via server
+    _dbDeclineEnd(tid, endDeclineBtn);
+  });
 }
 
 // Cross question form
@@ -2221,6 +2299,15 @@ async function _dbRequestEnd(tid, btn) {
     btn.disabled = false;
     btn.textContent = origText;
   }
+}
+
+async function _dbDeclineEnd(tid, btn) {
+  if (btn) btn.disabled = true;
+  try {
+    const tok = await agoraGetValidToken();
+    await agoraFetch({ action: 'decline-end-debate', threadId: tid, userToken: tok });
+    setTimeout(() => agoraOpenThread(tid), 400);
+  } catch { /* silent */ if (btn) btn.disabled = false; }
 }
 
 async function _dbSubmitTurn(tid, btn, quickType) {
