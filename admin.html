@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ადმინ პანელი — ΦΙΛΟΣΟΦΙΑ</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📖</text></svg>">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap');
+
+:root {
+  --gold: #c9a84c;
+  --gold-dim: rgba(201,168,76,0.3);
+  --gold-faint: rgba(201,168,76,0.08);
+  --bg: #0b0906;
+  --surface: #131109;
+  --surface2: #1a1710;
+  --ivory: #f0e6c8;
+  --ivory-dim: rgba(240,230,200,0.55);
+  --danger: #c0392b;
+  --danger-dim: rgba(192,57,43,0.2);
+  --success: #27ae60;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { height:100%; }
+
+body {
+  background: var(--bg);
+  color: var(--ivory);
+  font-family: 'EB Garamond', Georgia, serif;
+  min-height: 100vh;
+}
+
+/* GRAIN */
+body::before {
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events:none;
+  z-index:0;
+}
+
+/* HEADER */
+.adm-header {
+  position:sticky; top:0; z-index:200;
+  background: rgba(11,9,6,0.95);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--gold-dim);
+  padding: 0 20px;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative; z-index: 1;
+}
+.adm-logo {
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.3em;
+  color: var(--gold);
+  display: flex; align-items: center; gap: 10px;
+}
+.adm-logo span { color: var(--ivory-dim); font-size: 0.6rem; letter-spacing: 0.2em; }
+.adm-header-right { display:flex; align-items:center; gap:12px; }
+.adm-back {
+  font-family:'Cinzel',serif;
+  font-size:0.6rem;
+  letter-spacing:0.15em;
+  color: var(--ivory-dim);
+  background: transparent;
+  border: 1px solid var(--gold-dim);
+  padding: 6px 14px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+  display: inline-block;
+}
+.adm-back:hover { color:var(--gold); border-color:var(--gold); }
+.owner-badge {
+  font-family:'Cinzel',serif; font-size:0.58rem;
+  letter-spacing:0.15em; background:var(--gold);
+  color:var(--bg); padding:3px 10px;
+}
+
+/* LAYOUT */
+.adm-layout { display:flex; min-height:calc(100vh - 54px); position:relative; z-index:1; }
+
+/* SIDEBAR NAV */
+.adm-nav {
+  width:190px; flex-shrink:0;
+  border-right: 1px solid var(--gold-dim);
+  padding: 24px 0;
+  position: sticky; top:54px;
+  height: calc(100vh - 54px);
+  overflow-y: auto;
+}
+.nav-section { margin-bottom:24px; }
+.nav-label {
+  font-family:'Cinzel',serif; font-size:0.52rem;
+  letter-spacing:0.28em; color:rgba(201,168,76,0.4);
+  padding:0 18px 8px; display:block;
+}
+.nav-item {
+  display:flex; align-items:center; gap:10px;
+  padding:10px 18px;
+  font-size:0.8rem; color:var(--ivory-dim);
+  cursor:pointer; transition:all 0.2s;
+  border-left:2px solid transparent;
+  letter-spacing:0.03em;
+}
+.nav-item:hover { color:var(--ivory); background:var(--gold-faint); }
+.nav-item.active { color:var(--gold); border-left-color:var(--gold); background:var(--gold-faint); }
+.nav-icon { font-size:0.85rem; width:16px; text-align:center; }
+.nav-badge {
+  margin-left:auto; background:var(--gold); color:var(--bg);
+  font-size:0.58rem; font-family:'Cinzel',serif;
+  padding:1px 6px; border-radius:10px; font-weight:700;
+  display:none;
+}
+.nav-badge.show { display:inline-block; }
+
+/* MAIN */
+.adm-main { flex:1; padding:28px 24px; max-width:860px; }
+
+/* VIEWS */
+.adm-view { display:none; }
+.adm-view.active { display:block; animation:fadeUp 0.35s ease; }
+
+/* PAGE TITLE */
+.pg-label {
+  font-family:'Cinzel',serif; font-size:0.62rem;
+  letter-spacing:0.32em; color:var(--gold); margin-bottom:5px;
+}
+.pg-title {
+  font-size:1.55rem; font-weight:400;
+  color:var(--ivory); margin-bottom:22px; letter-spacing:0.02em;
+}
+.pg-divider {
+  display:flex; align-items:center; gap:10px; margin-bottom:24px;
+}
+.pg-divider-line { flex:1; height:1px; background:linear-gradient(to right,var(--gold-dim),transparent); }
+.pg-divider-dot { width:4px;height:4px;background:var(--gold);border-radius:50%;opacity:0.5;flex-shrink:0; }
+
+/* STATS */
+.stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:28px; }
+.stat-card {
+  background:var(--surface); border:1px solid var(--gold-dim);
+  padding:18px 16px; position:relative; overflow:hidden;
+}
+.stat-card::after {
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(135deg,var(--gold-faint) 0%,transparent 60%);
+  pointer-events:none;
+}
+.stat-icon { font-size:1rem; margin-bottom:8px; }
+.stat-value { font-family:'Cinzel',serif; font-size:1.7rem; color:var(--gold); line-height:1; margin-bottom:3px; }
+.stat-label { font-size:0.7rem; color:var(--ivory-dim); letter-spacing:0.07em; }
+
+/* SECTION HEAD */
+.sec-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.sec-title { font-family:'Cinzel',serif; font-size:0.62rem; letter-spacing:0.22em; color:var(--gold); }
+
+/* BUTTONS */
+.btn-sm {
+  font-family:'Cinzel',serif; font-size:0.58rem; letter-spacing:0.14em;
+  padding:6px 14px; border:1px solid var(--gold-dim);
+  background:transparent; color:var(--gold); cursor:pointer; transition:all 0.2s;
+}
+.btn-sm:hover { background:var(--gold); color:var(--bg); }
+.btn-primary {
+  font-family:'Cinzel',serif; font-size:0.62rem; letter-spacing:0.12em;
+  padding:10px 22px; background:linear-gradient(135deg,#c9a84c,#a8852e);
+  border:none; color:var(--bg); cursor:pointer; font-weight:700;
+  transition:all 0.2s; display:inline-block;
+}
+.btn-primary:hover { box-shadow:0 4px 16px rgba(201,168,76,0.3); transform:translateY(-1px); }
+.btn-danger {
+  font-family:'Cinzel',serif; font-size:0.6rem; letter-spacing:0.1em;
+  padding:8px 16px; background:var(--danger-dim);
+  border:1px solid rgba(192,57,43,0.35); color:#e57373;
+  cursor:pointer; transition:all 0.2s;
+}
+.btn-danger:hover { background:rgba(192,57,43,0.35); }
+
+/* PENDING CARDS */
+.pending-list { margin-bottom:28px; }
+.pending-card {
+  background:var(--surface); border:1px solid var(--gold-dim);
+  padding:14px 16px; margin-bottom:8px;
+  display:flex; align-items:center; gap:12px;
+  transition:border-color 0.2s;
+}
+.pending-card:hover { border-color:rgba(201,168,76,0.5); }
+.pending-cat-tag {
+  font-family:'Cinzel',serif; font-size:0.5rem; letter-spacing:0.15em;
+  color:var(--gold); background:var(--gold-faint);
+  border:1px solid var(--gold-dim); padding:3px 8px; flex-shrink:0;
+  white-space:nowrap;
+}
+.pending-info { flex:1; min-width:0; }
+.pending-title { font-size:0.88rem; color:var(--ivory); margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.pending-meta { font-size:0.68rem; color:var(--ivory-dim); font-style:italic; }
+.pending-actions { display:flex; gap:7px; flex-shrink:0; }
+.btn-approve {
+  padding:6px 12px; background:linear-gradient(135deg,#c9a84c,#a8852e);
+  border:none; color:var(--bg); font-family:'Cinzel',serif;
+  font-size:0.58rem; letter-spacing:0.1em; cursor:pointer; font-weight:700;
+  transition:all 0.2s;
+}
+.btn-approve:hover { box-shadow:0 4px 14px rgba(201,168,76,0.3); transform:translateY(-1px); }
+.btn-reject {
+  padding:6px 12px; background:var(--danger-dim);
+  border:1px solid rgba(192,57,43,0.35); color:#e57373;
+  font-family:'Cinzel',serif; font-size:0.58rem; letter-spacing:0.1em; cursor:pointer;
+  transition:all 0.2s;
+}
+.btn-reject:hover { background:rgba(192,57,43,0.35); }
+
+/* NOTES TABLE */
+.tbl-wrap {
+  background:var(--surface); border:1px solid var(--gold-dim);
+  margin-bottom:24px;
+}
+.tbl-head {
+  display:grid; grid-template-columns:1fr 130px 85px 80px;
+  padding:10px 14px; border-bottom:1px solid var(--gold-dim);
+  background:var(--gold-faint);
+}
+.th { font-family:'Cinzel',serif; font-size:0.52rem; letter-spacing:0.18em; color:rgba(201,168,76,0.55); }
+.tbl-row {
+  display:grid; grid-template-columns:1fr 130px 85px 80px;
+  padding:12px 14px; border-bottom:1px solid rgba(201,168,76,0.07);
+  align-items:center; transition:background 0.2s;
+}
+.tbl-row:last-child { border-bottom:none; }
+.tbl-row:hover { background:var(--gold-faint); }
+.td-title { font-size:0.82rem; color:var(--ivory); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding-right:8px; }
+.td-cat { font-size:0.68rem; color:var(--gold); font-style:italic; }
+.td-date { font-size:0.68rem; color:var(--ivory-dim); }
+.td-actions { display:flex; gap:5px; }
+.icon-btn {
+  width:26px; height:26px; border:1px solid var(--gold-dim);
+  background:transparent; color:var(--gold); cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  font-size:0.7rem; transition:all 0.2s;
+}
+.icon-btn:hover { background:var(--gold); color:var(--bg); }
+.icon-btn.danger { border-color:rgba(192,57,43,0.3); color:#e57373; }
+.icon-btn.danger:hover { background:var(--danger); border-color:var(--danger); color:#fff; }
+
+/* USERS TABLE */
+.user-row {
+  display:flex; align-items:center; gap:12px;
+  padding:12px 14px; border-bottom:1px solid rgba(201,168,76,0.07);
+  transition:background 0.2s;
+}
+.user-row:hover { background:var(--gold-faint); }
+.user-row:last-child { border-bottom:none; }
+.user-avatar {
+  width:34px; height:34px; border-radius:50%;
+  border:1px solid var(--gold-dim); background:var(--surface2);
+  display:flex; align-items:center; justify-content:center;
+  font-size:0.85rem; color:var(--gold); flex-shrink:0; overflow:hidden;
+}
+.user-avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+.user-name { font-size:0.85rem; color:var(--ivory); }
+.user-email { font-size:0.68rem; color:var(--ivory-dim); font-style:italic; }
+.user-role-tag {
+  margin-left:auto; font-family:'Cinzel',serif; font-size:0.52rem;
+  letter-spacing:0.14em; padding:3px 10px;
+  border:1px solid var(--gold-dim); color:var(--gold); flex-shrink:0;
+}
+.user-role-tag.member { border-color:rgba(240,230,200,0.12); color:var(--ivory-dim); }
+.user-actions { display:flex; gap:5px; margin-left:8px; }
+
+/* EMPTY STATE */
+.empty-state {
+  padding:40px; text-align:center;
+  color:var(--ivory-dim); font-style:italic; font-size:0.88rem;
+}
+
+/* TOAST */
+#adm-toast {
+  position:fixed; bottom:24px; right:24px; z-index:9999;
+  background:var(--surface); border:1px solid var(--gold-dim);
+  padding:12px 20px; font-size:0.82rem; color:var(--ivory);
+  box-shadow:0 8px 30px rgba(0,0,0,0.5);
+  transform:translateY(20px); opacity:0;
+  transition:all 0.3s ease; pointer-events:none;
+}
+#adm-toast.show { transform:translateY(0); opacity:1; }
+#adm-toast.success { border-color:rgba(39,174,96,0.4); color:#6dde9a; }
+#adm-toast.error { border-color:rgba(192,57,43,0.4); color:#e57373; }
+
+/* CONFIRM */
+#adm-confirm {
+  position:fixed; inset:0; z-index:99999;
+  display:none; align-items:center; justify-content:center;
+  background:rgba(5,4,2,0.85); backdrop-filter:blur(8px);
+}
+#adm-confirm.show { display:flex; }
+#adm-confirm-box {
+  background:#13110d; border:1px solid var(--gold-dim);
+  padding:38px 32px 30px; max-width:320px; width:90%; text-align:center; position:relative;
+}
+.adm-cf-corner { position:absolute; width:12px; height:12px; border-color:rgba(201,168,76,0.45); border-style:solid; }
+
+/* LOADING */
+.loading-dots { display:flex; gap:6px; justify-content:center; padding:30px; }
+.loading-dots span {
+  width:7px; height:7px; background:var(--gold); border-radius:50%;
+  animation:dot 1.2s ease-in-out infinite;
+}
+.loading-dots span:nth-child(2) { animation-delay:0.2s; }
+.loading-dots span:nth-child(3) { animation-delay:0.4s; }
+@keyframes dot { 0%,80%,100%{opacity:0.2;transform:scale(0.8)} 40%{opacity:1;transform:scale(1)} }
+
+/* ANIMATIONS */
+@keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width:4px; }
+::-webkit-scrollbar-track { background:var(--bg); }
+::-webkit-scrollbar-thumb { background:var(--gold-dim); border-radius:2px; }
+
+/* MOBILE */
+@media(max-width:600px) {
+  .adm-nav { display:none; }
+  .stats-row { grid-template-columns:1fr 1fr; }
+  .tbl-head, .tbl-row { grid-template-columns:1fr 70px 60px; }
+  .td-date { display:none; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="adm-header">
+  <div class="adm-logo">ΦΙΛΟΣΟΦΙΑ <span>/ ადმინ პანელი</span></div>
+  <div class="adm-header-right">
+    <a href="/" class="adm-back">← მთავარი</a>
+    <span class="owner-badge">OWNER</span>
+  </div>
+</header>
+
+<div class="adm-layout">
+
+  <!-- NAV -->
+  <nav class="adm-nav">
+    <div class="nav-section">
+      <span class="nav-label">მთავარი</span>
+      <div class="nav-item active" data-view="dashboard"><span class="nav-icon">◈</span> დაფა</div>
+      <div class="nav-item" data-view="articles"><span class="nav-icon">◉</span> სტატიები</div>
+    </div>
+    <div class="nav-section">
+      <span class="nav-label">მოდერაცია</span>
+      <div class="nav-item" data-view="pending"><span class="nav-icon">⊡</span> განსახილველი <span class="nav-badge" id="pendingBadge">0</span></div>
+      <div class="nav-item" data-view="users"><span class="nav-icon">⊞</span> მომხმარებლები</div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="adm-main">
+
+    <!-- ═══ DASHBOARD ═══ -->
+    <div class="adm-view active" id="view-dashboard">
+      <p class="pg-label">DASHBOARD</p>
+      <p class="pg-title">მართვის პანელი</p>
+      <div class="pg-divider"><div class="pg-divider-line"></div><div class="pg-divider-dot"></div><div class="pg-divider-line" style="background:linear-gradient(to left,var(--gold-dim),transparent)"></div></div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-icon">◈</div>
+          <div class="stat-value" id="statTotalNotes">—</div>
+          <div class="stat-label">სტატია სულ</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">◎</div>
+          <div class="stat-value" id="statPending">—</div>
+          <div class="stat-label">განსახილველი</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">⊞</div>
+          <div class="stat-value" id="statUsers">—</div>
+          <div class="stat-label">მომხმარებელი</div>
+        </div>
+      </div>
+
+      <!-- PENDING PREVIEW -->
+      <div class="sec-head">
+        <span class="sec-title">განსახილველი სტატიები</span>
+        <button class="btn-sm" onclick="switchView('pending')">ყველა →</button>
+      </div>
+      <div id="dashPendingList" class="pending-list">
+        <div class="loading-dots"><span></span><span></span><span></span></div>
+      </div>
+
+      <!-- RECENT ARTICLES -->
+      <div class="sec-head">
+        <span class="sec-title">ბოლო სტატიები</span>
+        <button class="btn-sm" onclick="switchView('articles')">ყველა →</button>
+      </div>
+      <div class="tbl-wrap" id="dashNotesList">
+        <div class="loading-dots"><span></span><span></span><span></span></div>
+      </div>
+    </div>
+
+    <!-- ═══ ARTICLES ═══ -->
+    <div class="adm-view" id="view-articles">
+      <p class="pg-label">ARTICLES</p>
+      <p class="pg-title">სტატიები</p>
+      <div class="pg-divider"><div class="pg-divider-line"></div><div class="pg-divider-dot"></div><div class="pg-divider-line" style="background:linear-gradient(to left,var(--gold-dim),transparent)"></div></div>
+      <div class="tbl-wrap" id="allNotesList">
+        <div class="loading-dots"><span></span><span></span><span></span></div>
+      </div>
+    </div>
+
+    <!-- ═══ PENDING ═══ -->
+    <div class="adm-view" id="view-pending">
+      <p class="pg-label">MODERATION</p>
+      <p class="pg-title">განსახილველი</p>
+      <div class="pg-divider"><div class="pg-divider-line"></div><div class="pg-divider-dot"></div><div class="pg-divider-line" style="background:linear-gradient(to left,var(--gold-dim),transparent)"></div></div>
+      <div id="allPendingList" class="pending-list">
+        <div class="loading-dots"><span></span><span></span><span></span></div>
+      </div>
+    </div>
+
+    <!-- ═══ USERS ═══ -->
+    <div class="adm-view" id="view-users">
+      <p class="pg-label">USERS</p>
+      <p class="pg-title">მომხმარებლები</p>
+      <div class="pg-divider"><div class="pg-divider-line"></div><div class="pg-divider-dot"></div><div class="pg-divider-line" style="background:linear-gradient(to left,var(--gold-dim),transparent)"></div></div>
+      <div class="tbl-wrap" id="usersList">
+        <div class="loading-dots"><span></span><span></span><span></span></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- TOAST -->
+<div id="adm-toast"></div>
+
+<!-- CONFIRM -->
+<div id="adm-confirm">
+  <div id="adm-confirm-box">
+    <div class="adm-cf-corner" style="top:9px;left:9px;border-width:1px 0 0 1px"></div>
+    <div class="adm-cf-corner" style="top:9px;right:9px;border-width:1px 1px 0 0"></div>
+    <div class="adm-cf-corner" style="bottom:9px;left:9px;border-width:0 0 1px 1px"></div>
+    <div class="adm-cf-corner" style="bottom:9px;right:9px;border-width:0 1px 1px 0"></div>
+    <p id="adm-confirm-msg" style="color:rgba(240,230,200,0.75);font-size:0.95rem;line-height:1.7;margin-bottom:24px;font-style:italic;"></p>
+    <div style="display:flex;gap:10px;">
+      <button id="adm-confirm-no" style="flex:1;padding:11px;background:transparent;border:1px solid var(--gold-dim);color:var(--ivory-dim);cursor:pointer;font-family:inherit;font-size:0.82rem;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(201,168,76,0.5)';this.style.color='#f0e6c8'" onmouseout="this.style.borderColor='var(--gold-dim)';this.style.color='var(--ivory-dim)'">გაუქმება</button>
+      <button id="adm-confirm-yes" style="flex:1;padding:11px;background:linear-gradient(135deg,#c9a84c,#a8852e);border:none;color:#0d0b08;cursor:pointer;font-family:inherit;font-size:0.82rem;font-weight:700;">დიახ</button>
+    </div>
+  </div>
+</div>
+
+<!-- FIREBASE -->
+<script src="js/firebase-app-compat.js"></script>
+<script>
+'use strict';
+
+// ── CONFIG ──
+const FIREBASE_DB   = "https://gen-lang-client-0339684222-default-rtdb.firebaseio.com";
+const FIREBASE_AUTH = "https://identitytoolkit.googleapis.com/v1/accounts";
+const API_KEY       = "AIzaSyCcTPhEU478qqwbI9KqJ4iOOFBHox-J7Ao";
+const CAT_NAMES = {
+  epist:'ეპისტემოლოგია', ethics:'ეთიკა', logic:'ლოგიკა',
+  meta:'მეტაფიზიკა', lang:'ენის ფილოსოფია', anthro:'ანთროპოლოგია',
+  aesthetics:'ესთეტიკა', exist:'ეგზისტენციალიზმი', onto:'ონტოლოგია',
+  axio:'აქსიოლოგია', histphil:'ფილ. ისტორია', relphil:'რელიგიის ფილ.',
+  feminist:'ფემინისტური ფილ.'
+};
+
+// ── AUTH CHECK ──
+const idToken = localStorage.getItem('idToken');
+if (!idToken) { window.location.href = '/'; }
+
+// ── FIREBASE INIT ──
+const firebaseConfig = {
+  apiKey: API_KEY,
+  authDomain: "gen-lang-client-0339684222.firebaseapp.com",
+  databaseURL: FIREBASE_DB,
+  projectId: "gen-lang-client-0339684222",
+  storageBucket: "gen-lang-client-0339684222.firebasestorage.app",
+  messagingSenderId: "636166502416",
+  appId: "1:636166502416:web:78841eec3ba4c658a07295"
+};
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+
+async function fbFetch(url, opts = {}) {
+  try {
+    const { token } = await Promise.race([
+      firebase.appCheck ? firebase.appCheck().getToken() : Promise.reject(),
+      new Promise((_,r) => setTimeout(() => r('timeout'), 2000))
+    ]);
+    opts.headers = Object.assign({}, opts.headers, { 'X-Firebase-AppCheck': token });
+  } catch(e) {}
+  return fetch(url, opts);
+}
+
+// ── TOAST ──
+let toastTimer;
+function showToast(msg, type = '') {
+  const el = document.getElementById('adm-toast');
+  el.textContent = msg;
+  el.className = 'show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = ''; }, 3000);
+}
+
+// ── CONFIRM ──
+function admConfirm(msg, onYes) {
+  const overlay = document.getElementById('adm-confirm');
+  document.getElementById('adm-confirm-msg').textContent = msg;
+  overlay.classList.add('show');
+  const yes = document.getElementById('adm-confirm-yes');
+  const no  = document.getElementById('adm-confirm-no');
+  const close = () => overlay.classList.remove('show');
+  yes.onclick = () => { close(); onYes(); };
+  no.onclick = close;
+  overlay.onclick = e => { if (e.target === overlay) close(); };
+}
+
+// ── NAV ──
+function switchView(name) {
+  document.querySelectorAll('.adm-view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  document.querySelector('[data-view="' + name + '"]').classList.add('active');
+}
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => switchView(item.dataset.view));
+});
+
+// ── DATE FORMAT ──
+function fmtDate(ts) {
+  if (!ts) return '—';
+  return new Date(ts).toLocaleDateString('ka-GE', { day:'numeric', month:'short', year:'numeric' });
+}
+
+// ── DATA ──
+let allNotes = [];
+let allPending = [];
+let allUsers = {};
+
+async function loadAll() {
+  await Promise.all([loadNotes(), loadPending(), loadUsers()]);
+  renderDashboard();
+}
+
+async function loadNotes() {
+  try {
+    const res = await fbFetch(`${FIREBASE_DB}/notes.json`);
+    if (!res.ok) return;
+    const data = await res.json();
+    allNotes = data ? Object.entries(data).map(([k,v]) => ({...v, fbId:k}))
+      .sort((a,b) => (b.date||0) - (a.date||0)) : [];
+  } catch(e) { allNotes = []; }
+}
+
+async function loadPending() {
+  try {
+    const res = await fbFetch(`${FIREBASE_DB}/pending-notes.json?auth=${idToken}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    allPending = data ? Object.entries(data).map(([k,v]) => ({...v, fbId:k}))
+      .sort((a,b) => (b.submittedDate||0) - (a.submittedDate||0)) : [];
+  } catch(e) { allPending = []; }
+  const badge = document.getElementById('pendingBadge');
+  badge.textContent = allPending.length;
+  badge.classList.toggle('show', allPending.length > 0);
+}
+
+async function loadUsers() {
+  try {
+    const res = await fbFetch(`${FIREBASE_DB}/users.json?auth=${idToken}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    allUsers = data || {};
+  } catch(e) { allUsers = {}; }
+}
+
+// ── RENDER ──
+function renderDashboard() {
+  document.getElementById('statTotalNotes').textContent = allNotes.length;
+  document.getElementById('statPending').textContent = allPending.length;
+  document.getElementById('statUsers').textContent = Object.keys(allUsers).length;
+
+  // pending preview (first 3)
+  const dashP = document.getElementById('dashPendingList');
+  if (!allPending.length) {
+    dashP.innerHTML = '<div class="empty-state">განსახილველი სტატია არ არის</div>';
+  } else {
+    dashP.innerHTML = allPending.slice(0,3).map(n => pendingCardHTML(n)).join('');
+  }
+
+  // recent notes (first 5)
+  renderNotesTable(document.getElementById('dashNotesList'), allNotes.slice(0,5));
+  renderNotesTable(document.getElementById('allNotesList'), allNotes);
+  renderPendingList(document.getElementById('allPendingList'), allPending);
+  renderUsersTable(document.getElementById('usersList'));
+}
+
+function pendingCardHTML(n) {
+  const cat = CAT_NAMES[n.category] || n.category || '—';
+  const author = n.author || n.submitterEmail || 'უცნობი';
+  const date = fmtDate(n.submittedDate);
+  return `<div class="pending-card">
+    <span class="pending-cat-tag">${cat}</span>
+    <div class="pending-info">
+      <div class="pending-title">${n.title || 'უსათაურო'}</div>
+      <div class="pending-meta">${author} · ${date}</div>
+    </div>
+    <div class="pending-actions">
+      <button class="btn-approve" onclick="approveNote('${n.fbId}')">დადასტურება</button>
+      <button class="btn-reject" onclick="rejectNote('${n.fbId}')">უარყოფა</button>
+    </div>
+  </div>`;
+}
+
+function renderPendingList(el, list) {
+  if (!list.length) {
+    el.innerHTML = '<div class="empty-state">განსახილველი სტატია არ არის ✓</div>';
+    return;
+  }
+  el.innerHTML = list.map(n => pendingCardHTML(n)).join('');
+}
+
+function renderNotesTable(el, notes) {
+  if (!notes.length) {
+    el.innerHTML = '<div class="empty-state">სტატია არ მოიძებნა</div>';
+    return;
+  }
+  el.innerHTML = `
+    <div class="tbl-head">
+      <div class="th">სათაური</div>
+      <div class="th">კატეგორია</div>
+      <div class="th">თარიღი</div>
+      <div class="th">მოქმედება</div>
+    </div>
+    ${notes.map(n => `
+      <div class="tbl-row">
+        <div class="td-title">${n.title || 'უსათაურო'}</div>
+        <div class="td-cat">${CAT_NAMES[n.category] || n.category || '—'}</div>
+        <div class="td-date">${fmtDate(n.date)}</div>
+        <div class="td-actions">
+          <button class="icon-btn danger" onclick="deleteNote('${n.fbId}')" title="წაშლა">🗑</button>
+        </div>
+      </div>
+    `).join('')}
+  `;
+}
+
+function renderUsersTable(el) {
+  const users = Object.entries(allUsers);
+  if (!users.length) {
+    el.innerHTML = '<div class="empty-state">მომხმარებელი არ მოიძებნა</div>';
+    return;
+  }
+  el.innerHTML = users.map(([uid, u]) => {
+    const name = u.displayName || u.nickname || 'უცნობი';
+    const email = u.email || '';
+    const photo = u.photoURL || '';
+    const initials = name[0] || '◎';
+    const isOwner = u.isOwner || u.role === 'owner';
+    const isBanned = u.banned;
+    return `<div class="user-row">
+      <div class="user-avatar">${photo ? `<img src="${photo}" onerror="this.parentNode.textContent='${initials}'">` : initials}</div>
+      <div>
+        <div class="user-name">${name}${isBanned ? ' <span style="color:#e57373;font-size:0.7rem;">[დაბლოკილი]</span>' : ''}</div>
+        <div class="user-email">${email}</div>
+      </div>
+      <span class="user-role-tag ${isOwner ? '' : 'member'}">${isOwner ? 'OWNER' : 'MEMBER'}</span>
+      ${!isOwner ? `<div class="user-actions">
+        ${isBanned
+          ? `<button class="icon-btn" onclick="unbanUser('${uid}')" title="განბლოკვა" style="color:#6dde9a;border-color:rgba(39,174,96,0.3)">🔓</button>`
+          : `<button class="icon-btn danger" onclick="banUser('${uid}')" title="დაბლოკვა">🚫</button>`}
+        <button class="icon-btn danger" onclick="deleteUser('${uid}')" title="წაშლა">🗑</button>
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// ── ACTIONS ──
+async function approveNote(id) {
+  const note = allPending.find(n => n.fbId === id);
+  if (!note) return;
+  admConfirm(`"${note.title}" — დაადასტურო?`, async () => {
+    try {
+      const token = idToken;
+      const addRes = await fbFetch(`${FIREBASE_DB}/notes.json?auth=${token}`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({...note, date: Date.now()})
+      });
+      if (!addRes.ok) throw new Error();
+      await fbFetch(`${FIREBASE_DB}/pending-notes/${id}.json?auth=${token}`, { method:'DELETE' });
+      showToast('სტატია გამოქვეყნდა! ✓', 'success');
+      await loadAll();
+    } catch(e) { showToast('შეცდომა!', 'error'); }
+  });
+}
+
+async function rejectNote(id) {
+  const note = allPending.find(n => n.fbId === id);
+  if (!note) return;
+  admConfirm(`"${note.title}" — უარყო?`, async () => {
+    try {
+      await fbFetch(`${FIREBASE_DB}/pending-notes/${id}.json?auth=${idToken}`, { method:'DELETE' });
+      showToast('სტატია უარყოფილია', 'error');
+      await loadAll();
+    } catch(e) { showToast('შეცდომა!', 'error'); }
+  });
+}
+
+async function deleteNote(id) {
+  const note = allNotes.find(n => n.fbId === id);
+  admConfirm(`"${note?.title || 'სტატია'}" — წაიშალოს?`, async () => {
+    try {
+      await fbFetch(`${FIREBASE_DB}/notes/${id}.json?auth=${idToken}`, { method:'DELETE' });
+      showToast('სტატია წაიშალა', 'error');
+      await loadAll();
+    } catch(e) { showToast('შეცდომა!', 'error'); }
+  });
+}
+
+async function banUser(uid) {
+  admConfirm('მომხმარებელი დაიბლოკება. დარწმუნებული ხარ?', async () => {
+    try {
+      await fbFetch(`${FIREBASE_DB}/users/${uid}/banned.json?auth=${idToken}`, {
+        method:'PUT', headers:{'Content-Type':'application/json'}, body:'true'
+      });
+      showToast('მომხმარებელი დაიბლოკა', 'error');
+      await loadUsers();
+      renderUsersTable(document.getElementById('usersList'));
+    } catch(e) { showToast('შეცდომა!', 'error'); }
+  });
+}
+
+async function unbanUser(uid) {
+  try {
+    await fbFetch(`${FIREBASE_DB}/users/${uid}/banned.json?auth=${idToken}`, {
+      method:'PUT', headers:{'Content-Type':'application/json'}, body:'false'
+    });
+    showToast('მომხმარებელი განბლოკილია ✓', 'success');
+    await loadUsers();
+    renderUsersTable(document.getElementById('usersList'));
+  } catch(e) { showToast('შეცდომა!', 'error'); }
+}
+
+async function deleteUser(uid) {
+  admConfirm('მომხმარებელი სამუდამოდ წაიშლება!', async () => {
+    try {
+      await fbFetch(`${FIREBASE_DB}/users/${uid}.json?auth=${idToken}`, { method:'DELETE' });
+      showToast('მომხმარებელი წაიშალა', 'error');
+      await loadUsers();
+      renderUsersTable(document.getElementById('usersList'));
+    } catch(e) { showToast('შეცდომა!', 'error'); }
+  });
+}
+
+// ── INIT ──
+loadAll();
+</script>
+</body>
+</html>
