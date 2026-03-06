@@ -1262,3 +1262,389 @@
   padding: 4px 2px 10px;
   opacity: 0.7;
 }
+
+
+/* ============================================================
+   ⚔️ DEBATE UI — Session 52
+   ============================================================ */
+
+/* --- Phase Header --- */
+.db-phase-hdr {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.72rem;
+  letter-spacing: 3px;
+  color: var(--gold);
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(201,168,76,0.2);
+  padding-bottom: 10px;
+  margin: 24px 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* --- Turn Cards --- */
+.db-turn-card {
+  margin-bottom: 14px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid rgba(201,168,76,0.12);
+  border-left: 3px solid var(--gold-dim);
+  animation: fadeIn 0.25s ease;
+}
+.db-turn-author {
+  border-left-color: var(--gold);
+  border-color: rgba(201,168,76,0.22);
+}
+.db-turn-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.db-turn-num {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.6rem;
+  color: var(--gold-dim);
+  letter-spacing: 1px;
+  min-width: 24px;
+}
+.db-turn-nick {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.7rem;
+  letter-spacing: 1.5px;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+.db-turn-card:not(.db-turn-author) .db-turn-nick {
+  color: var(--text-dim);
+}
+.db-turn-body {
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 1rem;
+  color: var(--text);
+  line-height: 1.75;
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding-left: 36px;
+}
+.db-empty-turns {
+  color: var(--text-dim);
+  font-size: 0.88rem;
+  font-style: italic;
+  padding: 12px 0;
+  text-align: center;
+}
+
+/* --- Buttons --- */
+.db-btn {
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: 0;
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.65rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-block;
+  text-align: center;
+  box-sizing: border-box;
+}
+.db-btn-gold {
+  background: rgba(201,168,76,0.08);
+  border: 1px solid var(--gold);
+  color: var(--gold);
+}
+.db-btn-gold:hover {
+  background: rgba(201,168,76,0.18);
+}
+.db-btn-danger {
+  background: rgba(224,85,85,0.07);
+  border: 1px solid rgba(224,85,85,0.38);
+  color: #e05555;
+}
+.db-btn-danger:hover {
+  background: rgba(224,85,85,0.14);
+}
+.db-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.db-btn-row {
+  display: flex;
+  gap: 10px;
+}
+.db-btn-row .db-btn {
+  flex: 1;
+}
+.db-btn-full {
+  width: 100%;
+}
+
+/* --- Invite/Pending Screens --- */
+.db-invite-box {
+  background: var(--surface);
+  border: 1px solid rgba(201,168,76,0.2);
+  padding: 22px;
+  text-align: center;
+  margin-bottom: 14px;
+}
+.db-invite-name {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.85rem;
+  color: var(--text);
+  letter-spacing: 2px;
+  margin-bottom: 6px;
+}
+.db-invite-sub {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  font-style: italic;
+  font-family: 'EB Garamond', Georgia, serif;
+}
+.db-rules-box {
+  background: var(--surface);
+  border: 1px solid rgba(201,168,76,0.1);
+  padding: 14px 18px;
+  margin-bottom: 18px;
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 0.87rem;
+  color: var(--text-dim);
+  line-height: 1.9;
+}
+.db-warn {
+  color: #f87171;
+  font-size: 0.82rem;
+  display: block;
+  margin-top: 6px;
+}
+.db-pending-msg {
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.92rem;
+  margin-bottom: 22px;
+  font-style: italic;
+  font-family: 'EB Garamond', Georgia, serif;
+}
+.db-pending-center {
+  text-align: center;
+}
+
+/* --- Submit Form --- */
+.db-submit-wrap {
+  margin-top: 20px;
+  border-top: 1px solid rgba(201,168,76,0.15);
+  padding-top: 18px;
+}
+.db-label {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.62rem;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  display: block;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+.db-textarea {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid rgba(201,168,76,0.25);
+  color: var(--text);
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 0.98rem;
+  padding: 12px;
+  resize: vertical;
+  outline: none;
+  line-height: 1.7;
+  box-sizing: border-box;
+  border-radius: 0;
+  min-height: 110px;
+}
+.db-textarea:focus {
+  border-color: rgba(201,168,76,0.55);
+  box-shadow: 0 0 0 2px rgba(201,168,76,0.07);
+}
+.db-textarea::placeholder {
+  color: var(--text-dim);
+  opacity: 0.55;
+}
+.db-error {
+  color: #f87171;
+  font-size: 0.82rem;
+  margin-top: 6px;
+  display: none;
+}
+
+/* --- Cross Questions --- */
+.db-q-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+.db-q-input {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid rgba(201,168,76,0.22);
+  color: var(--text);
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 0.92rem;
+  padding: 8px 10px;
+  resize: vertical;
+  outline: none;
+  min-height: 52px;
+  border-radius: 0;
+  box-sizing: border-box;
+}
+.db-q-input:focus {
+  border-color: rgba(201,168,76,0.5);
+}
+.db-rm-q {
+  -webkit-appearance: none;
+  appearance: none;
+  background: none;
+  border: 1px solid rgba(224,85,85,0.3);
+  color: #e05555;
+  font-size: 0.8rem;
+  padding: 6px 10px;
+  cursor: pointer;
+  flex-shrink: 0;
+  align-self: flex-start;
+  margin-top: 2px;
+  border-radius: 0;
+  transition: all 0.2s;
+}
+.db-rm-q:hover {
+  background: rgba(224,85,85,0.1);
+}
+
+/* --- Cross Answer Buttons --- */
+.db-ans-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+.db-ans-btn {
+  -webkit-appearance: none;
+  appearance: none;
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.62rem;
+  letter-spacing: 1.5px;
+  padding: 7px 14px;
+  cursor: pointer;
+  border-radius: 0;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+.db-ans-btn-yes {
+  background: rgba(74,222,128,0.07);
+  border: 1px solid rgba(74,222,128,0.35);
+  color: #4ade80;
+}
+.db-ans-btn-no {
+  background: rgba(248,113,113,0.07);
+  border: 1px solid rgba(248,113,113,0.35);
+  color: #f87171;
+}
+.db-ans-btn-idk {
+  background: none;
+  border: 1px solid rgba(201,168,76,0.2);
+  color: var(--text-dim);
+}
+.db-ans-btn:hover { opacity: 0.85; }
+.db-ans-btn.selected { opacity: 1; filter: brightness(1.2); }
+
+/* --- Verdict --- */
+.db-verdict-wrap {
+  padding: 8px 0;
+}
+.db-verdict-winner {
+  text-align: center;
+  padding: 22px;
+  background: var(--surface);
+  border: 1px solid rgba(201,168,76,0.25);
+  margin-bottom: 16px;
+}
+.db-verdict-crown {
+  font-size: 1.6rem;
+  margin-bottom: 8px;
+}
+.db-verdict-name {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 1rem;
+  letter-spacing: 3px;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+.db-verdict-label {
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  font-style: italic;
+  font-family: 'EB Garamond', Georgia, serif;
+}
+.db-verdict-scores {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 14px 0;
+}
+.db-score-item {
+  background: var(--surface);
+  border: 1px solid rgba(201,168,76,0.15);
+  padding: 10px 16px;
+  text-align: center;
+  flex: 1;
+  min-width: 80px;
+}
+.db-score-nick {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.6rem;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.db-score-val {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 1.1rem;
+  color: var(--gold);
+}
+.db-verdict-analysis {
+  background: var(--surface);
+  border: 1px solid rgba(201,168,76,0.1);
+  border-left: 3px solid var(--gold-dim);
+  padding: 16px 18px;
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 0.97rem;
+  line-height: 1.85;
+  color: var(--text);
+}
+
+/* --- Progress bar & waiting --- */
+.db-waiting {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-dim);
+  font-style: italic;
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 0.9rem;
+}
+
+/* --- Opponent search success (gold, not green) --- */
+#debateOpponentFound {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.72rem;
+  letter-spacing: 1px;
+  margin-top: 4px;
+}
+
