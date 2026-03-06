@@ -1946,7 +1946,7 @@ function agoraRenderDebateView(thread, debate, container, photoMap) {
   } else if (phase === 'final') {
     html = _dbFinalView(debate, uid, photoMap);
   } else if (phase === 'verdict') {
-    html = _dbVerdictView(debate);
+    html = _dbVerdictView(debate, photoMap);
   }
 
   container.innerHTML = html;
@@ -1997,13 +1997,14 @@ function _dbOpeningView(debate, uid, photoMap) {
   const oCount = tArr.filter(t=>t.uid===debate.opponentUid).length;
   const mine   = uid === debate.currentTurn;
   const other  = uid === debate.authorUid ? debate.opponentNickname : debate.authorNickname;
+  const isParticipant = uid === debate.authorUid || uid === debate.opponentUid;
 
   return _dbPhaseHdr('① საწყისი ეტაპი',
     _dbTimerRow('dbTurnTimer','სვლა:') + '&nbsp;&nbsp;' + _dbTimerRow('dbTotalTimer','სულ:'))
     + _dbProgressBar(tArr.length, 10, debate.authorNickname||'?', `${aCount}/5`, debate.opponentNickname||'?', `${oCount}/5`, debate.authorUid, debate.opponentUid, photoMap)
     + _dbTurnsHtml(turns, debate.authorUid, debate.authorNickname, debate.opponentNickname, photoMap)
     + (mine ? _dbSubmitForm()
-             : uid ? `<div class="db-waiting">⏳ ${agoraEscape(other||'?')}-ის ჯერია...</div>` : '');
+             : isParticipant ? `<div class="db-waiting">⏳ ${agoraEscape(other||'?')}-ის ჯერია...</div>` : '');
 }
 
 // ── Cross-asking phase ───────────────────────────────────────
@@ -2079,8 +2080,10 @@ function _dbFinalView(debate, uid, photoMap) {
     ? agoraEscape(debate.opponentNickname||'?')
     : agoraEscape(debate.authorNickname||'?');
 
+  const isParticipant = uid === debate.authorUid || uid === debate.opponentUid;
+
   let endSection = '';
-  if (uid) {
+  if (isParticipant) {
     if (myEndVote) {
       // მე უკვე ხმა მისცე
       endSection = `<div class="db-end-wrap">
@@ -2108,12 +2111,13 @@ function _dbFinalView(debate, uid, photoMap) {
     _dbTimerRow('dbTurnTimer','სვლა:') + '&nbsp;&nbsp;' + _dbTimerRow('dbTotalTimer','სულ:'))
     + _dbProgressBar(tArr.length, 20, debate.authorNickname||'?', `${aCount}/10`, debate.opponentNickname||'?', `${oCount}/10`, debate.authorUid, debate.opponentUid, photoMap)
     + _dbTurnsHtml(turns, debate.authorUid, debate.authorNickname, debate.opponentNickname, photoMap)
-    + (mine ? _dbSubmitForm() : uid ? `<div class="db-waiting">⏳ ${agoraEscape(other||'?')}-ის ჯერია...</div>` : '')
+    + (mine ? _dbSubmitForm() : isParticipant ? `<div class="db-waiting">⏳ ${agoraEscape(other||'?')}-ის ჯერია...</div>` : '')
     + endBtn;
 }
 
 // ── Verdict screen ───────────────────────────────────────────
-function _dbVerdictView(debate) {
+function _dbVerdictView(debate, photoMap) {
+  photoMap = photoMap || {};
   const v = debate.verdict;
   if (!v) return `<div class="db-waiting">⚖ AI კრიტიკოსი ვერდიქტს ამზადებს...</div>`;
 
@@ -2145,6 +2149,46 @@ function _dbVerdictView(debate) {
   const oN = debate.opponentNickname || '?';
   const isDraw = v.result === 'draw' || !v.winnerUid;
 
+  // სრული transcript
+  function sectionHdr(label) {
+    return `<div style="font-family:'Cinzel',serif;font-size:0.58rem;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;border-bottom:1px solid rgba(201,168,76,0.12);padding-bottom:8px;margin:24px 0 14px;">${label}</div>`;
+  }
+  function crossQA(crossObj, askerNick, answererNick) {
+    if (!crossObj?.questions) return '';
+    const qs = Object.entries(crossObj.questions).sort(([a],[b])=>Number(a)-Number(b));
+    const as = crossObj.answers || {};
+    return qs.map(([idx, q]) => {
+      const ans = as[idx];
+      const aLabel = ans ? (ans.answer==='yes'?'კი':ans.answer==='no'?'არა':'არ ვიცი') : '—';
+      const aColor = ans ? (ans.answer==='yes'?'var(--gold)':ans.answer==='no'?'#f87171':'var(--text-dim)') : 'var(--text-dim)';
+      return `<div style="background:var(--surface);border:1px solid rgba(201,168,76,0.1);padding:12px 14px;margin-bottom:7px;">
+        <div style="font-family:'Cinzel',serif;font-size:0.55rem;letter-spacing:1px;color:var(--text-dim);margin-bottom:5px;">${agoraEscape(askerNick)} → ${agoraEscape(answererNick)}</div>
+        <div style="font-family:'EB Garamond',serif;font-size:0.9rem;color:var(--text);margin-bottom:6px;line-height:1.6;">${agoraEscape(q.body)}</div>
+        <div style="font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:1.5px;color:${aColor};">${aLabel}</div>
+      </div>`;
+    }).join('');
+  }
+
+  let transcript = '';
+  if (debate.opening && Object.keys(debate.opening).length) {
+    transcript += sectionHdr('① საწყისი ეტაპი')
+      + _dbTurnsHtml(debate.opening, debate.authorUid, aN, oN, photoMap);
+  }
+  const cross1 = debate.cross;
+  if (cross1?.questions && Object.keys(cross1.questions).length) {
+    transcript += sectionHdr('② დაკითხვა — I (კი / არა / არ ვიცი)')
+      + crossQA(cross1, aN, oN);
+  }
+  const cross2 = debate.cross2;
+  if (cross2?.questions && Object.keys(cross2.questions).length) {
+    transcript += sectionHdr('② დაკითხვა — II (კი / არა / არ ვიცი)')
+      + crossQA(cross2, oN, aN);
+  }
+  if (debate.final && Object.keys(debate.final).length) {
+    transcript += sectionHdr('③ საბოლოო პაექრობა')
+      + _dbTurnsHtml(debate.final, debate.authorUid, aN, oN, photoMap);
+  }
+
   const winnerBox = isDraw
     ? `<div class="db-verdict-winner">
         <div class="db-verdict-crown">⚡</div>
@@ -2165,6 +2209,7 @@ function _dbVerdictView(debate) {
     + winnerBox
     + (v.analysis ? `<div class="db-verdict-analysis" style="margin-bottom:16px;">${agoraEscape(v.analysis)}</div>` : '')
     + `<div class="db-verdict-scores">${scoreBlock(aN)}${scoreBlock(oN)}</div>`
+    + transcript
     + `</div>`;
 }
 
