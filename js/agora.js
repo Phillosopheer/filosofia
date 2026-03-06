@@ -163,6 +163,10 @@ function closeAgora() {
   if (view) view.classList.remove('active');
   document.body.style.overflow = '';
   _agoraCurrentThread = null;
+  // debate auto-refresh გაჩერება
+  if (_debateAutoRefreshId) { clearInterval(_debateAutoRefreshId); _debateAutoRefreshId = null; }
+  _debateWatchPhase = null;
+  _debateWatchTid   = null;
 }
 
 // ============================================================
