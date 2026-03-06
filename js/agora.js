@@ -343,20 +343,8 @@ async function agoraOpenThread(threadId) {
         repliesEl.innerHTML = '';
         paginEl.innerHTML   = '';
         if (replyFEl) replyFEl.innerHTML = '';
-        const debate = debRes.data.debate;
-        // Firebase SDK-ით ორივე მოთამაშის ფოტო (App Check ავტომატური)
-        const photoMap = {};
-        try {
-          const db = firebase.database();
-          const [aSnap, oSnap] = await Promise.all([
-            db.ref(`users/${debate.authorUid}/photoURL`).once('value'),
-            db.ref(`users/${debate.opponentUid}/photoURL`).once('value')
-          ]);
-          const aPhoto = aSnap.val();
-          const oPhoto = oSnap.val();
-          if (aPhoto) photoMap[debate.authorUid]   = aPhoto;
-          if (oPhoto) photoMap[debate.opponentUid] = oPhoto;
-        } catch(e) { /* ფოტო ვერ ჩაიტვირთა — initials გამოჩნდება */ }
+        const debate   = debRes.data.debate;
+        const photoMap = debRes.data.photoMap || {};
         agoraRenderDebateView(data.thread, debate, repliesEl, photoMap);
       } else {
         repliesEl.innerHTML = `<div class="agora-empty"><div class="agora-empty-text">⚔️ დებატის მონაცემი ვერ ჩაიტვირთა</div></div>`;
@@ -1856,30 +1844,30 @@ function _dbProgressBar(done, total, aName, aCountRaw, oName, oCountRaw, aUid, o
   const pct = Math.round((done / total) * 100);
   photoMap = photoMap || {};
 
-  function playerCard(nick, uid, doneCnt, maxCnt) {
+  function playerCard(nick, uid, doneCnt, maxCnt, isOpp) {
     const initials = (nick||'?')[0].toUpperCase();
     const photo    = photoMap[uid] || null;
     const avatarEl = photo
-      ? `<img src="${agoraEscape(photo)}" alt="" style="width:26px;height:26px;border-radius:50%;object-fit:cover;flex-shrink:0;border:1px solid rgba(201,168,76,0.3);">`
-      : `<div style="width:26px;height:26px;border-radius:50%;background:var(--surface2);border:1px solid rgba(201,168,76,0.25);display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-size:0.65rem;color:var(--gold-dim);flex-shrink:0;">${initials}</div>`;
+      ? `<img src="${agoraEscape(photo)}" class="agora-author-avatar" alt="">`
+      : `<div class="agora-author-avatar agora-author-avatar-placeholder">${initials}</div>`;
     const dots = Array.from({length: maxCnt}, (_, i) =>
-      `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;margin:0 2px;background:${i < doneCnt ? 'var(--gold)' : 'rgba(201,168,76,0.15)'};"></span>`
+      `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;margin:0 2px;background:${i < doneCnt ? 'var(--gold)' : 'rgba(201,168,76,0.15)'};" ></span>`
     ).join('');
-    return `<div style="display:flex;align-items:center;gap:8px;">
+    return `<div class="db-player-card${isOpp ? ' db-player-card-opp' : ''}">
       ${avatarEl}
-      <div>
-        <div style="font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:1px;color:var(--text-dim);margin-bottom:4px;">${agoraEscape(nick)}</div>
-        <div style="line-height:1;">${dots}</div>
+      <div class="db-player-info">
+        <div class="db-player-nick">${agoraEscape(nick)}</div>
+        <div class="db-player-dots">${dots}</div>
       </div>
     </div>`;
   }
 
-  return `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px;padding:12px 14px;background:var(--surface);border:1px solid rgba(201,168,76,0.1);">
-    ${playerCard(aName, aUid, aDone, aMax)}
-    <div style="font-family:'Cinzel',serif;font-size:0.58rem;letter-spacing:1.5px;color:var(--gold-dim);text-transform:uppercase;flex-shrink:0;">vs</div>
-    ${playerCard(oName, oUid, oDone, oMax)}
+  return `<div class="db-players-bar">
+    ${playerCard(aName, aUid, aDone, aMax, false)}
+    <div class="db-vs-label">vs</div>
+    ${playerCard(oName, oUid, oDone, oMax, true)}
   </div>
-  <div style="height:2px;background:rgba(201,168,76,0.08);margin-bottom:18px;"><div style="height:100%;background:rgba(201,168,76,0.35);width:${pct}%;transition:width 0.5s;"></div></div>`;
+  <div class="db-progress-line"><div class="db-progress-fill" style="width:${pct}%;"></div></div>`;
 }
 
 // ── Main router ──────────────────────────────────────────────
@@ -2182,9 +2170,9 @@ async function _dbSubmitTurn(tid, btn, quickType) {
 
   let body;
   if (quickType === 'agree') {
-    body = '✓ გეთანხმები';
+    body = 'გეთანხმები';
   } else if (quickType === 'no_answer') {
-    body = '— პასუხი არ მაქვს';
+    body = 'პასუხი არ მაქვს';
   } else {
     if (!ta) return;
     body = ta.value.trim();
