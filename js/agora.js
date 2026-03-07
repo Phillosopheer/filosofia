@@ -2189,7 +2189,7 @@ function _dbVerdictView(debate, photoMap) {
       <div class="db-score-row"><span class="db-score-label">დაკითხვა</span><span class="db-score-val">${s.cross_score||0} / 10</span></div>
       ${barGold(s.cross_score||0)}
       <div class="db-score-row">
-        <span class="db-score-label">უპასუხო არგუმენტები<br><span style="font-size:0.6rem;opacity:0.55;">ნაკლები = უკეთ</span></span>
+        <span class="db-score-label">უპასუხო არგუმენტები<br><span style="font-size:0.6rem;opacity:0.55;">ნაკლები = უკეთესი</span></span>
         <span class="db-score-val" style="color:${ipColor};">${ip} / 10</span>
       </div>
       ${barRed(ip)}
