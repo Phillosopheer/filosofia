@@ -847,7 +847,7 @@ renderNotes();
 list.appendChild(d);
 });
 }
-async function fetchNotes() {
+async function fetchNotes(retryCount = 0) {
 const grid = document.getElementById('notesGrid');
 grid.innerHTML = '<div class="spinner"></div>';
 buildCatList();
@@ -876,7 +876,12 @@ return;
 if (!currentCat) goHome();
 else renderNotes();
 } catch (err) {
-grid.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>${err.message}</p></div>`;
+if (retryCount < 2) {
+  grid.innerHTML = '<div class="spinner"></div>';
+  setTimeout(() => fetchNotes(retryCount + 1), 2000);
+  return;
+}
+grid.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>${err.message}</p><button onclick="fetchNotes()" style="margin-top:12px;padding:8px 20px;background:none;border:1px solid rgba(201,168,76,0.4);color:var(--gold);font-family:Cinzel,serif;font-size:0.65rem;cursor:pointer;letter-spacing:1px;">↺ თავიდან</button></div>`;
 }
 }
 function renderNotes(filtered_override) {
