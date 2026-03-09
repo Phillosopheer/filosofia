@@ -1,5 +1,5 @@
 // ============================================================
-// js/agora.js — ΑΓΟΡΑ ფორუმი (Frontend)
+// js/agora.js - ΑΓΟΡΑ ფორუმი (Frontend)
 // Session 41
 // ============================================================
 
@@ -9,7 +9,7 @@ let _agoraReplyPage   = 1;
 let _agoraTotalPages  = 1;
 let _agoraReplyTotal  = 1;
 let _agoraCurrentThread = null; // { id, ...threadData }
-let _agoraQuotes      = [];     // [{ id, num, author, body }] — ციტატების სია
+let _agoraQuotes      = [];     // [{ id, num, author, body }] - ციტატების სია
 let _notifData        = [];     // შეტყობინებების cache
 let _notifInterval    = null;
 
@@ -26,7 +26,7 @@ let _debateWatchTid      = null;   // currently watched threadId
 let _agoraView, _agoraListView, _agoraThreadView, _agoraTopbarTitle, _agoraBackBtn, _agoraNewBtn;
 
 // ============================================================
-// helper: დროის ფორმატი — "2 საათის წინ"
+// helper: დროის ფორმატი - "2 საათის წინ"
 // ============================================================
 function agoraTimeAgo(ts) {
   const diff = Date.now() - ts;
@@ -45,13 +45,13 @@ function agoraTimeAgo(ts) {
 // helper: user token
 // ============================================================
 function agoraGetToken() {
-  // sync ვერსია — UI-სთვის (hidden/visible ღილაკები)
+  // sync ვერსია - UI-სთვის (hidden/visible ღილაკები)
   if (typeof idToken !== 'undefined' && idToken) return idToken;
   if (typeof userToken !== 'undefined' && userToken) return userToken;
   return localStorage.getItem('idToken') || localStorage.getItem('userToken') || null;
 }
 
-// async ვერსია submit-ებისთვის — ამოწმებს expiry-ს და refresh-ავს
+// async ვერსია submit-ებისთვის - ამოწმებს expiry-ს და refresh-ავს
 async function agoraGetValidToken() {
   // ადმინი: getValidIdToken() refresh-ავს ავტომატურად
   if (typeof idToken !== 'undefined' && idToken) {
@@ -91,7 +91,7 @@ async function agoraGetValidToken() {
 function agoraGetUser() {
   // ჩვეულებრივი user
   if (typeof currentUser !== 'undefined' && currentUser) return currentUser;
-  // ადმინი — currentUser null-ია, მაგრამ idToken გვაქვს
+  // ადმინი - currentUser null-ია, მაგრამ idToken გვაქვს
   if (typeof idToken !== 'undefined' && idToken) {
     return {
       uid:      'bOZ9pQ95e6RwQ6ZD6p5MUzzEvld2',
@@ -186,13 +186,13 @@ async function agoraShowList(page) {
   topTitle.innerHTML = '🏛 ა გ ო რ ა';
   backBtn.classList.add('hidden');
 
-  // ახალი თემა — მხოლოდ logged-in user-ებს
+  // ახალი თემა - მხოლოდ logged-in user-ებს
   const canCreate = !!(agoraGetToken() || agoraIsAdmin());
   if (newBtn) {
     newBtn.classList.toggle('hidden', !canCreate);
   }
 
-  // admin — დაბლოკილების ღილაკი
+  // admin - დაბლოკილების ღილაკი
   const existingBanBtn = document.getElementById('agoraBannedBtn');
   if (existingBanBtn) existingBanBtn.remove();
   if (agoraIsAdmin()) {
@@ -205,7 +205,7 @@ async function agoraShowList(page) {
     if (topbar) topbar.appendChild(banListBtn);
   }
 
-  // განმარტება — სტატიკური, ერთხელ ჩნდება
+  // განმარტება - სტატიკური, ერთხელ ჩნდება
   const descEl = document.getElementById('agoraDescription');
   if (descEl) {
     descEl.style.display = page === 1 ? 'block' : 'none';
@@ -225,15 +225,24 @@ async function agoraShowList(page) {
       listEl.innerHTML = `
         <div class="agora-empty">
           <div class="agora-empty-icon">🏛</div>
-          <div class="agora-empty-text">პირველი იყავი — გახსენი თემა</div>
+          <div class="agora-empty-text">პირველი იყავი - გახსენი თემა</div>
+          ${!canCreate ? `<div class="agora-login-notice" style="margin-top:12px;">თემის გასახსნელად საჭიროა <span id="agoraEmptyLoginLink" style="color:var(--gold);cursor:pointer;text-decoration:underline;">შესვლა / რეგისტრაცია</span></div>` : ''}
         </div>`;
       document.getElementById('agoraListPagination').innerHTML = '';
+      const emptyLoginLink = document.getElementById('agoraEmptyLoginLink');
+      if (emptyLoginLink) {
+        emptyLoginLink.addEventListener('click', function() {
+          closeAgora();
+          openModal('loginModal');
+          switchAuthTab('login');
+        });
+      }
       return;
     }
 
     listEl.innerHTML = data.threads.map(t => agoraThreadCard(t)).join('');
 
-    // event listeners — click on thread card
+    // event listeners - click on thread card
     listEl.querySelectorAll('.agora-thread-item').forEach(el => {
       el.addEventListener('click', function() {
         agoraOpenThread(this.dataset.id);
@@ -341,7 +350,7 @@ async function agoraOpenThread(threadId) {
     // user card triggers on thread header
     agoraBindUserCardTriggers(contentEl);
 
-    // DEBATE type — debate UI
+    // DEBATE type - debate UI
     if (data.thread.type === 'debate') {
       _debateTimerIds.forEach(id => clearInterval(id));
       _debateTimerIds = [];
@@ -438,8 +447,6 @@ function agoraBindThreadActions(actionsEl, thread) {
       });
     });
   }
-
-
 }
 
 // ============================================================
@@ -450,17 +457,17 @@ function agoraRenderReplies(container, items, paginData) {
     container.innerHTML = `
       <div class="agora-replies-divider">კომენტარები</div>
       <div class="agora-empty" style="padding:24px">
-        <div class="agora-empty-text">კომენტარები არ არის — იყავი პირველი</div>
+        <div class="agora-empty-text">კომენტარები არ არის - იყავი პირველი</div>
       </div>`;
     return;
   }
 
-  // კომენტარის ნომერი — გვერდის მიხედვით
+  // კომენტარის ნომერი - გვერდის მიხედვით
   const offset = ((_agoraReplyPage - 1) * 20);
 
   const repliesHTML = items.map((r, i) => agoraReplyCard(r, offset + i + 1)).join('');
   container.innerHTML = `
-    <div class="agora-replies-divider">კომენტარები — ${paginData.total}</div>
+    <div class="agora-replies-divider">კომენტარები - ${paginData.total}</div>
     ${repliesHTML}`;
 
   // action buttons
@@ -488,7 +495,7 @@ function agoraReplyCard(r, num) {
     ? `<img class="agora-author-avatar agora-user-card-trigger" data-uid="${agoraEscape(r.authorUid||'')}" src="${agoraEscape(r.authorAvatar)}" alt="" loading="lazy">`
     : `<div class="agora-author-avatar agora-author-avatar-placeholder agora-user-card-trigger" data-uid="${agoraEscape(r.authorUid||'')}">${agoraEscape((r.authorName||'?')[0].toUpperCase())}</div>`;
 
-  // quote blocks — ახალი array ან ძველი single quote (backward compat)
+  // quote blocks - ახალი array ან ძველი single quote (backward compat)
   let quoteHtml = '';
   if (r.quotes && r.quotes.length > 0) {
     quoteHtml = r.quotes.map(q => `
@@ -503,7 +510,7 @@ function agoraReplyCard(r, num) {
       </div>`;
   }
 
-  // quote button — ჩანს logged-in user-ებს
+  // quote button - ჩანს logged-in user-ებს
   const canReply = !!(agoraGetToken() || agoraIsAdmin());
   const quoteBtnHtml = canReply
     ? `<button class="agora-action-btn agora-quote-btn" data-act="quote-reply" title="ციტირება">↩ ციტირება</button>`
@@ -540,10 +547,6 @@ function agoraBindReplyActions(el) {
   const editBtn  = el.querySelector('[data-act="edit-reply"]');
   const delBtn   = el.querySelector('[data-act="delete-reply"]');
   const quoteBtn = el.querySelector('[data-act="quote-reply"]');
-  const saveBtn  = el.querySelector('.reply-save-btn');
-  const cancelBtn = el.querySelector('.reply-cancel-btn');
-  const editDiv  = document.getElementById(`replyEdit_${replyId}`);
-  const bodyDiv  = document.getElementById(`replyBody_${replyId}`);
 
   // ── ციტირება ──
   if (quoteBtn) {
@@ -551,11 +554,10 @@ function agoraBindReplyActions(el) {
       const num    = parseInt(el.dataset.replyNum) || '';
       const author = el.dataset.replyAuthor || '';
 
-      // მობაილზე მონიშნული ტექსტი — პრიორიტეტი
+      // მობაილზე მონიშნული ტექსტი - პრიორიტეტი
       let body = '';
       const sel = window.getSelection();
       if (sel && !sel.isCollapsed) {
-        // შევამოწმოთ selection ამ reply-ში არის
         let anchor = sel.anchorNode;
         let inThis = false;
         while (anchor) {
@@ -564,7 +566,7 @@ function agoraBindReplyActions(el) {
         }
         if (inThis) body = sel.toString().trim();
       }
-      // fallback — მთელი body (data attribute)
+      // fallback - მთელი body (data attribute)
       if (!body) body = el.dataset.replyBody || '';
 
       agoraAddQuote({ id: replyId, num, author, body });
@@ -578,7 +580,7 @@ function agoraBindReplyActions(el) {
         type: 'reply',
         threadId: _agoraCurrentThread.id,
         id: replyId,
-        body: bodyDiv ? bodyDiv.textContent : ''
+        body: document.getElementById(`replyBody_${replyId}`) ? document.getElementById(`replyBody_${replyId}`).textContent : ''
       });
     });
   }
@@ -591,8 +593,6 @@ function agoraBindReplyActions(el) {
       });
     });
   }
-
-
 }
 
 // ============================================================
@@ -641,20 +641,17 @@ function agoraRenderReplyForm(container, thread) {
   const countEl = container.querySelector('#replyCharCount');
   const btn     = container.querySelector('#replySubmitBtn');
 
-  // ციტატების stack-ის გამოტანა
   agoraUpdateQuoteStack();
 
   ta.addEventListener('input', function() {
     countEl.textContent = ta.value.length;
   });
 
-  // 📱 კლავიატურა ჩნდება — textarea-ს scroll into view
   ta.addEventListener('focus', function() {
     setTimeout(() => {
       ta.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 350);
   });
-
 
   btn.addEventListener('click', async function() {
     await agoraSubmitReply(thread.id, ta, btn);
@@ -671,14 +668,12 @@ function agoraRenderReplyForm(container, thread) {
 // quote stack management
 // ============================================================
 function agoraAddQuote(q) {
-  // duplicate check — იგივე reply-ი უკვე დამატებული?
   if (_agoraQuotes.some(x => x.id === q.id && x.body === q.body)) {
     showToast('ეს ციტატა უკვე დამატებულია', 'info');
     return;
   }
   _agoraQuotes.push(q);
   agoraUpdateQuoteStack();
-  // scroll to form + focus
   const form = document.getElementById('agoraReplyFormWrap');
   if (form) form.scrollIntoView({ behavior: 'smooth', block: 'center' });
   const ta = document.getElementById('replyTextarea');
@@ -725,11 +720,8 @@ function agoraRenderPagination(containerId, page, totalPages, onPageClick) {
   if (totalPages <= 1) { el.innerHTML = ''; return; }
 
   let html = '';
-
-  // ← წინა
   html += `<button class="agora-page-btn" data-page="${page-1}" ${page <= 1 ? 'disabled' : ''}>←</button>`;
 
-  // გვერდების ღილაკები (max 7 ჩანს)
   const pages = agoraPageRange(page, totalPages);
   for (const p of pages) {
     if (p === '...') {
@@ -739,7 +731,6 @@ function agoraRenderPagination(containerId, page, totalPages, onPageClick) {
     }
   }
 
-  // → შემდეგი
   html += `<button class="agora-page-btn" data-page="${page+1}" ${page >= totalPages ? 'disabled' : ''}>→</button>`;
 
   el.innerHTML = html;
@@ -748,7 +739,6 @@ function agoraRenderPagination(containerId, page, totalPages, onPageClick) {
     if (!btn.disabled && btn.dataset.page) {
       btn.addEventListener('click', function() {
         onPageClick(parseInt(this.dataset.page));
-        // scroll up
         document.getElementById('agoraView')?.scrollTo({ top: 0, behavior: 'smooth' });
       });
     }
@@ -796,12 +786,10 @@ function agoraOpenNewThreadModal() {
     return;
   }
 
-  // reset state
   _newThreadType      = 'public';
   _debateOpponentUid  = null;
   _debateOpponentNick = null;
 
-  // reset fields
   const titleEl   = document.getElementById('newThreadTitle');
   const bodyEl    = document.getElementById('newThreadBody');
   const errEl     = document.getElementById('newThreadError');
@@ -836,7 +824,6 @@ function agoraOpenNewThreadModal() {
       if (submitBtn) submitBtn.textContent = 'გამოქვეყნება';
       btnPub.style.cssText = activeStyle;
       if (btnDeb) btnDeb.style.cssText = inactiveStyle;
-      // label + placeholder → restore defaults
       const bodyLabel = document.getElementById('newThreadBodyLabel');
       if (bodyLabel) bodyLabel.textContent = 'შინაარსი';
       if (bodyEl) bodyEl.placeholder = 'შენი მოსაზრება... (მინ. 10 სიმბოლო)';
@@ -850,14 +837,12 @@ function agoraOpenNewThreadModal() {
       if (submitBtn) submitBtn.textContent = '⚔ გამოწვევის გაგზავნა';
       btnDeb.style.cssText = activeStyle;
       if (btnPub) btnPub.style.cssText = inactiveStyle;
-      // label + placeholder → debate-specific
       const bodyLabel = document.getElementById('newThreadBodyLabel');
       if (bodyLabel) bodyLabel.textContent = 'შენი პოზიცია და არგუმენტები (გახდება I სვლა)';
       if (bodyEl) bodyEl.placeholder = 'წარადგინე შენი თეზისი და საწყისი არგუმენტები. ეს ავტომატურად ჩაითვლება შენს პირველ სვლად (1/5).';
     });
   }
 
-  // opponent search
   if (oppInput && !oppInput.dataset.ntBound) {
     oppInput.dataset.ntBound = '1';
     let _oppTimer = null;
@@ -921,10 +906,9 @@ async function agoraSubmitNewThread() {
   if (!title || title.length < 5) { agoraShowError('newThreadError', 'სათაური მინ. 5 სიმბოლო'); return; }
   if (!body  || body.length  < 10) { agoraShowError('newThreadError', 'შინაარსი მინ. 10 სიმბოლო'); return; }
 
-  // ── DEBATE ──────────────────────────────────────────────────
   if (_newThreadType === 'debate') {
     if (!_debateOpponentUid) {
-      agoraShowError('newThreadError', 'ოპონენტი ვერ მოიძებნა — შეამოწმე nickname');
+      agoraShowError('newThreadError', 'ოპონენტი ვერ მოიძებნა - შეამოწმე nickname');
       return;
     }
     btn.disabled = true;
@@ -963,7 +947,6 @@ async function agoraSubmitNewThread() {
     return;
   }
 
-  // ── PUBLIC ──────────────────────────────────────────────────
   btn.disabled = true;
   btn.textContent = 'AI ამოწმებს...';
 
@@ -1037,7 +1020,6 @@ async function agoraSubmitReply(threadId, ta, btn) {
       authorAvatar
     };
 
-    // ციტატები — array
     if (_agoraQuotes.length > 0) {
       payload.quotes = _agoraQuotes.map(q => ({
         replyId: q.id,
@@ -1065,13 +1047,11 @@ async function agoraSubmitReply(threadId, ta, btn) {
     const countEl = document.getElementById('replyCharCount');
     if (countEl) countEl.textContent = '0';
 
-    // ციტატების გასუფთავება
     _agoraQuotes = [];
     agoraUpdateQuoteStack();
 
     showToast('✅ კომენტარი გამოქვეყნდა!', 'success');
 
-    // ბოლო გვერდზე გადასვლა და reload
     const { ok: ok2, data: d2 } = await agoraFetch({ action: 'get-thread', threadId });
     if (ok2) {
       _agoraCurrentThread = d2.thread;
@@ -1122,7 +1102,7 @@ async function agoraEditThread(threadId, newTitle, newBody) {
     }
 
     showToast('✅ თემა განახლდა!', 'success');
-    agoraOpenThread(threadId); // reload
+    agoraOpenThread(threadId);
 
   } catch (e) {
     showToast('📡 კავშირის შეცდომა.', 'error');
@@ -1238,12 +1218,10 @@ function agoraShowWarningToast(message, isBanned, quote) {
   }
 }
 
-
 // ============================================================
-// Edit Modal — thread ან reply-ის რედაქტირება
+// Edit Modal
 // ============================================================
 function agoraOpenEditModal(opts) {
-  // opts: { type, id, threadId?, title?, body }
   const existing = document.getElementById('agoraEditModal');
   if (existing) existing.remove();
 
@@ -1325,7 +1303,6 @@ let _userCardCache = {};
 async function agoraShowUserCard(uid, anchorEl) {
   if (!uid) return;
 
-  // ძველი popup წავშალოთ
   document.querySelectorAll('.agora-user-card-popup').forEach(e => e.remove());
 
   const popup = document.createElement('div');
@@ -1333,15 +1310,12 @@ async function agoraShowUserCard(uid, anchorEl) {
   popup.innerHTML = `<div class="auc-loading">იტვირთება...</div>`;
   document.body.appendChild(popup);
 
-  // პოზიციონირება anchor-ის ქვევით
   const rect = anchorEl.getBoundingClientRect();
-  const scrollY = window.scrollY || window.pageYOffset;
   popup.style.position = 'fixed';
   popup.style.top  = (rect.bottom + 6) + 'px';
   popup.style.left = Math.min(rect.left, window.innerWidth - 220) + 'px';
   popup.style.zIndex = '99999';
 
-  // გარეთ კლიკი — დახურვა
   const closeHandler = (e) => {
     if (!popup.contains(e.target) && e.target !== anchorEl) {
       popup.remove();
@@ -1350,7 +1324,6 @@ async function agoraShowUserCard(uid, anchorEl) {
   };
   setTimeout(() => document.addEventListener('click', closeHandler, true), 100);
 
-  // cache ან fetch
   let profile = _userCardCache[uid];
   if (!profile) {
     try {
@@ -1369,7 +1342,7 @@ async function agoraShowUserCard(uid, anchorEl) {
     `https://ui-avatars.com/api/?name=${encodeURIComponent((profile.nickname||'?')[0])}&background=c9a84c&color=1a1610&size=64&bold=true`;
 
   const roleHtml = profile.isOwner
-    ? `<span class="auc-role">👑 Owner — მთავარი ადმინისტრატორი</span>`
+    ? `<span class="auc-role">👑 Owner - მთავარი ადმინისტრატორი</span>`
     : `<span class="auc-nickname">${agoraEscape(profile.nickname)}</span>`;
 
   popup.innerHTML = `
@@ -1396,12 +1369,10 @@ function agoraBindUserCardTriggers(container) {
   });
 }
 
-
 // ============================================================
 // 🔔 NOTIFICATIONS
 // ============================================================
 async function agoraNotifLoad() {
-  // მხოლოდ logged-in user-ებისთვის
   const hasToken = !!(
     (typeof agoraGetToken === 'function' && agoraGetToken()) ||
     (typeof agoraIsAdmin === 'function' && agoraIsAdmin())
@@ -1468,7 +1439,7 @@ function agoraNotifRender() {
       text = `<b>${agoraEscape(n.fromName || '')}</b> გიწვევს 1vs1 დებატში: <i>${agoraEscape(n.threadTitle || '')}</i>`;
     } else if (n.type === 'debate-accepted') {
       icon = '⚔';
-      text = `<b>${agoraEscape(n.fromName || '')}</b> მიიღო შენი გამოწვევა — დებატი დაიწყო!`;
+      text = `<b>${agoraEscape(n.fromName || '')}</b> მიიღო შენი გამოწვევა - დებატი დაიწყო!`;
     } else if (n.type === 'debate-declined') {
       icon = '⚔';
       text = `<b>${agoraEscape(n.fromName || '')}</b> უარი თქვა გამოწვევაზე`;
@@ -1511,17 +1482,15 @@ async function agoraNotifMarkAll() {
   } catch { /* silent */ }
 }
 
-
 // ============================================================
 // ✂️ Selection Quote Bubble
 // ============================================================
 function agoraInitSelectionBubble() {
-  // Bubble გაუქმებულია — ლოგიკა მხოლოდ "↩ ციტირება" ღილაკშია
+  // Bubble გაუქმებულია - ლოგიკა მხოლოდ "↩ ციტირება" ღილაკშია
 }
 
-
 // ============================================================
-// 🚫 Admin — დაბლოკილი მომხმარებლების პანელი
+// 🚫 Admin - დაბლოკილი მომხმარებლების პანელი
 // ============================================================
 async function agoraOpenBannedPanel() {
   const existing = document.getElementById('agoraBannedPanel');
@@ -1542,7 +1511,6 @@ async function agoraOpenBannedPanel() {
 
   document.getElementById('abpClose').addEventListener('click', () => panel.remove());
 
-  // ჩატვირთვა
   try {
     const token = await agoraGetValidToken();
     const { ok, data } = await agoraFetch({ action: 'get-agora-banned', userToken: token });
@@ -1603,16 +1571,13 @@ async function agoraOpenBannedPanel() {
 
 
 document.addEventListener('DOMContentLoaded', function() {
-  // ✂️ Selection Quote Bubble
   agoraInitSelectionBubble();
 
-  // header agora button
   const agoraBtn = document.getElementById('agoraBtn');
   if (agoraBtn) {
     agoraBtn.addEventListener('click', openAgora);
   }
 
-  // back button — სიაზე დაბრუნება
   const backBtn = document.getElementById('agoraBackBtn');
   if (backBtn) {
     backBtn.addEventListener('click', function() {
@@ -1621,19 +1586,16 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // new thread button
   const newBtn = document.getElementById('agoraNewBtn');
   if (newBtn) {
     newBtn.addEventListener('click', agoraOpenNewThreadModal);
   }
 
-  // new thread modal submit
   const submitBtn = document.getElementById('newThreadSubmitBtn');
   if (submitBtn) {
     submitBtn.addEventListener('click', agoraSubmitNewThread);
   }
 
-  // new thread modal close
   const closeBtn = document.getElementById('closeNewThreadModalBtn');
   if (closeBtn) {
     closeBtn.addEventListener('click', function() {
@@ -1641,9 +1603,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // new thread body char count — ლიმიტი არ არის
-
-  // Escape key closes agora
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
       const agoraView = document.getElementById('agoraView');
@@ -1653,7 +1612,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // 🔔 Notification bell
   const notifBtn = document.getElementById('notifBtn');
   if (notifBtn) {
     notifBtn.addEventListener('click', function(e) {
@@ -1670,7 +1628,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // dropdown — გარეთ კლიკი ხურავს
   document.addEventListener('click', function(e) {
     if (!e.target.closest('#notifWrap')) {
       const dd = document.getElementById('notifDropdown');
@@ -1678,7 +1635,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // notification-ების ჩატვირთვა (auth-ს დროს ვაძლევთ 2 წამს)
   setTimeout(() => {
     agoraNotifLoad();
     _notifInterval = setInterval(agoraNotifLoad, 60000);
@@ -1786,7 +1742,6 @@ function _dbClearTimers() {
   _debateWatchTid   = null;
 }
 
-// Auto-polling: re-render debate if phase changes (verdict arrival, end-vote, etc.)
 function _dbStartAutoRefresh(tid, currentPhase) {
   if (_debateAutoRefreshId) clearInterval(_debateAutoRefreshId);
   _debateWatchTid   = tid;
@@ -1800,26 +1755,22 @@ function _dbStartAutoRefresh(tid, currentPhase) {
       const oldEndVotes = Object.keys(
         (() => { try { return JSON.parse(sessionStorage.getItem('_dbEndVotes_' + _debateWatchTid) || '{}'); } catch { return {}; } })()
       ).length;
-      // store endVotes count for comparison
       sessionStorage.setItem('_dbEndVotes_' + _debateWatchTid, JSON.stringify(data.debate.endVotes || {}));
 
       if (newPhase !== _debateWatchPhase || newEndVotes !== oldEndVotes) {
-        // phase changed or new end-vote appeared → reload the thread view silently
         _debateWatchPhase = newPhase;
         const container = document.getElementById('agoraReplies');
         if (!container) return;
         const photoMap = data.photoMap || {};
-        // get thread from current threadView
         const threadData = _agoraCurrentThread;
         if (threadData) agoraRenderDebateView(threadData, data.debate, container, photoMap);
-        // if verdict just arrived, stop polling
         if (newPhase === 'verdict' || newPhase === 'cancelled') {
           clearInterval(_debateAutoRefreshId);
           _debateAutoRefreshId = null;
         }
       }
     } catch { /* silent */ }
-  }, 12000); // every 12 seconds
+  }, 12000);
 }
 
 function _dbCountdown(elId, deadline) {
@@ -1878,13 +1829,11 @@ function _dbSubmitForm() {
   return `<div class="db-submit-wrap">
     <label class="db-label">შენი ჯერია</label>
 
-    <!-- 1. თეზისი -->
     <label class="db-struct-label">I. თეზისი</label>
     <textarea id="dbStructThesis" class="db-textarea" rows="3" placeholder="ჩამოაყალიბე შენი მთავარი პოზიცია..."></textarea>
 
     <div class="db-struct-divider"></div>
 
-    <!-- 2. არგუმენტები -->
     <label class="db-struct-label">II. არგუმენტები</label>
     <div id="dbArgList">
       <div class="db-arg-row">
@@ -1898,38 +1847,34 @@ function _dbSubmitForm() {
     </div>
     <div style="display:flex;gap:8px;margin-top:8px;">
       <button id="dbAddArgBtn" class="db-btn db-struct-add-btn">+ არგუმენტი</button>
-      <button id="dbRemoveArgBtn" class="db-btn db-struct-remove-btn">− წაშლა</button>
+      <button id="dbRemoveArgBtn" class="db-btn db-struct-remove-btn">- წაშლა</button>
     </div>
 
     <div class="db-struct-divider"></div>
 
-    <!-- 3. კონტრარგუმენტები -->
     <label class="db-struct-label">III. კონტრარგუმენტები <span class="db-struct-opt">(არასავალდებულო)</span></label>
     <div id="dbCounterList"></div>
     <div style="display:flex;gap:8px;margin-top:4px;">
       <button id="dbAddCounterBtn" class="db-btn db-struct-add-btn">+ კონტრარგუმენტი</button>
-      <button id="dbRemoveCounterBtn" class="db-btn db-struct-remove-btn">− წაშლა</button>
+      <button id="dbRemoveCounterBtn" class="db-btn db-struct-remove-btn">- წაშლა</button>
     </div>
 
     <div class="db-struct-divider"></div>
 
-    <!-- 4. ანალოგია -->
     <label class="db-struct-label">IV. ანალოგია <span class="db-struct-opt">(არასავალდებულო)</span></label>
     <textarea id="dbStructAnalogy" class="db-textarea" rows="2" placeholder="მსგავსი შემთხვევა ან შედარება, რომელიც შენს პოზიციას ამყარებს..."></textarea>
 
     <div class="db-struct-divider"></div>
 
-    <!-- 5. წყარო / ციტატა -->
     <label class="db-struct-label">V. წყარო / ციტატა <span class="db-struct-opt">(არასავალდებულო)</span></label>
     <textarea id="dbStructSource" class="db-textarea" rows="2" placeholder="ფილოსოფოსი, ნაშრომი ან ციტატა, რომელსაც ეყრდნობი..."></textarea>
 
     <div class="db-struct-divider"></div>
 
-    <!-- 6. დასკვნა -->
     <label class="db-struct-label">VI. დასკვნა <span class="db-struct-opt">(არასავალდებულო)</span></label>
     <textarea id="dbStructConclusion" class="db-textarea" rows="2" placeholder="შეაჯამე შენი პოზიცია..."></textarea>
 
-    <div id="dbStructCounter" style="font-family:\'Cinzel\',serif;font-size:0.6rem;color:var(--text-dim);text-align:right;margin-top:12px;letter-spacing:1px;">0 სიმბოლო (მინ. 200)</div>
+    <div id="dbStructCounter" style="font-family:'Cinzel',serif;font-size:0.6rem;color:var(--text-dim);text-align:right;margin-top:12px;letter-spacing:1px;">0 სიმბოლო (მინ. 200)</div>
     <div id="dbTurnError" class="db-error"></div>
     <button id="dbSubmitTurnBtn" class="db-btn db-btn-gold db-btn-full" style="margin-top:12px;">პასუხი →</button>
   </div>`;
@@ -1968,14 +1913,12 @@ function _dbProgressBar(done, total, aName, aCountRaw, oName, oCountRaw, aUid, o
   <div class="db-progress-line"><div class="db-progress-fill" style="width:${pct}%;"></div></div>`;
 }
 
-// ── Main router ──────────────────────────────────────────────
 function agoraRenderDebateView(thread, debate, container, photoMap) {
   _dbClearTimers();
   photoMap = photoMap || {};
   const user  = agoraGetUser();
   const uid   = user?.uid;
   const phase = debate.phase;
-  // start polling for live changes (verdict, end-vote, phase change)
   if (uid && phase !== 'verdict' && phase !== 'cancelled' && phase !== 'pending') {
     _dbStartAutoRefresh(debate.threadId || thread.id, phase);
   }
@@ -2003,7 +1946,6 @@ function agoraRenderDebateView(thread, debate, container, photoMap) {
   container.innerHTML = html;
   _dbBindActions(container, thread, debate, uid);
 
-  // timers
   if (phase === 'pending' && debate.inviteDeadline)
     _dbCountdown('dbInviteTimer', debate.inviteDeadline);
   if (['opening','cross-asking','cross-answering','final'].includes(phase)) {
@@ -2012,7 +1954,6 @@ function agoraRenderDebateView(thread, debate, container, photoMap) {
   }
 }
 
-// ── Invite screen ────────────────────────────────────────────
 function _dbInviteScreen(debate) {
   return `
     ${_dbPhaseHdr('⚔ გამოწვევა მოგივიდა', _dbTimerRow('dbInviteTimer','ᲕᲐᲓᲐ:'))}
@@ -2021,7 +1962,7 @@ function _dbInviteScreen(debate) {
       <div class="db-invite-sub">გიწვევს 1vs1 ფილოსოფიურ დებატში</div>
     </div>
     <div class="db-rules-box">
-      ① საწყისი ეტაპი — 5+5 სვლა &nbsp;·&nbsp; ② დაკითხვა — კი/არა/არ ვიცი &nbsp;·&nbsp; ③ საბოლოო — 10+10 სვლა &nbsp;·&nbsp; ⚖ AI კრიტიკოსი
+      ① საწყისი ეტაპი - 5+5 სვლა &nbsp;·&nbsp; ② დაკითხვა - კი/არა/არ ვიცი &nbsp;·&nbsp; ③ საბოლოო - 10+10 სვლა &nbsp;·&nbsp; ⚖ AI კრიტიკოსი
       <span class="db-warn">⚠ ყოველ სვლაზე 6 სთ. სვლის გამოტოვება = 7-დღიანი ბანი.</span>
     </div>
     <div class="db-btn-row">
@@ -2030,7 +1971,6 @@ function _dbInviteScreen(debate) {
     </div>`;
 }
 
-// ── Pending screen ───────────────────────────────────────────
 function _dbPendingScreen(debate) {
   return `
     ${_dbPhaseHdr('⏳ პასუხს ელოდება', _dbTimerRow('dbInviteTimer','ᲕᲐᲓᲐ:'))}
@@ -2040,7 +1980,6 @@ function _dbPendingScreen(debate) {
     </div>`;
 }
 
-// ── Opening phase ────────────────────────────────────────────
 function _dbOpeningView(debate, uid, photoMap) {
   const turns  = debate.opening || {};
   const tArr   = Object.values(turns);
@@ -2058,18 +1997,17 @@ function _dbOpeningView(debate, uid, photoMap) {
              : isParticipant ? `<div class="db-waiting">⏳ ${agoraEscape(other||'?')}-ის ჯერია...</div>` : '');
 }
 
-// ── Cross-asking phase ───────────────────────────────────────
 function _dbCrossAskView(debate, uid) {
   const isAsker    = uid === debate.currentTurn;
   const crossRound = debate.crossRound || 1;
-  const roundLabel = crossRound === 2 ? '② დაკითხვა — II' : '② დაკითხვა — I';
+  const roundLabel = crossRound === 2 ? '② დაკითხვა - II' : '② დაკითხვა - I';
   const askerNick  = debate.currentTurn === debate.authorUid
     ? agoraEscape(debate.authorNickname||'?')
     : agoraEscape(debate.opponentNickname||'?');
   return _dbPhaseHdr(roundLabel, _dbTimerRow('dbTurnTimer','საპასუხო დრო:') + '&nbsp;&nbsp;' + _dbTimerRow('dbTotalTimer','სულ:'))
     + (isAsker ? `
       <div style="color:var(--text-dim);font-size:0.88rem;margin-bottom:16px;line-height:1.75;font-family:'EB Garamond',serif;">
-        გამოაქვეყნე <strong style="color:var(--text)">5–20 კითხვა</strong>. ოპონენტი მხოლოდ
+        გამოაქვეყნე <strong style="color:var(--text)">5-20 კითხვა</strong>. ოპონენტი მხოლოდ
         <strong style="color:var(--gold)">კი</strong> / <strong style="color:#f87171">არა</strong> / <span style="color:var(--text-dim)">არ ვიცი</span>-ით პასუხობს.
       </div>
       <div id="dbCrossQList"></div>
@@ -2079,12 +2017,11 @@ function _dbCrossAskView(debate, uid) {
     : `<div class="db-waiting">⏳ ${askerNick} კითხვებს ამზადებს...</div>`);
 }
 
-// ── Cross-answering phase ────────────────────────────────────
 function _dbCrossAnswerView(debate, uid) {
   const isAns      = uid === debate.currentTurn;
   const crossRound = debate.crossRound || 1;
   const crossKey   = crossRound === 2 ? 'cross2' : 'cross';
-  const roundLabel = crossRound === 2 ? '② დაკითხვა II — პასუხი' : '② დაკითხვა I — პასუხი';
+  const roundLabel = crossRound === 2 ? '② დაკითხვა II - პასუხი' : '② დაკითხვა I - პასუხი';
   const questions  = debate[crossKey]?.questions || {};
   const answers    = debate[crossKey]?.answers   || {};
   const qArr       = Object.entries(questions).sort(([a],[b]) => Number(a)-Number(b));
@@ -2114,7 +2051,6 @@ function _dbCrossAnswerView(debate, uid) {
   return html;
 }
 
-// ── Final phase ──────────────────────────────────────────────
 function _dbFinalView(debate, uid, photoMap) {
   const turns  = debate.final || {};
   const tArr   = Object.values(turns);
@@ -2136,12 +2072,10 @@ function _dbFinalView(debate, uid, photoMap) {
   let endSection = '';
   if (isParticipant) {
     if (myEndVote) {
-      // მე უკვე ხმა მისცე
       endSection = `<div class="db-end-wrap">
         <div class="db-waiting" style="font-size:0.78rem;">⏳ ელოდება ${otherNickForEnd}-ის თანხმობას...</div>
       </div>`;
     } else if (otherEndVote) {
-      // ოპონენტმა ხმა მისცა, მე ჯერ არა → prominent banner
       endSection = `<div class="db-end-banner">
         <div class="db-end-banner-text">⚑ ${otherNickForEnd} გთხოვს დებატი ადრე დაასრულო</div>
         <div style="display:flex;gap:8px;margin-top:10px;">
@@ -2150,23 +2084,20 @@ function _dbFinalView(debate, uid, photoMap) {
         </div>
       </div>`;
     } else {
-      // ვერავინ ხმა არ მისცია
       endSection = `<div class="db-end-wrap">
         <button id="dbEndDebateBtn" class="db-btn db-btn-end">⚑ დებატის ადრე დასრულება (ორივეს თანხმობით)</button>
       </div>`;
     }
   }
-  const endBtn = endSection;
 
   return _dbPhaseHdr('③ საბოლოო პაექრობა',
     _dbTimerRow('dbTurnTimer','საპასუხო დრო:') + '&nbsp;&nbsp;' + _dbTimerRow('dbTotalTimer','სულ:'))
     + _dbProgressBar(tArr.length, 20, debate.authorNickname||'?', `${aCount}/10`, debate.opponentNickname||'?', `${oCount}/10`, debate.authorUid, debate.opponentUid, photoMap)
     + _dbTurnsHtml(turns, debate.authorUid, debate.authorNickname, debate.opponentNickname, photoMap)
     + (mine ? _dbSubmitForm() : isParticipant ? `<div class="db-waiting">⏳ ${agoraEscape(other||'?')}-ის ჯერია...</div>` : '')
-    + endBtn;
+    + endSection;
 }
 
-// ── Verdict screen ───────────────────────────────────────────
 function _dbVerdictView(debate, photoMap) {
   photoMap = photoMap || {};
   const v = debate.verdict;
@@ -2200,7 +2131,6 @@ function _dbVerdictView(debate, photoMap) {
   const oN = debate.opponentNickname || '?';
   const isDraw = v.result === 'draw' || !v.winnerUid;
 
-  // სრული transcript
   function sectionHdr(label) {
     return `<div style="font-family:'Cinzel',serif;font-size:0.58rem;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;border-bottom:1px solid rgba(201,168,76,0.12);padding-bottom:8px;margin:24px 0 14px;">${label}</div>`;
   }
@@ -2210,7 +2140,7 @@ function _dbVerdictView(debate, photoMap) {
     const as = crossObj.answers || {};
     return qs.map(([idx, q]) => {
       const ans = as[idx];
-      const aLabel = ans ? (ans.answer==='yes'?'კი':ans.answer==='no'?'არა':'არ ვიცი') : '—';
+      const aLabel = ans ? (ans.answer==='yes'?'კი':ans.answer==='no'?'არა':'არ ვიცი') : '-';
       const aColor = ans ? (ans.answer==='yes'?'var(--gold)':ans.answer==='no'?'#f87171':'var(--text-dim)') : 'var(--text-dim)';
       return `<div style="background:var(--surface);border:1px solid rgba(201,168,76,0.1);padding:12px 14px;margin-bottom:7px;">
         <div style="font-family:'Cinzel',serif;font-size:0.55rem;letter-spacing:1px;color:var(--text-dim);margin-bottom:5px;">${agoraEscape(askerNick)} → ${agoraEscape(answererNick)}</div>
@@ -2227,12 +2157,12 @@ function _dbVerdictView(debate, photoMap) {
   }
   const cross1 = debate.cross;
   if (cross1?.questions && Object.keys(cross1.questions).length) {
-    transcript += sectionHdr('② დაკითხვა — I (კი / არა / არ ვიცი)')
+    transcript += sectionHdr('② დაკითხვა - I (კი / არა / არ ვიცი)')
       + crossQA(cross1, aN, oN);
   }
   const cross2 = debate.cross2;
   if (cross2?.questions && Object.keys(cross2.questions).length) {
-    transcript += sectionHdr('② დაკითხვა — II (კი / არა / არ ვიცი)')
+    transcript += sectionHdr('② დაკითხვა - II (კი / არა / არ ვიცი)')
       + crossQA(cross2, oN, aN);
   }
   if (debate.final && Object.keys(debate.final).length) {
@@ -2256,7 +2186,7 @@ function _dbVerdictView(debate, photoMap) {
       </div>`;
 
   return `<div class="db-verdict-wrap">`
-    + _dbPhaseHdr('⚖ AI კრიტიკოსი — ვერდიქტი', '')
+    + _dbPhaseHdr('⚖ AI კრიტიკოსი - ვერდიქტი', '')
     + winnerBox
     + (v.analysis ? `<div class="db-verdict-analysis" style="margin-bottom:16px;">${agoraEscape(v.analysis)}</div>` : '')
     + `<div class="db-verdict-scores">${scoreBlock(aN)}${scoreBlock(oN)}</div>`
@@ -2264,7 +2194,6 @@ function _dbVerdictView(debate, photoMap) {
     + `</div>`;
 }
 
-// ── Action binder ────────────────────────────────────────────
 function _dbBindActions(container, thread, debate, uid) {
   const tid = thread.id;
 
@@ -2310,7 +2239,7 @@ function _dbBindActions(container, thread, debate, uid) {
       structCounter.style.color = preview.length >= 200 ? 'var(--gold)' : 'var(--text-dim)';
     }
   }
-  // structured mode — add/remove argument
+
   const addArgBtn    = container.querySelector('#dbAddArgBtn');
   const removeArgBtn = container.querySelector('#dbRemoveArgBtn');
   if (addArgBtn) {
@@ -2318,7 +2247,6 @@ function _dbBindActions(container, thread, debate, uid) {
       const list = container.querySelector('#dbArgList');
       if (!list) return;
       const rows = list.querySelectorAll('.db-arg-row');
-
       const num = rows.length + 1;
       const row = document.createElement('div');
       row.className = 'db-arg-row';
@@ -2339,7 +2267,6 @@ function _dbBindActions(container, thread, debate, uid) {
     });
   }
 
-  // counter-argument add/remove
   const addCounterBtn    = container.querySelector('#dbAddCounterBtn');
   const removeCounterBtn = container.querySelector('#dbRemoveCounterBtn');
   if (addCounterBtn) {
@@ -2367,7 +2294,6 @@ function _dbBindActions(container, thread, debate, uid) {
     });
   }
 
-  // structured counters on input
   ['#dbStructThesis','#dbStructAnalogy','#dbStructSource','#dbStructConclusion'].forEach(sel => {
     const el = container.querySelector(sel);
     if (el) el.addEventListener('input', _dbUpdateStructCounter);
@@ -2376,7 +2302,6 @@ function _dbBindActions(container, thread, debate, uid) {
     el.addEventListener('input', _dbUpdateStructCounter);
   });
 
-  // quick buttons
   const addQBtn = container.querySelector('#dbAddQBtn');
   if (addQBtn) _dbInitQForm(container, tid);
 
@@ -2386,22 +2311,18 @@ function _dbBindActions(container, thread, debate, uid) {
     });
   });
 
-  // end debate early (mutual)
   const endBtn = container.querySelector('#dbEndDebateBtn');
   if (endBtn) endBtn.addEventListener('click', () => {
-    showConfirmToast('დებატი ადრე დასრულდება — AI შეაფასებს ჯამურ შედეგს. დასტური?', () => _dbRequestEnd(tid, endBtn));
+    showConfirmToast('დებატი ადრე დასრულდება - AI შეაფასებს ჯამურ შედეგს. დასტური?', () => _dbRequestEnd(tid, endBtn));
   });
 
-  // decline end-debate (ოპონენტის წინადადებაზე უარი)
   const endDeclineBtn = container.querySelector('#dbEndDeclineBtn');
   if (endDeclineBtn) endDeclineBtn.addEventListener('click', () => {
     showToast('ადრეული დასრულება უარყოფილია.', 'info');
-    // clear opponent's vote via server
     _dbDeclineEnd(tid, endDeclineBtn);
   });
 }
 
-// Cross question form
 function _dbInitQForm(container, tid) {
   const qList  = container.querySelector('#dbCrossQList');
   const addBtn = container.querySelector('#dbAddQBtn');
@@ -2426,7 +2347,6 @@ function _dbInitQForm(container, tid) {
   subBtn.addEventListener('click', () => _dbSubmitQuestions(container, tid, subBtn));
 }
 
-// ── Submit actions ───────────────────────────────────────────
 async function _dbAccept(tid, btn) {
   btn.disabled = true; btn.textContent = '...';
   try {
@@ -2466,7 +2386,7 @@ async function _dbRequestEnd(tid, btn) {
     const { ok, data } = await agoraFetch({ action: 'request-end-debate', threadId: tid, userToken: tok });
     if (ok) {
       if (data.judging) {
-        showToast('ორივე მხარე დათანხმდა — AI შეაფასებს!', 'success');
+        showToast('ორივე მხარე დათანხმდა - AI შეაფასებს!', 'success');
       } else {
         showToast('შენი ხმა ჩაიწერა. ელოდება მეორე მხარეს...', 'info');
       }
@@ -2553,7 +2473,7 @@ async function _dbSubmitAnswer(tid, qIdx, answer, btn) {
     const tok = await agoraGetValidToken();
     const { ok, data } = await agoraFetch({ action:'submit-cross-answer', threadId:tid, questionIdx:qIdx, answer, userToken:tok });
     if (ok) {
-      const aLabel = answer==='yes'?'✓ კი':answer==='no'?'✗ არა':'— არ ვიცი';
+      const aLabel = answer==='yes'?'✓ კი':answer==='no'?'✗ არა':'- არ ვიცი';
       const aColor = answer==='yes'?'#4ade80':answer==='no'?'#f87171':'var(--text-dim)';
       const btnRow = btn.parentElement;
       if (btnRow) btnRow.outerHTML = `<div style="font-family:'Cinzel',serif;font-size:0.7rem;letter-spacing:1.5px;color:${aColor};">${aLabel}</div>`;
