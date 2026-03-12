@@ -913,22 +913,11 @@ card.className = 'card';
 card.onclick = () => openReader(n);
 const dateStr = n.date ? new Date(n.date).toLocaleDateString('ka-GE') : '—';
 if (window.matchMedia('(hover: hover)').matches) {
-card.addEventListener('mousemove', (e) => {
-const rect = card.getBoundingClientRect();
-const x = e.clientX - rect.left;
-const y = e.clientY - rect.top;
-const centerX = rect.width / 2;
-const centerY = rect.height / 2;
-const rotateX = (y - centerY) / 20;
-const rotateY = (centerX - x) / 20;
-card.style.transform = `translateY(-8px) scale(1.02) perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-card.style.setProperty('--mouse-x', `${(x / rect.width) * 100}%`);
-card.style.setProperty('--mouse-y', `${(y / rect.height) * 100}%`);
+card.addEventListener('mouseenter', () => {
+card.style.transform = 'translateY(-6px) scale(1.02)';
 });
 card.addEventListener('mouseleave', () => {
 card.style.transform = '';
-card.style.removeProperty('--mouse-x');
-card.style.removeProperty('--mouse-y');
 });
 }
 if (!window.matchMedia('(hover: hover)').matches) {
