@@ -415,12 +415,12 @@ body.admin-mode #uploaderBtn { display: flex !important; }
 .card:hover { border-top-color: var(--gold); background: var(--surface2); }
 .card:active { transform: scale(0.99); }
 .card h3 { font-family: 'Cinzel', Georgia, serif; font-size: 1.1rem; font-weight: 600; margin-bottom: 14px; line-height: 1.4; color: var(--ivory); margin-top: 10px; }
-.card img { transition: filter 0.4s; }
-.card-img-wrapper { width: 100%; overflow: hidden; background: var(--surface2); margin-bottom: 16px; border-radius: 8px; }
-.card-img-wrapper img { width:100%!important; height:auto!important; max-height:none!important; object-fit:unset!important; margin:0!important; display:block!important; border-radius:8px; }
+.card img { transition: filter 0.4s; transform: none !important; }
+.card-img-wrapper { width: 100%; overflow: visible; background: var(--surface2); margin-bottom: 16px; border-radius: 8px; }
+.card-img-wrapper img { width:100%!important; height:auto!important; max-height:none!important; object-fit:unset!important; margin:0!important; display:block!important; border-radius:8px; transform: none !important; }
 @media (min-width: 768px) { .card-img-wrapper img { max-height:none!important; object-fit:unset!important; } }
-.card img { width:100%!important; height:auto!important; margin:0!important; }
-@media (hover:hover) { .card:hover .card-img-wrapper img { filter: brightness(1.06); } }
+.card img { width:100%!important; height:auto!important; margin:0!important; transform: none !important; }
+@media (hover:hover) { .card:hover .card-img-wrapper img { filter: brightness(1.06); transform: none !important; } }
 .card-meta { display: flex; justify-content: space-between; align-items: center; }
 .card-date { font-size: 0.68rem; color: var(--text-dim); letter-spacing: 1px; font-family: 'Cinzel', Georgia, serif; }
 .card-read { color: var(--gold); font-weight: 600; font-size: 0.78rem; letter-spacing: 1px; font-family: 'Cinzel', Georgia, serif; transition: 0.3s; }
