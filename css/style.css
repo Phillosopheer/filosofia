@@ -454,7 +454,7 @@ body.admin-mode #uploaderBtn { display: flex !important; }
 #readDate { color:var(--text-dim); font-size:0.7rem; letter-spacing:2px; margin-bottom:10px; font-family:'Cinzel',Georgia,serif; }
 #readAuthor { color:var(--gold); font-size:0.8rem; font-weight:600; margin-bottom:30px; padding-bottom:22px; border-bottom:1px solid var(--border); letter-spacing:1px; font-family:'Cinzel',Georgia,serif; }
 #readCover { margin-bottom:26px; overflow:hidden; border-radius:12px; }
-#readCover img { width:100% !important; max-height:40vh !important; object-fit:cover !important; object-position:center !important; border-radius:12px; display:block; }
+#readCover img { width:100% !important; max-height:none !important; object-fit:unset !important; border-radius:12px; display:block; }
 #readBody { font-size:1.08rem; line-height:2; color:var(--text); font-family:'EB Garamond',Georgia,serif; }
 #readBody blockquote { border-left:3px solid var(--gold-dim); padding:16px 20px; margin:22px 0; font-style:italic; color:var(--ivory-dim); background:rgba(201,168,76,0.04); }
 #readBody hr { border:none; border-top:1px solid var(--border); margin:26px 0; }
