@@ -406,7 +406,7 @@ body.admin-mode #uploaderBtn { display: flex !important; }
 .card {
   background: var(--surface); border: none;
   border-top: 2px solid transparent; padding: 22px;
-  cursor: pointer; transition: border-color 0.3s, background 0.3s;
+  cursor: pointer; transition: border-color 0.3s, background 0.3s, transform 0.25s ease;
   display: flex; flex-direction: column; justify-content: space-between;
   position: relative; overflow: hidden;
 }
