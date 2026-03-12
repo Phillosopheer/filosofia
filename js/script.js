@@ -930,7 +930,8 @@ card.style.transform = '';
 card.style.removeProperty('--mouse-x');
 card.style.removeProperty('--mouse-y');
 });
-} else {
+}
+if (!window.matchMedia('(hover: hover)').matches) {
 card.addEventListener('touchstart', (e) => {
 const rect = card.getBoundingClientRect();
 const touch = e.touches[0];
