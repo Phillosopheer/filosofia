@@ -437,7 +437,7 @@ body.admin-mode #uploaderBtn { display: flex !important; }
 /* READER */
 .reader {
   position: fixed; inset: 0; background: var(--bg); z-index: 3000;
-  display: none; overflow-y: auto; padding: 90px 10%;
+  display: none; overflow-y: auto; padding: 120px 10%;
   animation: slideUp 0.4s cubic-bezier(0.4,0,0.2,1);
 }
 @keyframes slideUp { from{opacity:0;transform:translateY(30px);} to{opacity:1;transform:translateY(0);} }
