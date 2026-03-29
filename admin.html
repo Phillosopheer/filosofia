@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ადმინ პანელი — ΦΙΛΟΣΟΦΙΑ</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📖</text></svg>">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://www.gstatic.com https://*.googleapis.com https://www.google.com https://www.recaptcha.net; style-src 'self'; font-src 'self'; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://*.firebaseapp.com https://www.google.com https://www.recaptcha.net https://api.github.com; img-src 'self' data: https:; frame-src https://www.google.com https://www.recaptcha.net; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<header class="adm-header">
+  <div class="adm-header-left">
+    <button class="adm-hamburger" id="admHamburger" aria-label="მენიუ">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="adm-logo">
+      ΦΙΛΟΣΟΦΙΑ
+      <span class="adm-logo-sub">/ ადმინ პანელი</span>
+    </div>
+  </div>
+  <div class="adm-header-right">
+    <a href="/" class="adm-back">← მთავარი</a>
+    <span class="owner-badge">OWNER</span>
+  </div>
+</header>
+
+<div class="adm-nav-overlay" id="admNavOverlay"></div>
+
+<div class="adm-layout">
+  <nav class="adm-nav" id="admNav">
+    <div class="nav-section">
+      <span class="nav-label">მთავარი</span>
+      <div class="nav-item active" data-view="dashboard"><span class="nav-icon">◈</span> დაფა</div>
+      <div class="nav-item" data-view="articles"><span class="nav-icon">◉</span> სტატიები</div>
+    </div>
+    <div class="nav-section">
+      <span class="nav-label">მოდერაცია</span>
+      <div class="nav-item" data-view="pending"><span class="nav-icon">⊡</span> განსახილველი <span class="nav-badge" id="pendingBadge">0</span></div>
+      <div class="nav-item" data-view="users"><span class="nav-icon">⊞</span> მომხმარებლები</div>
+    </div>
+  </nav>
+
+  <main class="adm-main">
+
+    <div class="adm-view active" id="view-dashboard">
+      <p class="pg-label">DASHBOARD</p>
+      <p class="pg-title">მართვის პანელი</p>
+      <div class="pg-divider"><div class="pg-line"></div><div class="pg-dot"></div><div class="pg-line pg-line-r"></div></div>
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-card-glow"></div><div class="stat-icon">◈</div><div class="stat-value" id="statTotalNotes">—</div><div class="stat-label">სტატია სულ</div></div>
+        <div class="stat-card"><div class="stat-card-glow"></div><div class="stat-icon">◎</div><div class="stat-value" id="statPending">—</div><div class="stat-label">განსახილველი</div></div>
+        <div class="stat-card"><div class="stat-card-glow"></div><div class="stat-icon">⊞</div><div class="stat-value" id="statUsers">—</div><div class="stat-label">მომხმარებელი</div></div>
+      </div>
+      <div class="sec-head"><span class="sec-title">განსახილველი სტატიები</span><button class="btn-sm" id="dashPendingAllBtn">ყველა →</button></div>
+      <div id="dashPendingList" class="pending-list"><div class="loading-dots"><span></span><span></span><span></span></div></div>
+      <div class="sec-head"><span class="sec-title">ბოლო სტატიები</span><button class="btn-sm" id="dashNotesAllBtn">ყველა →</button></div>
+      <div class="tbl-wrap" id="dashNotesList"><div class="loading-dots"><span></span><span></span><span></span></div></div>
+    </div>
+
+    <div class="adm-view" id="view-articles">
+      <p class="pg-label">ARTICLES</p>
+      <p class="pg-title">სტატიები</p>
+      <div class="pg-divider"><div class="pg-line"></div><div class="pg-dot"></div><div class="pg-line pg-line-r"></div></div>
+      <div class="tbl-wrap" id="allNotesList"><div class="loading-dots"><span></span><span></span><span></span></div></div>
+    </div>
+
+    <div class="adm-view" id="view-pending">
+      <p class="pg-label">MODERATION</p>
+      <p class="pg-title">განსახილველი</p>
+      <div class="pg-divider"><div class="pg-line"></div><div class="pg-dot"></div><div class="pg-line pg-line-r"></div></div>
+      <div id="allPendingList" class="pending-list"><div class="loading-dots"><span></span><span></span><span></span></div></div>
+    </div>
+
+    <div class="adm-view" id="view-users">
+      <p class="pg-label">USERS</p>
+      <p class="pg-title">მომხმარებლები</p>
+      <div class="pg-divider"><div class="pg-line"></div><div class="pg-dot"></div><div class="pg-line pg-line-r"></div></div>
+      <div class="tbl-wrap" id="usersList"><div class="loading-dots"><span></span><span></span><span></span></div></div>
+    </div>
+
+  </main>
+</div>
+
+<div id="adm-toast"></div>
+
+<div id="adm-confirm">
+  <div id="adm-confirm-box">
+    <div class="adm-cf-corner adm-cf-tl"></div>
+    <div class="adm-cf-corner adm-cf-tr"></div>
+    <div class="adm-cf-corner adm-cf-bl"></div>
+    <div class="adm-cf-corner adm-cf-br"></div>
+    <p class="adm-cf-msg" id="adm-confirm-msg"></p>
+    <div class="adm-cf-btns">
+      <button class="adm-cf-no" id="adm-confirm-no">გაუქმება</button>
+      <button class="adm-cf-yes" id="adm-confirm-yes">დიახ</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-check-compat.js" integrity="sha384-iF93NE9DFYjJ/GJcb4h18LKfvMn3Ppl4GSSFZ8RFvwc7OtGGQSHQXbHEdO8Rknhj" crossorigin="anonymous"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

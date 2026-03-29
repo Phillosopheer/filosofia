@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://philosoph.vercel.app/sitemap.xml
