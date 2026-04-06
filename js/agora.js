@@ -1825,6 +1825,24 @@ function _dbTurnsHtml(turnsObj, authorUid, authorNick, oppNick, photoMap) {
   }).join('');
 }
 
+function _dbBuildStructBody(root = document) {
+  const thesis     = (root.querySelector('#dbStructThesis')?.value || '').trim();
+  const args       = Array.from(root.querySelectorAll('.db-arg-input')).map(i => i.value.trim()).filter(Boolean);
+  const counters   = Array.from(root.querySelectorAll('.db-counter-input')).map(i => i.value.trim()).filter(Boolean);
+  const analogy    = (root.querySelector('#dbStructAnalogy')?.value || '').trim();
+  const source     = (root.querySelector('#dbStructSource')?.value || '').trim();
+  const conclusion = (root.querySelector('#dbStructConclusion')?.value || '').trim();
+
+  const parts = [];
+  if (thesis) parts.push('I. თეზისი: ' + thesis);
+  if (args.length) parts.push('II. არგუმენტები:\n' + args.map((a, i) => (i + 1) + '. ' + a).join('\n'));
+  if (counters.length) parts.push('III. კონტრარგუმენტები:\n' + counters.map((a, i) => (i + 1) + '. ' + a).join('\n'));
+  if (analogy) parts.push('IV. ანალოგია: ' + analogy);
+  if (source) parts.push('V. წყარო / ციტატა: ' + source);
+  if (conclusion) parts.push('VI. დასკვნა: ' + conclusion);
+  return parts.join('\n\n');
+}
+
 function _dbSubmitForm() {
   return `<div class="db-submit-wrap">
     <label class="db-label">შენი ჯერია</label>
@@ -2202,7 +2220,7 @@ function _dbBindActions(container, thread, debate, uid) {
 
   const declineBtn = container.querySelector('#dbDeclineBtn');
   if (declineBtn) declineBtn.addEventListener('click', () => {
-    showConfirmToast('გამოწვევაზე უარს დადასტურება სჭირდება.', () => _dbDecline(tid, declineBtn));
+    showConfirmToast('გამოწვევაზე უარის დადასტურება სჭირდება.', () => _dbDecline(tid, declineBtn));
   });
 
   const cancelBtn = container.querySelector('#dbCancelBtn');
@@ -2213,24 +2231,8 @@ function _dbBindActions(container, thread, debate, uid) {
   const submitTurnBtn = container.querySelector('#dbSubmitTurnBtn');
   if (submitTurnBtn) submitTurnBtn.addEventListener('click', () => _dbSubmitTurn(tid, submitTurnBtn));
 
-  function _dbBuildStructBody() {
-    const thesis    = (container.querySelector('#dbStructThesis')?.value || '').trim();
-    const args      = Array.from(container.querySelectorAll('.db-arg-input')).map(i => i.value.trim()).filter(Boolean);
-    const counters  = Array.from(container.querySelectorAll('.db-counter-input')).map(i => i.value.trim()).filter(Boolean);
-    const analogy   = (container.querySelector('#dbStructAnalogy')?.value || '').trim();
-    const source    = (container.querySelector('#dbStructSource')?.value || '').trim();
-    const conclusion = (container.querySelector('#dbStructConclusion')?.value || '').trim();
-    let parts = [];
-    if (thesis)     parts.push('I. თეზისი: ' + thesis);
-    if (args.length) parts.push('II. არგუმენტები:\n' + args.map((a, i) => (i+1) + '. ' + a).join('\n'));
-    if (counters.length) parts.push('III. კონტრარგუმენტები:\n' + counters.map((a, i) => (i+1) + '. ' + a).join('\n'));
-    if (analogy)    parts.push('IV. ანალოგია: ' + analogy);
-    if (source)     parts.push('V. წყარო / ციტატა: ' + source);
-    if (conclusion) parts.push('VI. დასკვნა: ' + conclusion);
-    return parts.join('\n\n');
-  }
   function _dbUpdateStructCounter() {
-    const preview = _dbBuildStructBody();
+    const preview = _dbBuildStructBody(container);
     const structCounter = container.querySelector('#dbStructCounter');
     if (structCounter) {
       structCounter.textContent = preview.length >= 200
@@ -2416,15 +2418,16 @@ async function _dbSubmitTurn(tid, btn) {
   const errEl = document.getElementById('dbTurnError');
   if (errEl) errEl.style.display = 'none';
 
+  const submitWrap = btn?.closest('.db-submit-wrap') || document;
   let body;
   {
-    body = _dbBuildStructBody();
-    const thesis = (document.getElementById('dbStructThesis')?.value || '').trim();
+    body = _dbBuildStructBody(submitWrap);
+    const thesis = (submitWrap.querySelector('#dbStructThesis')?.value || '').trim();
     if (!thesis) {
       if (errEl) { errEl.textContent = 'თეზისი სავალდებულოა'; errEl.style.display = 'block'; }
       return;
     }
-    const argInputs = document.querySelectorAll('.db-arg-input');
+    const argInputs = submitWrap.querySelectorAll('.db-arg-input');
     const args = Array.from(argInputs).map(i => i.value.trim()).filter(Boolean);
     if (!args.length) {
       if (errEl) { errEl.textContent = 'მინ. 1 არგუმენტი სავალდებულოა'; errEl.style.display = 'block'; }
@@ -2474,7 +2477,7 @@ async function _dbSubmitAnswer(tid, qIdx, answer, btn) {
     const { ok, data } = await agoraFetch({ action:'submit-cross-answer', threadId:tid, questionIdx:qIdx, answer, userToken:tok });
     if (ok) {
       const aLabel = answer==='yes'?'✓ კი':answer==='no'?'✗ არა':'- არ ვიცი';
-      const aColor = answer==='yes'?'#4ade80':answer==='no'?'#f87171':'var(--text-dim)';
+      const aColor = answer==='yes'?'var(--gold)':answer==='no'?'#f87171':'var(--text-dim)';
       const btnRow = btn.parentElement;
       if (btnRow) btnRow.outerHTML = `<div style="font-family:'Cinzel',serif;font-size:0.7rem;letter-spacing:1.5px;color:${aColor};">${aLabel}</div>`;
       if (data.allAnswered) {
