@@ -676,7 +676,7 @@ select.tb-btn option { background:var(--surface); color:var(--text); }
 .article-bot-toggle { display:flex; align-items:center; gap:14px; width:100%; padding:11px 18px; background:var(--surface); border:1px solid var(--border); color:var(--text); font-family:'Cinzel',Georgia,serif; font-size:0.82rem; font-weight:500; cursor:pointer; transition:0.3s; letter-spacing:1px; }
 .article-bot-toggle:hover { border-color:var(--gold); background:var(--surface2); }
 .article-bot-icon { width:42px; height:42px; display:inline-flex; align-items:center; justify-content:center; border:1px solid rgba(201,168,76,0.42); background:rgba(201,168,76,0.08); box-shadow:0 0 0 2px rgba(201,168,76,0.12); overflow:hidden; flex-shrink:0; }
-.article-bot-icon-img { width:42px; height:42px; object-fit:cover; object-position:center; transform:scale(1.95); filter:grayscale(1) contrast(1.2) brightness(0.86); mix-blend-mode:multiply; opacity:0.98; display:block; }
+.article-bot-icon-img { width:42px; height:42px; object-fit:cover; object-position:center; transform:scale(1.95); filter:grayscale(1) contrast(1.12) brightness(1.12); opacity:1; display:block; }
 .article-bot-input-row { display:flex; gap:10px; margin-top:14px; }
 .article-bot-input { flex:1; padding:12px 15px; background:var(--surface); border:1px solid var(--border); color:var(--text); font-family:'EB Garamond',Georgia,serif; font-size:0.95rem; outline:none; transition:0.3s; border-radius:0; resize:none; min-height:44px; max-height:44px; line-height:1.25; overflow:hidden; }
 .article-bot-input:focus { border-color:var(--gold); box-shadow:0 0 0 2px rgba(201,168,76,0.1); }
