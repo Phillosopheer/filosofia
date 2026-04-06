@@ -1633,7 +1633,7 @@ export default async function handler(req, res) {
 
     const debate = await fbGet(`/agora-debates/${threadId}`);
     if (!debate) return res.status(404).json({ error: "დებატი ვერ მოიძებნა" });
-    if (debate.phase !== "cross-asking") return res.status(400).json({ error: "ეს ეტაპი არ არის cross-asking" });
+    if (debate.phase !== "cross-asking") return res.status(400).json({ error: "ეს ეტაპი არ არის დაკითხვის კითხვა-ეტაპი" });
     if (debate.currentTurn !== user.uid) return res.status(403).json({ error: "ახლა შენი ჯერი არ არის" });
     if (now > debate.turnDeadline) {
       await banForMissedTurn(user.uid);
@@ -1647,10 +1647,17 @@ export default async function handler(req, res) {
     // ამ სვლაზე currentTurn = asker; answerer = მეორე მხარე
     const answererUid = user.uid === debate.authorUid ? debate.opponentUid : debate.authorUid;
 
+    const cleanQuestions = questions
+      .map(q => String(q).trim())
+      .filter(Boolean)
+      .slice(0, CROSS_MAX_Q);
+    if (cleanQuestions.length < CROSS_MIN_Q) {
+      return res.status(400).json({ error: `მინ. ${CROSS_MIN_Q} შევსებული კითხვა საჭიროა` });
+    }
+
     const qObj = {};
-    questions.forEach((q, i) => {
-      const text = String(q).trim();
-      if (text.length > 0) qObj[i] = { body: text.substring(0, 500), createdAt: now };
+    cleanQuestions.forEach((q, i) => {
+      qObj[i] = { body: q.substring(0, 500), createdAt: now };
     });
 
     await fbPatch(`/agora-debates/${threadId}/${crossKey}`, { questions: qObj, askerUid: user.uid });
@@ -1678,13 +1685,13 @@ export default async function handler(req, res) {
     const { threadId, questionIdx, answer } = body;
     if (!threadId) return res.status(400).json({ error: "threadId სავალდებულოა" });
     if (!["yes","no","idk"].includes(answer))
-      return res.status(400).json({ error: "პასუხი: yes / no / idk" });
+      return res.status(400).json({ error: "პასუხი უნდა იყოს: კი / არა / არ ვიცი" });
     if (questionIdx === undefined || questionIdx === null)
       return res.status(400).json({ error: "questionIdx სავალდებულოა" });
 
     const debate = await fbGet(`/agora-debates/${threadId}`);
     if (!debate) return res.status(404).json({ error: "დებატი ვერ მოიძებნა" });
-    if (debate.phase !== "cross-answering") return res.status(400).json({ error: "ეს ეტაპი არ არის cross-answering" });
+    if (debate.phase !== "cross-answering") return res.status(400).json({ error: "ეს ეტაპი არ არის დაკითხვის პასუხის ეტაპი" });
     // answerer = currentTurn (set when questions were submitted)
     if (debate.currentTurn !== user.uid) return res.status(403).json({ error: "ახლა შენი ჯერი არ არის" });
     if (now > debate.turnDeadline) {
@@ -1698,6 +1705,9 @@ export default async function handler(req, res) {
     const questions  = debate[crossKey]?.questions || {};
     const totalQ     = Object.keys(questions).length;
     const answers    = debate[crossKey]?.answers   || {};
+    if (totalQ === 0) {
+      return res.status(400).json({ error: "ამ ეტაპზე კითხვები არ არის" });
+    }
 
     if (answers[questionIdx] !== undefined)
       return res.status(400).json({ error: "ეს კითხვა უკვე პასუხგაცემულია" });
