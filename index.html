@@ -88,7 +88,7 @@
     <link rel="preload" href="css/fonts/Cinzel-Regular.woff" as="font" type="font/woff" crossorigin>
     <link rel="preload" href="css/fonts/NotoSansGeorgian-Regular.woff" as="font" type="font/woff" crossorigin>
     <link rel="preload" href="css/fonts/EBGaramond-Regular.woff" as="font" type="font/woff" crossorigin>
-    <link rel="stylesheet" href="css/style.css?v=47">
+    <link rel="stylesheet" href="css/style.css?v=49">
     <link rel="stylesheet" href="css/agora.css?v=46">
 </head>
 <body>
@@ -329,13 +329,7 @@
             <div id="articleBotSection">
                 <button class="article-bot-toggle" id="articleBotToggle">
                     <span class="article-bot-icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <rect x="7" y="11" width="10" height="8" rx="1.8" stroke="currentColor" stroke-width="1.5"/>
-                            <path d="M10 11V8.2a2 2 0 0 1 2-2h0a2 2 0 0 1 2 2V11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                            <circle cx="10.5" cy="15" r="0.9" fill="currentColor"/>
-                            <circle cx="13.5" cy="15" r="0.9" fill="currentColor"/>
-                            <path d="M11 17h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                        </svg>
+                        <img src="filosofia.jpg" alt="" class="article-bot-icon-img">
                     </span> სტატიის ასისტენტი
                     <span id="articleBotChevron">▾</span>
                 </button>
@@ -345,22 +339,24 @@
                         <span></span><span></span><span></span>
                     </div>
                     <div class="article-bot-input-row">
-                        <input
-                            type="text"
+                        <textarea
                             id="articleBotInput"
                             class="article-bot-input"
-                            name="article_question"
-                            autocomplete="off"
+                            name="article_prompt_no_store"
+                            autocomplete="new-password"
                             autocorrect="off"
                             autocapitalize="none"
                             spellcheck="false"
                             inputmode="text"
                             data-lpignore="true"
+                            data-1p-ignore="true"
+                            data-bwignore="true"
                             data-form-type="other"
                             readonly
+                            rows="1"
                             placeholder="დასვი კითხვა ამ სტატიის შესახებ..."
                             aria-label="კითხვა სტატიის ბოტისთვის"
-                        />
+                        ></textarea>
                         <button class="article-bot-send" id="articleBotSendBtn" aria-label="კითხვის გაგზავნა">↑</button>
                     </div>
                     <p class="bot-hint">ბოტი პასუხობს მხოლოდ ამ სტატიის მიხედვით</p>
@@ -1063,7 +1059,7 @@
     <script src="js/extras.js?v=46" defer></script>
 
     <!-- JavaScript ფაილის დაკავშირება -->
-    <script src="js/script.js?v=47" defer></script>
+    <script src="js/script.js?v=48" defer></script>
     <!-- ΑΓΟΡᲐ ფორუმი -->
     <script src="js/agora.js?v=46" defer></script>
     <!-- UPLOADER MODAL -->
