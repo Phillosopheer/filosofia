@@ -675,6 +675,8 @@ select.tb-btn option { background:var(--surface); color:var(--text); }
 #articleBotPanel { display:none; margin-top:16px; }
 .article-bot-toggle { display:flex; align-items:center; gap:10px; width:100%; padding:12px 18px; background:var(--surface); border:1px solid var(--border); color:var(--text); font-family:'Cinzel',Georgia,serif; font-size:0.8rem; font-weight:500; cursor:pointer; transition:0.3s; letter-spacing:1px; }
 .article-bot-toggle:hover { border-color:var(--gold); background:var(--surface2); }
+.article-bot-icon { width:18px; height:18px; display:inline-flex; align-items:center; justify-content:center; color:var(--gold-dim); opacity:0.95; }
+.article-bot-icon svg { display:block; }
 .article-bot-input-row { display:flex; gap:10px; margin-top:14px; }
 .article-bot-input { flex:1; padding:12px 15px; background:var(--surface); border:1px solid var(--border); color:var(--text); font-family:'EB Garamond',Georgia,serif; font-size:0.95rem; outline:none; transition:0.3s; border-radius:0; }
 .article-bot-input:focus { border-color:var(--gold); box-shadow:0 0 0 2px rgba(201,168,76,0.1); }
