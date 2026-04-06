@@ -2530,12 +2530,12 @@ document.getElementById('deleteCurrentNoteBtn').addEventListener('click', delete
 document.getElementById('articleBotToggle').addEventListener('click', toggleArticleBot);
 document.getElementById('articleBotSendBtn').addEventListener('click', askArticleBot);
 document.getElementById('articleBotInput').addEventListener('keydown', (e) => {
-if (e.key === 'Enter') askArticleBot();
+if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); askArticleBot(); }
 });
 const articleBotInput = document.getElementById('articleBotInput');
 if (articleBotInput) {
 articleBotInput.value = '';
-articleBotInput.setAttribute('autocomplete', 'off');
+articleBotInput.setAttribute('autocomplete', 'new-password');
 articleBotInput.addEventListener('focus', () => {
 if (articleBotInput.hasAttribute('readonly')) articleBotInput.removeAttribute('readonly');
 }, { once: true });
