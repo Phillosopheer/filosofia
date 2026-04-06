@@ -557,6 +557,13 @@
   font-size: 0.8rem;
   letter-spacing: 2px;
   opacity: 0.5;
+  margin-bottom: 24px;
+}
+.agora-empty .agora-login-notice {
+  margin-top: 56px !important;
+  max-width: 560px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 
