@@ -226,7 +226,7 @@ async function agoraShowList(page) {
         <div class="agora-empty">
           <div class="agora-empty-icon">🏛</div>
           <div class="agora-empty-text">პირველი იყავი - გახსენი თემა</div>
-          ${!canCreate ? `<div class="agora-login-notice" style="margin-top:38px;">თემის გასახსნელად საჭიროა <span id="agoraEmptyLoginLink" style="color:var(--gold);cursor:pointer;text-decoration:underline;">შესვლა / რეგისტრაცია</span></div>` : ''}
+          ${!canCreate ? `<div class="agora-login-notice" style="margin-top:56px;">თემის გასახსნელად საჭიროა <span id="agoraEmptyLoginLink" style="color:var(--gold);cursor:pointer;text-decoration:underline;">შესვლა / რეგისტრაცია</span></div>` : ''}
         </div>`;
       document.getElementById('agoraListPagination').innerHTML = '';
       const emptyLoginLink = document.getElementById('agoraEmptyLoginLink');
