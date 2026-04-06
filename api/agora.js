@@ -31,6 +31,30 @@ const OPENING_TURNS_EACH = 5;    // 5+5 = 10 სვლა გახსნაშ�
 const FINAL_TURNS_EACH   = 10;   // 10+10 = 20 სვლა ბოლოში
 const CROSS_MIN_Q        = 5;
 const CROSS_MAX_Q        = 20;
+const AGORA_RL_WINDOW_MS = 60 * 1000;
+const AGORA_RL_DEFAULT   = 40;
+const AGORA_RL_BY_ACTION = {
+  "get-threads": 80,
+  "get-thread": 60,
+  "get-replies": 80,
+  "get-debate": 60,
+  "get-user-profile": 50,
+  "create-thread": 8,
+  "create-debate": 6,
+  "create-reply": 18,
+  "submit-turn": 14,
+  "submit-cross-questions": 8,
+  "submit-cross-answer": 30,
+  "accept-debate": 10,
+  "decline-debate": 10,
+  "cancel-debate": 8,
+  "request-end-debate": 8,
+  "decline-end-debate": 15,
+  "edit-thread": 10,
+  "delete-thread": 8,
+  "edit-reply": 12,
+  "delete-reply": 12
+};
 
 
 // ============================================================
@@ -113,6 +137,36 @@ async function fbPush(path, data) {
   if (!res.ok) return null;
   const result = await res.json();
   return result.name; // Firebase-ის მიერ გენერირებული ID
+}
+
+function getClientIp(req) {
+  return req.headers["x-forwarded-for"]?.split(",")[0]?.trim()
+    || req.headers["x-real-ip"]
+    || req.socket?.remoteAddress
+    || "unknown";
+}
+
+function firebaseSafeKey(v) {
+  return String(v || "unknown").replace(/[.#$[\]/]/g, "_");
+}
+
+async function enforceAgoraRateLimit(req, action, now) {
+  const ip = getClientIp(req);
+  const ipKey = firebaseSafeKey(ip);
+  const actionKey = firebaseSafeKey(action || "unknown");
+  const limit = AGORA_RL_BY_ACTION[action] || AGORA_RL_DEFAULT;
+  const rlPath = `/agora-ratelimit/${ipKey}/${actionKey}`;
+
+  const rlData = await fbGet(rlPath);
+  const recent = (rlData?.timestamps || []).filter(ts => ts > (now - AGORA_RL_WINDOW_MS));
+  if (recent.length >= limit) {
+    const earliest = recent[0] || now;
+    const retryAfterSec = Math.max(1, Math.ceil((earliest + AGORA_RL_WINDOW_MS - now) / 1000));
+    return { ok: false, retryAfterSec };
+  }
+
+  await fbSet(rlPath, { timestamps: [...recent, now], updatedAt: now });
+  return { ok: true };
 }
 
 // ============================================================
@@ -595,10 +649,21 @@ export default async function handler(req, res) {
   if (!isAllowed)            return res.status(403).json({ error: "Forbidden" });
   res.setHeader("Access-Control-Allow-Origin", origin);
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+  const contentLength = Number(req.headers["content-length"] || 0);
+  if (Number.isFinite(contentLength) && contentLength > 200000) {
+    return res.status(413).json({ error: "მოთხოვნა ზედმეტად დიდია" });
+  }
 
   const body   = typeof req.body === "string" ? JSON.parse(req.body) : (req.body || {});
   const { action } = body;
   const now = Date.now();
+  const rl = await enforceAgoraRateLimit(req, action, now);
+  if (!rl.ok) {
+    res.setHeader("Retry-After", String(rl.retryAfterSec));
+    return res.status(429).json({
+      error: `ძალიან ბევრი მოთხოვნა. სცადე ${rl.retryAfterSec} წამში.`
+    });
+  }
 
 
   // ============================================================
