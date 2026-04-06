@@ -2532,6 +2532,14 @@ document.getElementById('articleBotSendBtn').addEventListener('click', askArticl
 document.getElementById('articleBotInput').addEventListener('keydown', (e) => {
 if (e.key === 'Enter') askArticleBot();
 });
+const articleBotInput = document.getElementById('articleBotInput');
+if (articleBotInput) {
+articleBotInput.value = '';
+articleBotInput.setAttribute('autocomplete', 'off');
+articleBotInput.addEventListener('focus', () => {
+if (articleBotInput.hasAttribute('readonly')) articleBotInput.removeAttribute('readonly');
+}, { once: true });
+}
 const adminUnblockBotBtn = document.getElementById('adminUnblockBotBtn');
 if (adminUnblockBotBtn) adminUnblockBotBtn.addEventListener('click', adminUnblockBot);
 document.getElementById('fabBtn').addEventListener('click', openEditor);
