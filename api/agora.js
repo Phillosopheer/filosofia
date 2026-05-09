@@ -288,7 +288,7 @@ async function callGemini(prompt) {
   for (const key of keys) {
     try {
       const r = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemma-3-27b-it:generateContent?key=${key}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemma-4-31b-it:generateContent?key=${key}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

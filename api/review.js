@@ -238,7 +238,7 @@ export default async function handler(req, res) {
         let geminiText = null;
         for (const key of apiKeys) {
             try {
-                const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemma-3-27b-it:generateContent?key=${key}`, {
+                const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemma-4-31b-it:generateContent?key=${key}`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ contents: [{ parts: [{ text: reviewPrompt }] }], generationConfig: { temperature: 0.1, maxOutputTokens: 350 } })

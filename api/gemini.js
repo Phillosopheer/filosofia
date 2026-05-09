@@ -1,4 +1,4 @@
-// ===== gemma-3-27b-it (14,400 მოთხოვნა/დღეში) =====
+// ===== gemma-4-31b-it =====
 // ავტომატურად იყენებს ყველა GEMINI_KEY_* გასაღებს
 // Firebase Admin SDK (Service Account) — App Check-ს გვერდს უვლის
 
@@ -237,7 +237,7 @@ SYSTEM RULES (უმაღლესი პრიორიტეტი — ვე
         for (const key of apiKeys) {
             try {
                 const geminiRes = await fetch(
-                    `https://generativelanguage.googleapis.com/v1beta/models/gemma-3-27b-it:generateContent?key=${key}`,
+                    `https://generativelanguage.googleapis.com/v1beta/models/gemma-4-31b-it:generateContent?key=${key}`,
                     {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
