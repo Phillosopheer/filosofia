@@ -754,12 +754,6 @@ titleElement.innerText = 'ΦΙΛΟΣΟΦΙΑ';
 titleElement.classList.add('wave-anim');
 }
 function goHome() {
-// agora-ს დახურვა თუ გახსნილია
-const agoraView = document.getElementById('agoraView');
-if (agoraView && agoraView.classList.contains('active')) {
-  agoraView.classList.remove('active');
-  document.body.style.overflow = '';
-}
 currentCat = null;
 const addBtn = document.getElementById('glossaryAddBtn');
 if (addBtn) addBtn.style.display = 'none';
@@ -841,7 +835,6 @@ d.classList.add('active');
 currentCat = c;
 localStorage.setItem('lastCategoryId', c.id);
 toggleMenu();
-if (typeof closeAgora === 'function') closeAgora();
 renderNotes();
 });
 list.appendChild(d);
@@ -1625,7 +1618,6 @@ if (idToken) {
   lockBtn.style.display     = 'none';
   if (avatarWrap2) avatarWrap2.style.display = 'flex';
   if (notifWrap) notifWrap.style.display = 'flex';
-  if (typeof agoraNotifLoad === 'function') agoraNotifLoad();
   updateAdminSidebar();
 } else if (currentUser) {
   // Regular user logged in
@@ -1635,7 +1627,6 @@ if (idToken) {
   lockBtn.style.display     = 'none';
   if (avatarWrap2) avatarWrap2.style.display = 'flex';
   if (notifWrap) notifWrap.style.display = 'flex';
-  if (typeof agoraNotifLoad === 'function') agoraNotifLoad();
 } else {
   // Nobody logged in
   submitBtn.style.display   = 'flex';
