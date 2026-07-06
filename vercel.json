@@ -2,9 +2,6 @@
   "functions": {
     "api/gemini.js": {
       "maxDuration": 30
-    },
-    "api/agora.js": {
-      "maxDuration": 30
     }
   },
   "headers": [

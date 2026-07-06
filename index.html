@@ -89,7 +89,6 @@
     <link rel="preload" href="css/fonts/NotoSansGeorgian-Regular.woff" as="font" type="font/woff" crossorigin>
     <link rel="preload" href="css/fonts/EBGaramond-Regular.woff" as="font" type="font/woff" crossorigin>
     <link rel="stylesheet" href="css/style.css?v=51">
-    <link rel="stylesheet" href="css/agora.css?v=46">
 </head>
 <body>
 
@@ -110,13 +109,6 @@
         </div>
         <div class="header-actions" id="headerActions" style="visibility:hidden;">
             <span class="user-badge" id="userBadge"></span>
-            <!-- Agora Button — ყოველთვის ჩანს -->
-            <button class="header-btn agora-header-btn" id="agoraBtn" title="ΑΓΟΡΑ — ფილოსოფიური ფორუმი">
-                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                </svg>
-                <span class="agora-btn-label">აგორა</span>
-            </button>
             <!-- Notification Bell — logged-in only -->
             <div class="notif-wrap" id="notifWrap" style="position:relative;display:none;">
                 <button class="header-btn notif-btn" id="notifBtn" title="შეტყობინებები">
@@ -366,73 +358,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- ===== ΑΓΟΡΑ VIEW ===== -->
-    <div id="agoraView" class="agora-view">
-        <div class="agora-inner">
-            <div class="agora-topbar">
-                <div class="agora-topbar-row">
-                    <button class="agora-back-btn hidden" id="agoraBackBtn">← უკან</button>
-                    <button class="agora-new-btn hidden" id="agoraNewBtn">+ ახალი თემა</button>
-                </div>
-                <div class="agora-topbar-title" id="agoraTopbarTitle">🏛 ა გ ო რ ა</div>
-            </div>
-            <!-- Thread List -->
-            <div id="agoraListView">
-                <div class="agora-desc" id="agoraDescription">
-                    <p>აგორა - ღია სადებატო სივრცეა ფილოსოფიური თემებისთვის. გახსენი თემა, გამოხატე შენი მოსაზრება და სხვებთან ერთად იდებატე. ნებისმიერი ფილოსოფიური კითხვა მისასალმებელია - ეთიკიდან მეტაფიზიკამდე, ეგზისტენციალიზმიდან ლოგიკამდე.</p>
-                </div>
-                <div class="agora-search-wrap" id="agoraSearchWrap">
-                    <span class="agora-search-icon">🔍</span>
-                    <input type="text" id="agoraSearchInput" class="agora-search-input" placeholder="თემის ძებნა..." autocomplete="off" maxlength="100">
-                    <button class="agora-search-clear hidden" id="agoraSearchClear">✕</button>
-                </div>
-                <div id="agoraSearchResults" style="display:none"></div>
-                <div id="agoraThreadList"></div>
-                <div id="agoraListPagination" class="agora-pagination"></div>
-            </div>
-            <!-- Thread Detail -->
-            <div id="agoraThreadView" style="display:none">
-                <div id="agoraThreadContent"></div>
-                <div id="agoraReplies"></div>
-                <div id="agoraRepliesPagination" class="agora-pagination"></div>
-                <div id="agoraReplyFormWrap"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ===== NEW THREAD MODAL ===== -->
-    <div class="modal" id="newThreadModal">
-        <div class="modal-box">
-            <button class="modal-close" id="closeNewThreadModalBtn">✕</button>
-            <h2 style="font-family:'Cinzel',Georgia,serif;font-size:1.1rem;letter-spacing:2px;margin-bottom:22px;color:var(--ivory);">+ ახალი თემა</h2>
-            <div class="agora-error" id="newThreadError"></div>
-            <div class="agora-modal-group">
-                <label class="agora-modal-label">ტიპი</label>
-                <div style="display:flex;gap:8px;">
-                    <button id="typeBtnPublic" style="border:1px solid var(--gold);background:rgba(201,168,76,0.12);color:var(--gold);font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:1.5px;padding:8px 16px;cursor:pointer;">🏛 საჯარო</button>
-                    <button id="typeBtnDebate" style="border:1px solid rgba(201,168,76,0.25);background:none;color:var(--text-dim);font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:1.5px;padding:8px 16px;cursor:pointer;">⚔ 1vs1 დებატი</button>
-                </div>
-            </div>
-            <div class="agora-modal-group" id="debateOpponentWrap" style="display:none;">
-                <label class="agora-modal-label">ოპონენტი</label>
-                <div style="position:relative;">
-                    <input type="text" id="debateOpponentInput" class="agora-modal-input" placeholder="ოპონენტის nickname..." autocomplete="off" />
-                    <span id="debateOpponentStatus" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:0.9rem;"></span>
-                </div>
-                <div id="debateOpponentFound" style="display:none;font-size:0.8rem;margin-top:4px;font-family:'Cinzel',serif;letter-spacing:1px;"></div>
-            </div>
-            <div class="agora-modal-group">
-                <label class="agora-modal-label">სათაური <span id="titleCharCount" style="float:right;color:var(--text-dim);font-size:0.78rem;font-weight:400;">0 / 80</span></label>
-                <input type="text" id="newThreadTitle" class="agora-modal-input" maxlength="80" placeholder="თემის სათაური..." autocomplete="off" />
-            </div>
-            <div class="agora-modal-group">
-                <label class="agora-modal-label" for="newThreadBody" id="newThreadBodyLabel">შინაარსი</label>
-                <textarea id="newThreadBody" class="agora-modal-textarea" placeholder="შენი მოსაზრება... (მინ. 10 სიმბოლო)"></textarea>
-            </div>
-            <button class="btn btn-primary" id="newThreadSubmitBtn" style="width:100%;margin-top:4px">გამოქვეყნება</button>
         </div>
     </div>
 
@@ -1061,7 +986,6 @@
     <!-- JavaScript ფაილის დაკავშირება -->
     <script src="js/script.js?v=48" defer></script>
     <!-- ΑΓΟΡᲐ ფორუმი -->
-    <script src="js/agora.js?v=46" defer></script>
     <!-- UPLOADER MODAL -->
     <div id="uploaderModal" class="modal" role="dialog" aria-modal="true">
       <div class="modal-box wide" style="max-width:520px; background:#161310; border:1px solid rgba(201,168,76,0.28); padding:0; position:relative; overflow:hidden;">
@@ -1125,18 +1049,16 @@
             <button class="up-tab" data-tab="custom">＋</button>
           </div>
 
-          <!-- JS: script.js · agora.js · extras.js · admin.js -->
+          <!-- JS: script.js · extras.js · admin.js -->
           <div class="up-group visible" id="upgroup-js">
             <div class="up-slot" data-path="js/script.js"><div class="up-slot-top"><span class="up-sname">script.js</span><button class="up-xbtn">✕</button></div><div class="up-spath">js/script.js</div><label class="up-area"><input type="file"><div class="up-atext">არჩიე ფაილი</div></label><div class="up-status"></div></div>
-            <div class="up-slot" data-path="js/agora.js"><div class="up-slot-top"><span class="up-sname">agora.js</span><button class="up-xbtn">✕</button></div><div class="up-spath">js/agora.js</div><label class="up-area"><input type="file"><div class="up-atext">არჩიე ფაილი</div></label><div class="up-status"></div></div>
             <div class="up-slot" data-path="js/extras.js"><div class="up-slot-top"><span class="up-sname">extras.js</span><button class="up-xbtn">✕</button></div><div class="up-spath">js/extras.js</div><label class="up-area"><input type="file"><div class="up-atext">არჩიე ფაილი</div></label><div class="up-status"></div></div>
             <div class="up-slot" data-path="js/admin.js"><div class="up-slot-top"><span class="up-sname">admin.js</span><button class="up-xbtn">✕</button></div><div class="up-spath">js/admin.js</div><label class="up-area"><input type="file"><div class="up-atext">არჩიე ფაილი</div></label><div class="up-status"></div></div>
           </div>
 
-          <!-- CSS: style.css · agora.css · admin.css -->
+          <!-- CSS: style.css · admin.css -->
           <div class="up-group" id="upgroup-css">
             <div class="up-slot" data-path="css/style.css"><div class="up-slot-top"><span class="up-sname">style.css</span><button class="up-xbtn">✕</button></div><div class="up-spath">css/style.css</div><label class="up-area"><input type="file"><div class="up-atext">არჩიე ფაილი</div></label><div class="up-status"></div></div>
-            <div class="up-slot" data-path="css/agora.css"><div class="up-slot-top"><span class="up-sname">agora.css</span><button class="up-xbtn">✕</button></div><div class="up-spath">css/agora.css</div><label class="up-area"><input type="file"><div class="up-atext">არჩიე ფაილი</div></label><div class="up-status"></div></div>
             <div class="up-slot" data-path="css/admin.css"><div class="up-slot-top"><span class="up-sname">admin.css</span><button class="up-xbtn">✕</button></div><div class="up-spath">css/admin.css</div><label class="up-area"><input type="file"><div class="up-atext">არჩიე ფაილი</div></label><div class="up-status"></div></div>
           </div>
 
@@ -1146,9 +1068,8 @@
             <div class="up-slot" data-path="admin.html"><div class="up-slot-top"><span class="up-sname">admin.html</span><button class="up-xbtn">✕</button></div><div class="up-spath">admin.html</div><label class="up-area"><input type="file"><div class="up-atext">არჩიე ფაილი</div></label><div class="up-status"></div></div>
           </div>
 
-          <!-- API: agora.js · gemini.js · ban-user.js · review.js · send-code.js · reset-password.js · verify-totp.js -->
+          <!-- API: gemini.js · ban-user.js · review.js · send-code.js · reset-password.js · verify-totp.js -->
           <div class="up-group" id="upgroup-api">
-            <div class="up-slot" data-path="api/agora.js"><div class="up-slot-top"><span class="up-sname">agora.js</span><button class="up-xbtn">✕</button></div><div class="up-spath">api/agora.js</div><label class="up-area"><input type="file"><div class="up-atext">არჩიე ფაილი</div></label><div class="up-status"></div></div>
             <div class="up-slot" data-path="api/gemini.js"><div class="up-slot-top"><span class="up-sname">gemini.js</span><button class="up-xbtn">✕</button></div><div class="up-spath">api/gemini.js</div><label class="up-area"><input type="file"><div class="up-atext">არჩიე ფაილი</div></label><div class="up-status"></div></div>
             <div class="up-slot" data-path="api/ban-user.js"><div class="up-slot-top"><span class="up-sname">ban-user.js</span><button class="up-xbtn">✕</button></div><div class="up-spath">api/ban-user.js</div><label class="up-area"><input type="file"><div class="up-atext">არჩიე ფაილი</div></label><div class="up-status"></div></div>
             <div class="up-slot" data-path="api/review.js"><div class="up-slot-top"><span class="up-sname">review.js</span><button class="up-xbtn">✕</button></div><div class="up-spath">api/review.js</div><label class="up-area"><input type="file"><div class="up-atext">არჩიე ფაილი</div></label><div class="up-status"></div></div>
