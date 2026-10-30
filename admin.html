@@ -15,13 +15,10 @@
     <button class="adm-hamburger" id="admHamburger" aria-label="მენიუ">
       <span></span><span></span><span></span>
     </button>
-    <div class="adm-logo">
-      ΦΙΛΟΣΟΦΙΑ
-      <span class="adm-logo-sub">/ ადმინ პანელი</span>
-    </div>
+    <a href="/" class="adm-back">← საიტზე დაბრუნება</a>
   </div>
+  <div class="adm-title">ადმინ პანელი</div>
   <div class="adm-header-right">
-    <a href="/" class="adm-back">← მთავარი</a>
     <span class="owner-badge">OWNER</span>
   </div>
 </header>
@@ -30,53 +27,39 @@
 
 <div class="adm-layout">
   <nav class="adm-nav" id="admNav">
-    <div class="nav-section">
-      <span class="nav-label">მთავარი</span>
-      <div class="nav-item active" data-view="dashboard"><span class="nav-icon">◈</span> დაფა</div>
-      <div class="nav-item" data-view="articles"><span class="nav-icon">◉</span> სტატიები</div>
-    </div>
-    <div class="nav-section">
-      <span class="nav-label">მოდერაცია</span>
-      <div class="nav-item" data-view="pending"><span class="nav-icon">⊡</span> განსახილველი <span class="nav-badge" id="pendingBadge">0</span></div>
-      <div class="nav-item" data-view="users"><span class="nav-icon">⊞</span> მომხმარებლები</div>
-    </div>
+    <div class="nav-item active" data-view="dashboard"><span class="nav-icon">📊</span> მთავარი</div>
+    <div class="nav-item" data-view="pending"><span class="nav-icon">⏳</span> განსახილველი <span class="nav-badge" id="pendingBadge">0</span></div>
+    <div class="nav-item" data-view="articles"><span class="nav-icon">📄</span> სტატიები</div>
+    <div class="nav-item" data-view="users"><span class="nav-icon">👥</span> მომხმარებლები</div>
   </nav>
 
   <main class="adm-main">
 
     <div class="adm-view active" id="view-dashboard">
-      <p class="pg-label">DASHBOARD</p>
-      <p class="pg-title">მართვის პანელი</p>
-      <div class="pg-divider"><div class="pg-line"></div><div class="pg-dot"></div><div class="pg-line pg-line-r"></div></div>
+      <h1 class="pg-title">მთავარი</h1>
       <div class="stats-row">
-        <div class="stat-card"><div class="stat-card-glow"></div><div class="stat-icon">◈</div><div class="stat-value" id="statTotalNotes">—</div><div class="stat-label">სტატია სულ</div></div>
-        <div class="stat-card"><div class="stat-card-glow"></div><div class="stat-icon">◎</div><div class="stat-value" id="statPending">—</div><div class="stat-label">განსახილველი</div></div>
-        <div class="stat-card"><div class="stat-card-glow"></div><div class="stat-icon">⊞</div><div class="stat-value" id="statUsers">—</div><div class="stat-label">მომხმარებელი</div></div>
+        <button class="stat-card" data-goto="articles"><div class="stat-value" id="statTotalNotes">—</div><div class="stat-label">სტატია</div></button>
+        <button class="stat-card" data-goto="pending"><div class="stat-value" id="statPending">—</div><div class="stat-label">განსახილველი</div></button>
+        <button class="stat-card" data-goto="users"><div class="stat-value" id="statUsers">—</div><div class="stat-label">მომხმარებელი</div></button>
       </div>
-      <div class="sec-head"><span class="sec-title">განსახილველი სტატიები</span><button class="btn-sm" id="dashPendingAllBtn">ყველა →</button></div>
+      <div class="sec-head"><h2 class="sec-title">განსახილველი სტატიები</h2><button class="btn-sm" id="dashPendingAllBtn">ყველა →</button></div>
       <div id="dashPendingList" class="pending-list"><div class="loading-dots"><span></span><span></span><span></span></div></div>
-      <div class="sec-head"><span class="sec-title">ბოლო სტატიები</span><button class="btn-sm" id="dashNotesAllBtn">ყველა →</button></div>
+      <div class="sec-head"><h2 class="sec-title">ბოლო სტატიები</h2><button class="btn-sm" id="dashNotesAllBtn">ყველა →</button></div>
       <div class="tbl-wrap" id="dashNotesList"><div class="loading-dots"><span></span><span></span><span></span></div></div>
     </div>
 
-    <div class="adm-view" id="view-articles">
-      <p class="pg-label">ARTICLES</p>
-      <p class="pg-title">სტატიები</p>
-      <div class="pg-divider"><div class="pg-line"></div><div class="pg-dot"></div><div class="pg-line pg-line-r"></div></div>
-      <div class="tbl-wrap" id="allNotesList"><div class="loading-dots"><span></span><span></span><span></span></div></div>
-    </div>
-
     <div class="adm-view" id="view-pending">
-      <p class="pg-label">MODERATION</p>
-      <p class="pg-title">განსახილველი</p>
-      <div class="pg-divider"><div class="pg-line"></div><div class="pg-dot"></div><div class="pg-line pg-line-r"></div></div>
+      <h1 class="pg-title">განსახილველი სტატიები</h1>
       <div id="allPendingList" class="pending-list"><div class="loading-dots"><span></span><span></span><span></span></div></div>
     </div>
 
+    <div class="adm-view" id="view-articles">
+      <h1 class="pg-title">სტატიები</h1>
+      <div class="tbl-wrap" id="allNotesList"><div class="loading-dots"><span></span><span></span><span></span></div></div>
+    </div>
+
     <div class="adm-view" id="view-users">
-      <p class="pg-label">USERS</p>
-      <p class="pg-title">მომხმარებლები</p>
-      <div class="pg-divider"><div class="pg-line"></div><div class="pg-dot"></div><div class="pg-line pg-line-r"></div></div>
+      <h1 class="pg-title">მომხმარებლები</h1>
       <div class="tbl-wrap" id="usersList"><div class="loading-dots"><span></span><span></span><span></span></div></div>
     </div>
 
