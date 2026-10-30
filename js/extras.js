@@ -100,3 +100,36 @@
     c.appendChild(p);
   }
 })();
+
+
+// ===== შეტყობინებების ზარი (dropdown გახსნა/დახურვა) =====
+(function initNotifBell() {
+  var btn  = document.getElementById('notifBtn');
+  var dd   = document.getElementById('notifDropdown');
+  var list = document.getElementById('notifList');
+  var mark = document.getElementById('notifMarkAll');
+  var badge = document.getElementById('notifBadge');
+  if (!btn || !dd) return;
+
+  function showEmpty() {
+    if (list && !list.querySelector('.notif-item')) {
+      list.innerHTML = '<div class="notif-empty">შეტყობინება არ გაქვთ</div>';
+    }
+  }
+  showEmpty();
+
+  btn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    dd.classList.toggle('open');
+  });
+  dd.addEventListener('click', function (e) { e.stopPropagation(); });
+  document.addEventListener('click', function () { dd.classList.remove('open'); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') dd.classList.remove('open');
+  });
+
+  if (mark) mark.addEventListener('click', function () {
+    if (badge) { badge.textContent = '0'; badge.style.display = 'none'; }
+    if (list) list.querySelectorAll('.notif-item').forEach(function (i) { i.classList.remove('unread'); });
+  });
+})();
