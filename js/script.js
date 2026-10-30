@@ -1,4 +1,13 @@
 
+
+// Register the cache worker where supported (HTTPS or localhost).
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register(new URL('service-worker.js', document.baseURI))
+      .catch(() => {});
+  }, { once: true });
+}
+
 // ===== TOTP შემოწმება =====
 async function doTotpVerify() {
   const token = (document.getElementById('totpInput').value || '').replace(/\s/g, '');
@@ -357,7 +366,7 @@ async function submitArticle() {
 const title   = document.getElementById('submissionTitle').value.trim();
 const author  = document.getElementById('submissionAuthor').value.trim();
 const cat     = document.getElementById('submissionCat').value;
-const content = document.getElementById('submissionArea').innerHTML.trim();
+const content = sanitizeArticleHtml(document.getElementById('submissionArea').innerHTML.trim());
 const errEl   = document.getElementById('submissionError');
 const sucEl   = document.getElementById('submissionSuccess');
 const btn     = document.getElementById('submitArticleBtn');
@@ -377,16 +386,16 @@ try {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ title, content, honeypot, fpHash, cat })
   });
-  const reviewData = await reviewRes.json();
+    const reviewData = await reviewRes.json();
+  if (!reviewRes.ok && !reviewData.blocked) throw new Error(reviewData.error || 'სტატიის შემოწმება ვერ მოხერხდა.');
   if (reviewData.blocked) {
     showMsg(errEl, '🚫 ' + (reviewData.message || 'გაგზავნა დაიბლოკა.'), true);
     btn.disabled  = false;
     btn.innerText = 'გაგზავნა';
     return;
   }
-  if (reviewData.error) {
-    // სერვერის შეცდომა — გავაგრძელოთ გაგზავნა
-    console.warn('Review API error:', reviewData.error);
+    if (reviewData.error) {
+    throw new Error(reviewData.error || 'სტატიის შემოწმება ვერ მოხერხდა.');
   } else if (reviewData.categoryWarn) {
     // კატეგორია არასწორია — მომხმარებელს შევახსენებთ
     const catSelect = document.getElementById('submissionCat');
@@ -403,8 +412,11 @@ try {
     btn.innerText = 'გაგზავნა';
     return;
   }
-} catch {
-  // თუ review API მიუწვდომელია — გავაგრძელოთ
+} catch (err) {
+  showMsg(errEl, '⚠️ ' + (err.message || 'სტატიის შემოწმება ვერ მოხერხდა. სცადე მოგვიანებით.'), true);
+  btn.disabled = false;
+  btn.innerText = 'გაგზავნა';
+  return;
 }
 
 // ===== Firebase-ში გაგზავნა =====
@@ -515,7 +527,7 @@ ${note.author ? `<p style="color:var(--accent); font-size:0.8rem; font-weight:60
 <p style="color:var(--text-dim); font-size:0.75rem;">${dateStr}</p>
 </div>
 </div>
-<p style="color:var(--text-dim); font-size:0.9rem; line-height:1.6; margin-bottom:15px;">${excerpt}</p>
+<p style="color:var(--text-dim); font-size:0.9rem; line-height:1.6; margin-bottom:15px;">${escapeHtml(excerpt)}</p>
 <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:4px;">
 <button class="pnote-preview" style="display:flex;align-items:center;gap:6px;padding:9px 15px;background:rgba(180,145,60,0.08);border:1px solid rgba(180,145,60,0.3);border-radius:8px;color:var(--accent);cursor:pointer;font-size:0.82rem;font-family:inherit;letter-spacing:0.5px;transition:all 0.2s;">👁 ნახვა</button>
 <button class="pnote-edit" style="display:flex;align-items:center;gap:6px;padding:9px 15px;background:rgba(180,145,60,0.08);border:1px solid rgba(180,145,60,0.3);border-radius:8px;color:var(--accent);cursor:pointer;font-size:0.82rem;font-family:inherit;letter-spacing:0.5px;transition:all 0.2s;">✏️ რედაქტირება</button>
@@ -840,42 +852,75 @@ renderNotes();
 list.appendChild(d);
 });
 }
+const NOTES_CACHE_KEY = 'filosofia_notes_cache';
+
+function renderFetchedNotes() {
+  buildCatList();
+  const lastCatId = localStorage.getItem('lastCategoryId');
+  if (!currentCat && lastCatId) {
+    const savedCat = categories.find(c => c.id === lastCatId);
+    if (savedCat) {
+      currentCat = savedCat;
+      const catElement = document.getElementById('cat_' + lastCatId);
+      if (catElement) {
+        document.querySelectorAll('.cat-item').forEach(el => el.classList.remove('active'));
+        catElement.classList.add('active');
+      }
+      renderNotes();
+      return;
+    }
+  }
+  if (!currentCat) goHome();
+  else renderNotes();
+}
+
 async function fetchNotes(retryCount = 0) {
-const grid = document.getElementById('notesGrid');
-grid.innerHTML = '<div class="spinner"></div>';
-buildCatList();
-try {
-const res  = await fbFetch(`${FIREBASE_DB}/notes.json`);
-if (!res.ok) throw new Error('ჩატვირთვა ვერ მოხერხდა');
-const data = await res.json();
-notes = data
-? Object.entries(data).map(([k, v]) => ({ ...v, fbId: k }))
-: [];
-buildCatList();
-const lastCatId = localStorage.getItem('lastCategoryId');
-if (!currentCat && lastCatId) {
-const savedCat = categories.find(c => c.id === lastCatId);
-if (savedCat) {
-currentCat = savedCat;
-const catElement = document.getElementById('cat_' + lastCatId);
-if (catElement) {
-document.querySelectorAll('.cat-item').forEach(el => el.classList.remove('active'));
-catElement.classList.add('active');
-}
-renderNotes();
-return;
-}
-}
-if (!currentCat) goHome();
-else renderNotes();
-} catch (err) {
-if (retryCount < 2) {
-  grid.innerHTML = '<div class="spinner"></div>';
-  setTimeout(() => fetchNotes(retryCount + 1), 2000);
-  return;
-}
-grid.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>${err.message}</p><button onclick="fetchNotes()" style="margin-top:12px;padding:8px 20px;background:none;border:1px solid rgba(201,168,76,0.4);color:var(--gold);font-family:Cinzel,serif;font-size:0.65rem;cursor:pointer;letter-spacing:1px;">↺ თავიდან</button></div>`;
-}
+  const grid = document.getElementById('notesGrid');
+  let hasCachedNotes = false;
+
+  if (retryCount === 0) {
+    try {
+      const cached = JSON.parse(localStorage.getItem(NOTES_CACHE_KEY) || 'null');
+      if (Array.isArray(cached) && cached.length >= 0) {
+        notes = cached;
+        hasCachedNotes = true;
+        renderFetchedNotes();
+      }
+    } catch {}
+  }
+
+  if (!hasCachedNotes) {
+    grid.innerHTML = '<div class="spinner"></div>';
+    buildCatList();
+  }
+
+  try {
+    const res = await fbFetch(`${FIREBASE_DB}/notes.json`);
+    if (!res.ok) throw new Error('ჩატვირთვა ვერ მოხერხდა');
+    const data = await res.json();
+    notes = data
+      ? Object.entries(data).map(([k, v]) => ({ ...v, fbId: k }))
+      : [];
+
+    try {
+      const serialized = JSON.stringify(notes);
+      if (serialized.length < 4 * 1024 * 1024) {
+        localStorage.setItem(NOTES_CACHE_KEY, serialized);
+      }
+    } catch {}
+
+    renderFetchedNotes();
+  } catch (err) {
+    if (hasCachedNotes) return;
+    if (retryCount < 2) {
+      grid.innerHTML = '<div class="spinner"></div>';
+      setTimeout(() => fetchNotes(retryCount + 1), 2000);
+      return;
+    }
+    grid.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p></p><button type="button" style="margin-top:12px;padding:8px 20px;background:none;border:1px solid rgba(201,168,76,0.4);color:var(--gold);font-family:Cinzel,serif;font-size:0.65rem;cursor:pointer;letter-spacing:1px;">↺ თავიდან</button></div>';
+    grid.querySelector('p').textContent = err.message;
+    grid.querySelector('button').addEventListener('click', () => fetchNotes());
+  }
 }
 function renderNotes(filtered_override) {
 const grid = document.getElementById('notesGrid');
@@ -1003,8 +1048,7 @@ coverContainer.innerHTML = `<img src="${note.coverUrl}" alt="${escapeHtml(note.t
 } else {
 coverContainer.innerHTML = '';
 }
-const sanitized = (note.content || '').replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '');
-document.getElementById('readBody').innerHTML = sanitized;
+document.getElementById('readBody').innerHTML = sanitizeArticleHtml(note.content);
 const adminCtrl = document.getElementById('adminControls');
 adminCtrl.style.display = idToken ? 'block' : 'none';
 document.getElementById('reader').style.display = 'block';
@@ -1396,7 +1440,7 @@ preview.innerHTML = `<img src="${url.trim()}" style="max-width:100%; max-height:
 async function saveNote() {
 const title   = document.getElementById('editorTitle').value.trim();
 const cat     = document.getElementById('editorCat').value;
-const content = document.getElementById('editorArea').innerHTML.trim();
+const content = sanitizeArticleHtml(document.getElementById('editorArea').innerHTML.trim());
 const coverFileInput = document.getElementById('coverFileInput');
 const coverUrlInput  = coverFileInput?._coverData || '';
 const author  = document.getElementById('editorAuthor').value.trim();
@@ -1493,9 +1537,9 @@ coverHTML = `<div class="carousel-img-wrapper"><img src="${note.coverUrl}" alt="
 card.innerHTML = `
 ${coverHTML}
 <p class="carousel-card-cat">${getCategoryLabel(note.cat)}</p>
-<h4 class="carousel-card-title">${note.title}</h4>
-${note.author ? `<p class="carousel-card-author">✍️ ${note.author}</p>` : ''}
-<p class="carousel-card-excerpt">${getExcerpt(note.content)}</p>
+<h4 class="carousel-card-title">${escapeHtml(note.title || 'უსახელო')}</h4>
+${note.author ? `<p class="carousel-card-author">✍️ ${escapeHtml(note.author)}</p>` : ''}
+<p class="carousel-card-excerpt">${escapeHtml(getExcerpt(note.content))}</p>
 <div class="carousel-card-footer">
 <span class="carousel-card-date">${formatDate(note.date)}</span>
 <span class="carousel-card-read">კითხვა →</span>
@@ -1560,7 +1604,8 @@ dot.className = index === currentSlide ? 'carousel-dot carousel-dot-active' : 'c
 });
 }
 function getExcerpt(html) {
-const text = html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+const doc = new DOMParser().parseFromString(String(html || ''), 'text/html');
+const text = (doc.body.textContent || '').replace(/\s+/g, ' ').trim();
 return text.length > 120 ? text.substring(0, 120) + '...' : text;
 }
 function filterNotes() {
@@ -1745,7 +1790,65 @@ if (show) el.classList.add('active');
 else el.classList.remove('active');
 }
 function escapeHtml(str) {
-return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function sanitizeArticleHtml(html) {
+  const doc = new DOMParser().parseFromString(String(html || ''), 'text/html');
+  const safeTags = new Set(['A','P','BR','STRONG','B','EM','I','U','S','STRIKE','H1','H2','H3','BLOCKQUOTE','HR','UL','OL','LI','DIV','SPAN','FONT']);
+  const dropTags = new Set(['SCRIPT','STYLE','IFRAME','OBJECT','EMBED','SVG','MATH','TEMPLATE','FORM','INPUT','BUTTON','TEXTAREA','SELECT','OPTION','VIDEO','AUDIO','SOURCE','LINK','META','BASE']);
+  const safeColor = value => /^(#[\da-f]{3,8}|[a-z]{1,20}|(?:rgb|rgba|hsl|hsla)\([\d.%\s,/-]+\))$/i.test(value.trim());
+
+  function clean(parent) {
+    Array.from(parent.childNodes).forEach(node => {
+      if (node.nodeType === Node.TEXT_NODE) return;
+      if (node.nodeType !== Node.ELEMENT_NODE) { node.remove(); return; }
+      const tag = node.tagName;
+      if (dropTags.has(tag)) { node.remove(); return; }
+      clean(node);
+      if (!safeTags.has(tag)) {
+        node.replaceWith(...Array.from(node.childNodes));
+        return;
+      }
+
+      Array.from(node.attributes).forEach(attr => {
+        const name = attr.name.toLowerCase();
+        const value = attr.value.trim();
+        if (name === 'href' && tag === 'A') {
+          try {
+            const url = new URL(value, location.href);
+            if (!['http:', 'https:', 'mailto:', 'tel:'].includes(url.protocol)) node.removeAttribute(attr.name);
+            else node.setAttribute('href', value);
+          } catch { node.removeAttribute(attr.name); }
+        } else if (name === 'title') {
+          node.setAttribute('title', value);
+        } else if (name === 'align' && ['left','right','center','justify'].includes(value.toLowerCase())) {
+          node.setAttribute('align', value.toLowerCase());
+        } else if (tag === 'FONT' && name === 'size' && /^[1-7]$/.test(value)) {
+          node.setAttribute('size', value);
+        } else if (tag === 'FONT' && name === 'color' && safeColor(value)) {
+          node.setAttribute('color', value);
+        } else if (name === 'style') {
+          const styles = [];
+          for (const prop of ['color', 'background-color', 'text-align', 'font-size']) {
+            const cssValue = node.style.getPropertyValue(prop).trim();
+            const valid = prop === 'text-align'
+              ? /^(left|right|center|justify|start|end)$/i.test(cssValue)
+              : prop === 'font-size'
+                ? /^(\d{1,3}(\.\d+)?(px|pt|em|rem|%|vh|vw)|xx-small|x-small|small|medium|large|x-large|xx-large|smaller|larger)$/i.test(cssValue)
+                : safeColor(cssValue);
+            if (cssValue && valid) styles.push(`${prop}: ${cssValue}`);
+          }
+          if (styles.length) node.setAttribute('style', styles.join('; '));
+          else node.removeAttribute('style');
+        } else {
+          node.removeAttribute(attr.name);
+        }
+      });
+    });
+  }
+
+  clean(doc.body);
+  return doc.body.innerHTML;
 }
 function copyNote(btn) {
 if (!currentNote) return;
@@ -1840,7 +1943,7 @@ async function updateNote() {
 if (!currentNote || !idToken) return;
 const title   = document.getElementById('editTitle').value.trim();
 const cat     = document.getElementById('editCat').value;
-const content = document.getElementById('editArea').innerHTML.trim();
+const content = sanitizeArticleHtml(document.getElementById('editArea').innerHTML.trim());
 const coverUrlInput = document.getElementById('editCoverUrl').value.trim();
 const author  = document.getElementById('editAuthor').value.trim();
 const errEl   = document.getElementById('editError');
@@ -1879,7 +1982,7 @@ currentNote = { ...updated, fbId: currentNote.fbId };
 showMsg(sucEl, '✓ განახლდა!', true);
 showMsg(errEl, '', false);
 document.getElementById('readTitle').innerText = title;
-document.getElementById('readBody').innerHTML  = content.replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '');
+document.getElementById('readBody').innerHTML  = sanitizeArticleHtml(content);
 const coverContainer = document.getElementById('readCover');
 if (coverContainer) {
 if (updated.coverUrl) {
