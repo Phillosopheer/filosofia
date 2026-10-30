@@ -1484,3 +1484,70 @@ select.tb-btn option { background:var(--surface); color:var(--text); }
 @media (max-width: 480px) {
   .notif-dropdown { position: fixed; top: 64px; right: 12px; left: 12px; width: auto; max-width: none; }
 }
+
+/* Typography: improve Georgian readability and make key text easier to scan. */
+body {
+  font-family: 'Noto Sans Georgian', 'Noto Serif Georgian', sans-serif;
+  font-size: 17px;
+}
+
+.hero h1,
+#readTitle,
+.card h3,
+.carousel-card-title,
+.term-title {
+  font-family: 'Cinzel', 'Noto Serif Georgian', 'Noto Sans Georgian', Georgia, serif;
+}
+
+#pageSubtitle {
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  letter-spacing: 2px;
+}
+
+.welcome-text p {
+  font-family: 'Noto Sans Georgian', 'Noto Serif Georgian', sans-serif;
+  font-size: 1.08rem;
+  line-height: 1.9;
+}
+.welcome-text p:first-child {
+  font-size: 0.95rem;
+}
+
+#quoteText {
+  font-family: 'Noto Serif Georgian', 'Noto Sans Georgian', Georgia, serif;
+  font-size: 1.2rem;
+}
+#quoteAuthor {
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+}
+
+.card h3 { font-size: 1.08rem; }
+.card-meta-info span:first-child { font-size: 0.88rem; }
+.card-meta-info .card-date,
+.card-date { font-size: 0.82rem; }
+.card-read,
+.carousel-card-read { font-size: 0.88rem; }
+
+#readBody {
+  font-family: 'Noto Serif Georgian', 'Noto Sans Georgian', Georgia, serif;
+  font-size: 1.15rem;
+  line-height: 1.9;
+}
+#readCat { font-size: 0.75rem; }
+#readDate { font-size: 0.82rem; }
+#readAuthor { font-size: 0.9rem; }
+
+.term-definition { font-size: 1.18rem; }
+.glossary-modal-desc,
+.submission-desc { font-size: 1rem; }
+.form-group label { font-size: 0.75rem; }
+
+@media (max-width: 768px) {
+  body { font-size: 16px; }
+  .welcome-text p { font-size: 1rem; }
+  #quoteText { font-size: 1.1rem; }
+  #readBody { font-size: 1.08rem; }
+  .term-definition { font-size: 1.08rem; }
+}
+
