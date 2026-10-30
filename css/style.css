@@ -1422,3 +1422,65 @@ select.tb-btn option { background:var(--surface); color:var(--text); }
   font-weight: 700 !important;
   letter-spacing: 0.09em !important;
 }
+
+/* ===== NOTIFICATIONS (bell dropdown) ===== */
+.notif-wrap { display: flex; align-items: center; }
+.notif-btn { position: relative; }
+.notif-badge {
+  position: absolute; top: -5px; right: -5px;
+  background: #ef4444; color: #fff;
+  font-size: 0.62rem; font-weight: 700; line-height: 1;
+  min-width: 18px; padding: 3px 5px; border-radius: 10px;
+  text-align: center;
+}
+.notif-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 300px;
+  max-width: calc(100vw - 24px);
+  background: linear-gradient(160deg, rgba(20,17,12,0.99), rgba(14,12,10,0.99));
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  z-index: 5000;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.7);
+  overflow: hidden;
+  animation: popupIn 0.2s ease;
+}
+.notif-dropdown.open { display: block; }
+.notif-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.notif-header-title {
+  font-family: 'Noto Sans Georgian', sans-serif;
+  font-size: 0.85rem; color: var(--gold);
+}
+.notif-mark-all {
+  background: none; border: 1px solid var(--border);
+  color: var(--ivory-dim); cursor: pointer;
+  font-family: 'Noto Sans Georgian', sans-serif;
+  font-size: 0.72rem; padding: 4px 10px; border-radius: 6px;
+  transition: 0.2s; white-space: nowrap;
+}
+.notif-mark-all:hover { color: var(--gold); border-color: var(--gold-dim); }
+.notif-list { max-height: 320px; overflow-y: auto; }
+.notif-item {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(201,168,76,0.08);
+  font-family: 'Noto Sans Georgian', sans-serif;
+  font-size: 0.82rem; color: var(--ivory);
+  line-height: 1.5;
+}
+.notif-item:last-child { border-bottom: none; }
+.notif-item.unread { background: var(--glass); border-left: 2px solid var(--gold); }
+.notif-empty {
+  padding: 26px 14px; text-align: center;
+  color: var(--text-dim); font-style: italic;
+  font-family: 'Noto Sans Georgian', sans-serif; font-size: 0.82rem;
+}
+@media (max-width: 480px) {
+  .notif-dropdown { position: fixed; top: 64px; right: 12px; left: 12px; width: auto; max-width: none; }
+}
